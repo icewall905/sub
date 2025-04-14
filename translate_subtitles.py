@@ -159,13 +159,14 @@ def pick_llm_and_translate(
     use_deepl = config["general"].getboolean("use_deepl", False)
     deepl_enabled = config["deepl"].getboolean("enabled", False)
 
+    # The line we want to translate
+    line_text = lines[line_index]
+    
     if use_deepl and deepl_enabled:
-        source_lang = config["general"].get("source_language", "es")
-        target_lang = config["general"].get("target_language", "en")
+        source_lang = config["general"].get("source_language", "es").strip('"\'')
+        target_lang = config["general"].get("target_language", "en").strip('"\'')
         deepl_api_key = config["deepl"]["api_key"]
         deepl_api_url = config["deepl"]["api_url"]
-        # The line we want to translate
-        line_text = lines[line_index]
         deepl_translation = call_deepl(deepl_api_key, deepl_api_url, line_text, source_lang, target_lang)
 
     prompt = build_prompt_for_line(lines, line_index, config, deepl_translation)
@@ -177,18 +178,21 @@ def pick_llm_and_translate(
     if ollama_enabled:
         server_url = config["ollama"]["server_url"]
         model_name = config["ollama"]["model"]
+        print(f"Translating line {line_index+1}/{len(lines)} with {model_name}...")
         llm_response = call_ollama(server_url, model_name, prompt)
     elif openai_enabled:
         api_key = config["openai"]["api_key"]
         model_name = config["openai"]["model"]
         api_base_url = config["openai"]["api_base_url"]
+        print(f"Translating line {line_index+1}/{len(lines)} with {model_name}...")
         llm_response = call_openai(api_key, model_name, prompt, api_base_url)
     else:
         # Default to returning the original line if no LLM is configured
         print("No LLM configured or enabled in config. Returning original line.")
         return lines[line_index]
 
-    # Ideally the LLM returns JSON. We can try to parse it. If it fails, we just return the raw string
+    # Process the LLM response
+    translation = ""
     try:
         # Attempt to parse JSON from the response
         # The LLM output might contain extraneous text, so we can try to extract JSON with a quick hack:
@@ -197,13 +201,20 @@ def pick_llm_and_translate(
         if json_start != -1 and json_end != -1 and json_end > json_start:
             json_str = llm_response[json_start:json_end + 1]
             parsed = json.loads(json_str)
-            return parsed["translation"]
+            translation = parsed["translation"]
         else:
             # Fallback, if we can't parse, just return the entire LLM response
-            return llm_response
+            translation = llm_response
     except json.JSONDecodeError:
-        return llm_response
+        translation = llm_response
 
+    # Print the original and translation for comparison with better formatting
+    print("\n" + "="*60)
+    print(f"SOURCE ({config['general'].get('source_language')}): \"{line_text}\"")
+    print(f"TARGET ({config['general'].get('target_language')}): \"{translation}\"")
+    print("="*60)
+    
+    return translation
 
 def translate_srt(input_srt: str, output_srt: str, config: configparser.ConfigParser):
     """

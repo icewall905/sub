@@ -160,16 +160,63 @@ def setup_environment_and_run():
     <html>
     <head>
         <title>Translation Console</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.5;
+                margin: 20px;
+                max-width: 1200px;
+            }
+            h1 {
+                color: #2c3e50;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 10px;
+            }
+            #logBox {
+                background-color: #f8f9fa;
+                border: 1px solid #ddd;
+                padding: 15px;
+                border-radius: 4px;
+                height: 600px;
+                overflow-y: auto;
+                white-space: pre-wrap;
+                font-family: monospace;
+            }
+            .translation-pair {
+                margin-bottom: 10px;
+                padding: 8px;
+                border-left: 3px solid #3498db;
+                background-color: #ecf0f1;
+            }
+            .original {
+                color: #c0392b;
+            }
+            .translation {
+                color: #27ae60;
+            }
+            .progress {
+                font-weight: bold;
+                color: #2980b9;
+            }
+            .error {
+                color: #e74c3c;
+                font-weight: bold;
+            }
+        </style>
     </head>
     <body>
         <h1>Translation Debug Console</h1>
-        <pre id="logBox">{{ logs }}</pre>
+        <div id="logBox">{{ logs }}</div>
         <script>
+          // Auto-refresh the logs every 3 seconds
           setInterval(function(){
             fetch('/logs')
               .then(resp => resp.text())
               .then(txt => {
                 document.getElementById('logBox').textContent = txt;
+                // Auto-scroll to bottom
+                const logBox = document.getElementById('logBox');
+                logBox.scrollTop = logBox.scrollHeight;
               });
           }, 3000);
         </script>
@@ -304,18 +351,24 @@ def setup_environment_and_run():
         deepL_enabled = cfg["deepl"].getboolean("enabled", False)
         ollama_enabled = cfg["ollama"].getboolean("enabled", False)
         openai_enabled = cfg["openai"].getboolean("enabled", False)
+        
+        # Get language settings
+        source_lang = cfg["general"].get("source_language", "en").strip('"\'')
+        target_lang = cfg["general"].get("target_language", "da").strip('"\'')
 
         # Optionally get a "first pass" from DeepL
         deepl_translation = ""
         if use_deepl and deepL_enabled:
-            src_lang = cfg["general"].get("source_language", "es")
-            tgt_lang = cfg["general"].get("target_language", "en")
             d_key = cfg["deepl"]["api_key"]
             d_url = cfg["deepl"]["api_url"]
             text = lines[line_index]
-            deepl_translation = call_deepl(d_key, d_url, text, src_lang, tgt_lang)
+            deepl_translation = call_deepl(d_key, d_url, text, source_lang, target_lang)
 
         prompt = build_prompt_for_line(lines, line_index, cfg, deepl_translation)
+        original_text = lines[line_index]
+        
+        # Progress indicator
+        append_log(f"Translating line {line_index+1}/{len(lines)}...")
 
         # Decide which LLM to call
         if ollama_enabled:
@@ -333,17 +386,26 @@ def setup_environment_and_run():
             return lines[line_index]
 
         # Attempt to parse JSON for the final result
+        translation = ""
         try:
             jstart = llm_response.find('{')
             jend = llm_response.rfind('}')
             if jstart != -1 and jend != -1 and jend > jstart:
                 json_chunk = llm_response[jstart:jend+1]
                 parsed = json.loads(json_chunk)
-                return parsed["translation"]
+                translation = parsed["translation"]
             else:
-                return llm_response
+                translation = llm_response
         except json.JSONDecodeError:
-            return llm_response
+            translation = llm_response
+            
+        # Display the translation with clear formatting
+        append_log("=" * 60)
+        append_log(f"SOURCE ({source_lang}): \"{original_text}\"")
+        append_log(f"TARGET ({target_lang}): \"{translation}\"")
+        append_log("=" * 60)
+
+        return translation
 
     def translate_srt(input_path, output_path, cfg):
         import pysrt
