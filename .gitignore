@@ -6,6 +6,7 @@ venv/
 .venv/
 env/
 .env/
+.*
 
 # Python cache files
 __pycache__/
@@ -29,4 +30,4 @@ logs/
 dist/
 build/
 *.egg-info/
-config.ini
+
