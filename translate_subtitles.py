@@ -6,6 +6,31 @@ import json
 import sys
 from typing import List, Dict, Any
 
+# Language mapping dictionary (full name -> ISO code)
+LANGUAGE_MAPPING = {
+    # Common language full names to ISO codes
+    "english": "en",
+    "danish": "da",
+    "spanish": "es",
+    "german": "de",
+    "french": "fr",
+    "italian": "it",
+    "portuguese": "pt",
+    "dutch": "nl",
+    "swedish": "sv",
+    "norwegian": "no",
+    "finnish": "fi",
+    "polish": "pl",
+    "russian": "ru",
+    "japanese": "ja",
+    "chinese": "zh",
+    "korean": "ko",
+    "arabic": "ar",
+    "hindi": "hi",
+    "turkish": "tr",
+    # Add more as needed
+}
+
 def load_config(config_path: str) -> configparser.ConfigParser:
     """
     Loads the configuration from an INI file.
@@ -13,6 +38,15 @@ def load_config(config_path: str) -> configparser.ConfigParser:
     config = configparser.ConfigParser()
     config.read(config_path)
     return config
+
+# Helper function to get the ISO code from a language name
+def get_iso_code(language_name: str) -> str:
+    """
+    Convert a language name to its ISO code.
+    Returns the input as-is if no mapping is found.
+    """
+    language_name = language_name.lower().strip('"\' ')
+    return LANGUAGE_MAPPING.get(language_name, language_name)
 
 def call_ollama(server_url: str, model: str, prompt: str) -> str:
     """
@@ -97,8 +131,8 @@ def build_prompt_for_line(
     Build the prompt to send to the LLM, including some previous and upcoming
     context lines, as well as an optional DeepL translation for the line being translated.
     """
-    src_lang = config["general"].get("source_language", "es")
-    tgt_lang = config["general"].get("target_language", "en")
+    src_lang = get_iso_code(config["general"].get("source_language", "es"))
+    tgt_lang = get_iso_code(config["general"].get("target_language", "en"))
     context_size_before = config["general"].getint("context_size_before", 10)
     context_size_after  = config["general"].getint("context_size_after", 10)
 
@@ -163,8 +197,8 @@ def pick_llm_and_translate(
     line_text = lines[line_index]
     
     if use_deepl and deepl_enabled:
-        source_lang = config["general"].get("source_language", "es").strip('"\'')
-        target_lang = config["general"].get("target_language", "en").strip('"\'')
+        source_lang = get_iso_code(config["general"].get("source_language", "es").strip('"\''))
+        target_lang = get_iso_code(config["general"].get("target_language", "en").strip('"\''))
         deepl_api_key = config["deepl"]["api_key"]
         deepl_api_url = config["deepl"]["api_url"]
         deepl_translation = call_deepl(deepl_api_key, deepl_api_url, line_text, source_lang, target_lang)
