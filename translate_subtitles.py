@@ -17,12 +17,13 @@ def load_config(config_path: str) -> configparser.ConfigParser:
 def call_ollama(server_url: str, model: str, prompt: str) -> str:
     """
     Send a prompt to an Ollama server and return the text response.
-    Adjust the JSON payload according to Ollama’s actual API.
+    Uses Ollama's API format for generate endpoint.
     """
-    url = f"{server_url}/generate"
+    url = f"{server_url}/api/generate"
     data = {
+        "model": model,
         "prompt": prompt,
-        "model": model
+        "stream": False
     }
 
     try:
@@ -32,10 +33,9 @@ def call_ollama(server_url: str, model: str, prompt: str) -> str:
         print(f"Error calling Ollama server: {e}")
         return ""
 
-    # The actual structure may vary depending on your Ollama endpoint
+    # Parse the response according to Ollama's API format
     resp_json = response.json()
-    # E.g., if the response text is in resp_json["choices"][0]["text"], adapt accordingly
-    return resp_json.get("choices", [{}])[0].get("text", "")
+    return resp_json.get("response", "")
 
 def call_openai(api_key: str, model: str, prompt: str, api_base_url: str) -> str:
     """
