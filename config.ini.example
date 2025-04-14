@@ -4,6 +4,9 @@ target_language = danish
 context_size_before = 10
 context_size_after = 10
 use_deepl = false
+host = 127.0.0.1
+port = 5000
+temperature = 0.2
 
 [ollama]
 enabled = true

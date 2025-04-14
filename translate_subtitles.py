@@ -48,7 +48,7 @@ def get_iso_code(language_name: str) -> str:
     language_name = language_name.lower().strip('"\' ')
     return LANGUAGE_MAPPING.get(language_name, language_name)
 
-def call_ollama(server_url: str, model: str, prompt: str) -> str:
+def call_ollama(server_url: str, model: str, prompt: str, temperature: float = 0.2) -> str:
     """
     Send a prompt to an Ollama server and return the text response.
     Uses Ollama's API format for generate endpoint.
@@ -57,7 +57,8 @@ def call_ollama(server_url: str, model: str, prompt: str) -> str:
     data = {
         "model": model,
         "prompt": prompt,
-        "stream": False
+        "stream": False,
+        "temperature": temperature
     }
 
     try:
@@ -128,54 +129,87 @@ def build_prompt_for_line(
     deepl_translation: str = ""
 ) -> str:
     """
-    Build the prompt to send to the LLM, including some previous and upcoming
-    context lines, as well as an optional DeepL translation for the line being translated.
+    Build the prompt to send to the LLM, including context lines and DeepL reference.
+    Improved to be more conservative about changing DeepL translations.
     """
     src_lang = get_iso_code(config["general"].get("source_language", "es"))
     tgt_lang = get_iso_code(config["general"].get("target_language", "en"))
     context_size_before = config["general"].getint("context_size_before", 10)
     context_size_after  = config["general"].getint("context_size_after", 10)
 
+    # Full language names for better LLM understanding
+    src_lang_full = config["general"].get("source_language", "Spanish")
+    tgt_lang_full = config["general"].get("target_language", "English")
+
     # Gather context lines
     start_context = max(0, index - context_size_before)
     end_context = min(len(lines), index + context_size_after + 1)
 
-    context_lines = lines[start_context:index] + lines[index+1:end_context]
-
-    # This is the line we want to translate
+    # Get previous and upcoming lines separately for better prompt structure
+    previous_lines = lines[start_context:index]
+    upcoming_lines = lines[index+1:end_context]
     line_to_translate = lines[index]
 
-    # Example prompt
-    # You can adapt or refine this prompt to better suit your translation approach.
+    # Build a more conservative prompt that's more likely to keep DeepL translations
     prompt = (
-        f"You are a helpful translation assistant. Here is some conversation context in {src_lang}:\n\n"
+        f"You are an expert subtitle translator from {src_lang_full} to {tgt_lang_full}.\n"
+        f"You will be provided with a DeepL machine translation that is usually technically correct for individual words,\n"
+        f"but sometimes misses context or cultural references.\n\n"
+        
+        f"TRANSLATION GUIDELINES:\n"
+        f"- IMPORTANT: If the DeepL translation appears correct, USE IT AS-IS or with minimal changes\n"
+        f"- ONLY change DeepL translations if they are CLEARLY incorrect based on context\n"
+        f"- Preserve the exact meaning and tone of the original\n"
+        f"- Maintain character names and specialized terms exactly as in DeepL's translation\n"
+        f"- If faced with a choice between DeepL's wording or your own, prefer DeepL's version\n"
+        f"- For idioms or cultural references, check if DeepL handled them appropriately\n"
+        f"- Keep the translation concise and appropriate for subtitles\n\n"
     )
-    for i, c_line in enumerate(context_lines):
-        # Indicate which are previous lines vs upcoming lines
-        if i < (index - start_context):
-            prompt += f"[Previous] {c_line}\n"
-        else:
-            prompt += f"[Upcoming] {c_line}\n"
 
-    prompt += (
-        "\n"
-        f"Now, please translate the following line from {src_lang} to {tgt_lang}:\n"
-        f"'{line_to_translate}'\n\n"
-    )
+    # Add contextual information for better translation
+    prompt += "--- CONTEXT ---\n"
+    
+    # Add previous dialog for context
+    if previous_lines:
+        prompt += "[PREVIOUS DIALOG]:\n"
+        for i, line in enumerate(previous_lines):
+            prompt += f"Line {start_context+i+1}: {line}\n"
+        prompt += "\n"
 
+    # Add the line to translate
+    prompt += f"[LINE TO TRANSLATE]:\n"
+    prompt += f"Line {index+1}: {line_to_translate}\n\n"
+
+    # Add upcoming dialog for full context
+    if upcoming_lines:
+        prompt += "[FOLLOWING DIALOG]:\n"
+        for i, line in enumerate(upcoming_lines):
+            prompt += f"Line {index+i+2}: {line}\n"
+        prompt += "\n"
+    
+    prompt += "--- END CONTEXT ---\n\n"
+
+    # If we have a DeepL translation, add it as reference with clear instructions
     if deepl_translation:
         prompt += (
-            "Here is a translation from DeepL for reference:\n"
-            f"'{deepl_translation}'\n\n"
-            "If you agree that this translation is correct, please return the same text, otherwise provide the improved translation.\n"
-            "Output the final translation in JSON format as follows:\n"
-            '{ "translation": "your final translation here" }\n'
+            f"DEEPL TRANSLATION: \"{deepl_translation}\"\n\n"
+            f"INSTRUCTIONS:\n"
+            f"1. Start by assuming the DeepL translation above is CORRECT\n"
+            f"2. ONLY modify it if there is a CLEAR ERROR based on the context\n"
+            f"3. For specialized terms like 'snorken' or 'hviner', KEEP DeepL's translation\n"
+            f"4. Do not substitute words like 'snorken'→'sover' or 'hviner'→'piv' unless DeepL is factually wrong\n"
+            f"5. Submit your final translation, which in many cases will be IDENTICAL to DeepL's\n\n"
         )
     else:
-        prompt += (
-            "Output the final translation in JSON format as follows:\n"
-            '{ "translation": "your final translation here" }\n'
-        )
+        prompt += "NO DEEPL TRANSLATION AVAILABLE - create your own accurate translation\n\n"
+
+    # Clear response instructions
+    prompt += (
+        f"Respond ONLY with a JSON object in this exact format:\n"
+        f'{"translation": "your translation here"}\n'
+        f"Do not include explanations or any other text."
+    )
+
     return prompt
 
 def pick_llm_and_translate(
@@ -212,8 +246,9 @@ def pick_llm_and_translate(
     if ollama_enabled:
         server_url = config["ollama"]["server_url"]
         model_name = config["ollama"]["model"]
+        temperature = config["ollama"].getfloat("temperature", 0.2)
         print(f"Translating line {line_index+1}/{len(lines)} with {model_name}...")
-        llm_response = call_ollama(server_url, model_name, prompt)
+        llm_response = call_ollama(server_url, model_name, prompt, temperature)
     elif openai_enabled:
         api_key = config["openai"]["api_key"]
         model_name = config["openai"]["model"]

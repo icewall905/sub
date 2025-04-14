@@ -172,10 +172,37 @@ def re_run_in_venv(venv_dir="venv"):
 
 def setup_environment_and_run():
     """Checks venv, creates/populates if needed, and re-runs inside venv."""
-    if not ensure_python3_venv_available():
-        sys.exit(1)
+    
+    # macOS Homebrew support
+    if sys.platform == "darwin":  # Check if we're on macOS
+        print("[INFO] Detected macOS system")
+        
+        # Check if Python venv module is available
+        has_venv = ensure_python3_venv_available()
+        
+        # If Python venv module isn't available, try to use Homebrew
+        if not has_venv:
+            if is_brew_installed():
+                print("[INFO] Homebrew is installed. Will use it to setup environment.")
+                if install_dependencies_with_brew():
+                    print("[INFO] Successfully installed dependencies with Homebrew.")
+                    has_venv = ensure_python3_venv_available()  # Check again after brew install
+                else:
+                    print("[ERROR] Failed to install dependencies with Homebrew.")
+                    print("Please try installing Python 3 manually: brew install python3")
+                    sys.exit(1)
+            else:
+                print("[INFO] Homebrew not found. Recommending installation...")
+                print("\nTo install Homebrew on macOS, run this command in your terminal:")
+                print('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+                print("\nAfter installing Homebrew, run this script again.")
+                sys.exit(1)
+    else:
+        # For non-macOS platforms, just check if venv is available
+        if not ensure_python3_venv_available():
+            sys.exit(1)
 
-    VENV_DIR = "venv_subtrans" # Use a more specific name
+    VENV_DIR = "venv_subtrans"  # Use a more specific name
 
     if not is_running_in_venv():
         print("[INFO] Not running inside a virtual environment.")
@@ -186,6 +213,31 @@ def setup_environment_and_run():
         # Proceed to run the main application logic
         run_web_ui()
 
+def is_brew_installed():
+    """Check if Homebrew is installed on macOS."""
+    return which("brew")
+
+def install_dependencies_with_brew():
+    """Install required dependencies using Homebrew on macOS."""
+    print("[INFO] Installing dependencies using Homebrew...")
+    
+    # Make sure Homebrew itself is up to date
+    run_cmd(["brew", "update"])
+    
+    # Install Python 3 if not already installed
+    if not which("python3"):
+        print("[INFO] Installing Python 3 with Homebrew...")
+        run_cmd(["brew", "install", "python3"])
+    else:
+        print("[INFO] Python 3 is already installed.")
+    
+    # Check if pip3 is available
+    if not which("pip3"):
+        print("[WARNING] pip3 not found. Trying to install...")
+        run_cmd(["brew", "reinstall", "python3"])
+    
+    # Return True if everything was installed successfully
+    return which("python3") and which("pip3")
 
 # --- Main Application Logic (runs inside venv) ---
 
@@ -232,10 +284,10 @@ def run_web_ui():
             sys.exit(f"Error parsing {config_path}.")
         return cfg
 
-    def call_ollama(server_url: str, endpoint_path: str, model: str, prompt: str) -> str:
+    def call_ollama(server_url: str, endpoint_path: str, model: str, prompt: str, temperature: float = 0.2) -> str:
         url = f"{server_url.rstrip('/')}{endpoint_path}"
-        data = {"model": model, "prompt": prompt, "stream": False}
-        append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model}")
+        data = {"model": model, "prompt": prompt, "stream": False, "temperature": temperature}
+        append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model} | Temperature: {temperature}")
         # append_log(f"[DEBUG] Ollama Data: {json.dumps(data)}") # Can be verbose
 
         try:
@@ -262,11 +314,11 @@ def run_web_ui():
             return ""
 
 
-    def call_openai(api_key: str, api_base_url: str, model: str, prompt: str) -> str:
+    def call_openai(api_key: str, api_base_url: str, model: str, prompt: str, temperature: float = 0.2) -> str:
         url = f"{api_base_url.rstrip('/')}/chat/completions"
-        append_log(f"[DEBUG] Calling OpenAI: POST {url} | Model: {model}")
+        append_log(f"[DEBUG] Calling OpenAI: POST {url} | Model: {model} | Temperature: {temperature}")
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
-        data = {"model": model, "messages": [{"role": "user", "content": prompt}], "temperature": 0.2}
+        data = {"model": model, "messages": [{"role": "user", "content": prompt}], "temperature": temperature}
 
         try:
             resp = requests.post(url, headers=headers, json=data, timeout=300)
@@ -336,44 +388,78 @@ def run_web_ui():
     # --- Prompt Building ---
 
     def build_prompt_for_line(lines, index, cfg, deepl_translation=""):
+        """
+        Build a translation prompt that:
+        - Encourages single-word or short translations from DeepL to be accepted if correct.
+        - Allows the LLM to override DeepL if it is clearly wrong based on context.
+        - Minimizes hallucination or expansions not justified by context.
+        - Specifically preserves exclamatory phrases like "Thank goodness you're safe" as exclamations in the target language.
+        """
         # Read config safely with fallbacks
         src_lang_full = cfg.get("general", "source_language", fallback="en")
         tgt_lang_full = cfg.get("general", "target_language", fallback="en")
         context_before = cfg.getint("general", "context_size_before", fallback=10)
-        context_after = cfg.getint("general", "context_size_after", fallback=10)
+        context_after  = cfg.getint("general", "context_size_after", fallback=10)
 
         start_idx = max(0, index - context_before)
-        end_idx = min(len(lines), index + context_after + 1)
+        end_idx   = min(len(lines), index + context_after + 1)
 
         chunk_before = lines[start_idx:index]
-        chunk_after = lines[index+1:end_idx]
+        chunk_after  = lines[index+1:end_idx]
         line_to_translate = lines[index]
 
         prompt_lines = [
-            f"You are a helpful translation assistant specializing in subtitles.",
-            f"Translate the following line from {src_lang_full} to {tgt_lang_full}, maintaining the original meaning and tone.",
-            "Consider the surrounding context provided below for accuracy.",
-            "\n--- Context ---"
+            f"You are an expert subtitle translator specializing in translating from {src_lang_full} to {tgt_lang_full}.",
+            "You will be provided with a DeepL suggestion that is usually correct for individual words or short phrases,",
+            "but sometimes misses subtle context or tone. You may trust your own instincts if you see a clear error.",
+            "",
+            "TRANSLATION GUIDELINES:",
+            "1. For short lines (single words or short phrases), prefer using DeepL exactly if it appears correct.",
+            "2. Only override the DeepL translation if it is clearly incorrect based on context, meaning, tone, or if it is making nonsensical direct translations.",
+            "3. Avoid adding extra words or changing the meaning. Keep it concise and faithful.",
+            "4. Do not hallucinate or expand beyond the original. The DeepL translation is typically correct.",
+            "5. Retain specific character names, repeated words, or unique terms as DeepL suggests unless context demands a correction.",
+            "6. If the original line is an **exclamation** (e.g., “Thank goodness you’re safe!”), preserve it as an exclamation in the target language. Avoid turning it into a direct gratitude phrase like “Thanks for being safe.”",
+            "",
+            "--- CONTEXT ---"
         ]
+
+        # Include some context lines before
         if chunk_before:
-            prompt_lines.append("[Previous Lines]:")
-            prompt_lines.extend(chunk_before)
+            prompt_lines.append("[PREVIOUS LINES]:")
+            for i, prev_line in enumerate(chunk_before):
+                prompt_lines.append(f"Line {start_idx + i + 1}: {prev_line}")
+
+        # The current line to translate
+        prompt_lines.append("\n[CURRENT LINE TO TRANSLATE]:")
+        prompt_lines.append(f"Line {index+1}: {line_to_translate}")
+
+        # Include some context lines after
         if chunk_after:
-            prompt_lines.append("[Upcoming Lines]:")
-            prompt_lines.extend(chunk_after)
-        prompt_lines.append("--- End Context ---\n")
+            prompt_lines.append("\n[NEXT LINES]:")
+            for i, next_line in enumerate(chunk_after):
+                prompt_lines.append(f"Line {index + i + 2}: {next_line}")
 
-        prompt_lines.append(f"Line to Translate ({src_lang_full}):")
-        prompt_lines.append(f"'{line_to_translate}'\n")
+        prompt_lines.append("--- END CONTEXT ---\n")
 
+        # If we have a DeepL translation, show it
         if deepl_translation:
-            prompt_lines.append(f"A reference translation (from DeepL) is provided:")
-            prompt_lines.append(f"'{deepl_translation}'")
-            prompt_lines.append("If this reference is accurate and suitable, use it. Otherwise, provide your improved translation.\n")
+            prompt_lines.append(f"DEEPL SUGGESTION: \"{deepl_translation}\"")
+            prompt_lines.append("")
+            prompt_lines.append("INSTRUCTIONS:")
+            prompt_lines.append(" - If DeepL’s suggestion is correct or very close, use it verbatim or with minimal edits.")
+            prompt_lines.append(" - If DeepL’s suggestion seems obviously wrong given context or tone, fix it.")
+            prompt_lines.append(" - Preserve single-word lines if DeepL uses a single word and it makes sense.")
+            prompt_lines.append(" - Absolutely avoid hallucinating or inventing content not in the original.")
+            prompt_lines.append(" - For exclamatory lines like “Thank goodness you’re safe!”, ensure you keep them as exclamations in the target language (e.g., 'Gudskelov, du er i sikkerhed').")
+        else:
+            prompt_lines.append("NO DEEPL TRANSLATION AVAILABLE.")
+            prompt_lines.append(" - Provide your best translation based on context, single-word or otherwise.")
 
-        prompt_lines.append(f"Output ONLY the final translated line in {tgt_lang_full} within a JSON object like this:")
-        prompt_lines.append('{ "translation": "your final translation here" }')
-        prompt_lines.append("Do not include any other text, explanations, or markdown formatting outside the JSON structure.")
+        prompt_lines.append("")
+        prompt_lines.append("Respond ONLY with a JSON object in this exact format:")
+        prompt_lines.append('{"translation": "your final translation here"}')
+        prompt_lines.append("No explanations or additional text outside the JSON.")
 
         return "\n".join(prompt_lines)
 
@@ -385,10 +471,16 @@ def run_web_ui():
         deepL_enabled = cfg.getboolean("deepl", "enabled", fallback=False)
         ollama_enabled = cfg.getboolean("ollama", "enabled", fallback=False)
         openai_enabled = cfg.getboolean("openai", "enabled", fallback=False)
+        
+        # Get temperature from config - a lower value means less creativity
+        temperature = cfg.getfloat("general", "temperature", fallback=0.2)
 
         source_lang = cfg.get("general", "source_language", fallback="en").strip('"\' ')
         target_lang = cfg.get("general", "target_language", fallback="en").strip('"\' ')
         original_text = lines[line_index]
+        
+        # Sanitize the text to remove HTML tags before processing
+        sanitized_text = sanitize_text(original_text)
 
         # Optionally get a "first pass" from DeepL
         deepl_translation = ""
@@ -396,13 +488,16 @@ def run_web_ui():
             d_key = cfg.get("deepl", "api_key", fallback="")
             d_url = cfg.get("deepl", "api_url", fallback="")
             if d_key and d_url:
-                deepl_translation = call_deepl(d_key, d_url, original_text, source_lang, target_lang)
+                # Use sanitized text for DeepL call
+                deepl_translation = call_deepl(d_key, d_url, sanitized_text, source_lang, target_lang)
                 if deepl_translation:
                      append_log(f"[DEBUG] DeepL Reference: '{deepl_translation}'")
             else:
                 append_log("[WARNING] DeepL is enabled in config, but api_key or api_url is missing.")
-
-        prompt = build_prompt_for_line(lines, line_index, cfg, deepl_translation)
+                
+        # Use sanitized versions for the prompt building and display
+        clean_lines = [sanitize_text(line) for line in lines]
+        prompt = build_prompt_for_line(clean_lines, line_index, cfg, deepl_translation)
 
         # Decide which LLM to call
         llm_response = ""
@@ -411,7 +506,7 @@ def run_web_ui():
             endpoint_path = cfg.get("ollama", "endpoint", fallback="/api/generate")
             model_name = cfg.get("ollama", "model", fallback="")
             if server_url and model_name:
-                llm_response = call_ollama(server_url, endpoint_path, model_name, prompt)
+                llm_response = call_ollama(server_url, endpoint_path, model_name, prompt, temperature)
             else:
                  append_log("[WARNING] Ollama is enabled, but server_url or model is missing in config.")
         elif openai_enabled:
@@ -419,7 +514,7 @@ def run_web_ui():
             base_url = cfg.get("openai", "api_base_url", fallback="https://api.openai.com/v1")
             model_name = cfg.get("openai", "model", fallback="")
             if api_key and model_name:
-                llm_response = call_openai(api_key, base_url, model_name, prompt)
+                llm_response = call_openai(api_key, base_url, model_name, prompt, temperature)
             else:
                  append_log("[WARNING] OpenAI is enabled, but api_key or model is missing in config.")
         else:
@@ -443,30 +538,85 @@ def run_web_ui():
             # If direct parsing fails, try finding JSON within the text
             append_log("[DEBUG] LLM response not direct JSON, attempting extraction...")
             try:
-                json_start = llm_response.find('{')
-                json_end = llm_response.rfind('}')
-                if json_start != -1 and json_end != -1 and json_end > json_start:
-                    json_str = llm_response[json_start:json_end + 1]
-                    parsed = json.loads(json_str)
-                    if isinstance(parsed, dict) and "translation" in parsed:
-                        translation = parsed["translation"]
+                # Look for JSON object pattern with more robust extraction
+                import re
+                
+                # Pattern to find JSON objects - handles cases where "json" keyword might appear
+                json_pattern = r'(\{[\s\S]*?"translation"[\s\S]*?\})'
+                json_matches = re.findall(json_pattern, llm_response)
+                
+                if json_matches:
+                    for potential_json in json_matches:
+                        try:
+                            parsed = json.loads(potential_json)
+                            if isinstance(parsed, dict) and "translation" in parsed:
+                                translation = parsed["translation"]
+                                append_log("[DEBUG] Successfully extracted translation from JSON using regex")
+                                break
+                        except json.JSONDecodeError:
+                            continue
+                
+                # If regex approach failed, try the old method as fallback
+                if not translation:
+                    json_start = llm_response.find('{')
+                    json_end = llm_response.rfind('}')
+                    if json_start != -1 and json_end != -1 and json_end > json_start:
+                        json_str = llm_response[json_start:json_end + 1]
+                        try:
+                            parsed = json.loads(json_str)
+                            if isinstance(parsed, dict) and "translation" in parsed:
+                                translation = parsed["translation"]
+                            else:
+                                append_log(f"[WARNING] Extracted JSON object missing 'translation' key: {json_str[:200]}")
+                        except json.JSONDecodeError:
+                            append_log(f"[WARNING] Invalid JSON after extraction attempt: {json_str[:100]}")
                     else:
-                        append_log(f"[WARNING] Extracted JSON object missing 'translation' key: {json_str[:200]}")
-                else:
-                    append_log(f"[WARNING] Could not find JSON object markers '{{' and '}}' in LLM response.")
-            except json.JSONDecodeError:
-                append_log(f"[WARNING] Failed to parse extracted JSON from LLM response.")
+                        append_log(f"[WARNING] Could not find JSON object markers '{{' and '}}' in LLM response.")
+            except Exception as e:
+                append_log(f"[WARNING] Failed to extract JSON from LLM response: {e}")
 
         # If JSON parsing failed, use the raw response as a last resort
         if not translation:
             append_log("[WARNING] Could not extract translation from JSON. Using raw LLM response.")
-            # Clean up potential markdown code fences
-            translation = llm_response.strip().strip('`')
+            # Clean up potential markdown code fences and "json" prefix
+            raw_response = llm_response.strip().strip('`').replace('json\n', '').replace('json', '')
+            
+            # Additional cleanup to extract translation from malformed JSON
+            try:
+                # Look for the translation field directly
+                if '"translation": "' in raw_response or '"translation":"' in raw_response:
+                    # Try to extract just the translation content
+                    pattern = r'"translation":\s*"([^"]*)"'
+                    match = re.search(pattern, raw_response)
+                    if match:
+                        translation = match.group(1)
+                        append_log("[DEBUG] Extracted translation using regex pattern")
+                    else:
+                        # Fallback to manual string extraction
+                        markers = ['"translation": "', '"translation":"']
+                        for marker in markers:
+                            if marker in raw_response:
+                                start_idx = raw_response.find(marker) + len(marker)
+                                end_idx = raw_response.find('"', start_idx)
+                                if start_idx > 0 and end_idx > start_idx:
+                                    translation = raw_response[start_idx:end_idx]
+                                    append_log("[DEBUG] Extracted translation using string markers")
+                                    break
+                # No JSON structure at all, just use the raw response
+                else:
+                    translation = raw_response
+            except Exception as e:
+                append_log(f"[WARNING] Error extracting translation: {e}, using raw response")
+                translation = raw_response
 
+        # Clean up any remaining JSON formatting in the final result
+        if translation.startswith('{"translation": "') and translation.endswith('"}'):
+            translation = translation[17:-2]  # Extract just the translation part
+        
         # Log the result clearly
         append_log("-" * 60)
         append_log(f"  Line {line_index+1}/{len(lines)}")
-        append_log(f"  SRC ({source_lang}): \"{original_text}\"")
+        append_log(f"  SRC ({source_lang}): \"{sanitized_text}\"")
         append_log(f"  TGT ({target_lang}): \"{translation}\"")
         append_log("-" * 60)
 
@@ -503,6 +653,24 @@ def run_web_ui():
             append_log(f"[ERROR] Failed to save translated SRT file '{output_path}': {e}")
             raise # Re-raise the exception
 
+    def sanitize_text(text: str) -> str:
+        """
+        Sanitizes text by removing HTML tags and normalizing line breaks.
+        This prevents issues with control characters and HTML tags in translations.
+        """
+        # Remove HTML font color tags and other HTML
+        import re
+        text = re.sub(r'<font[^>]*>(.*?)</font>', r'\1', text)  # Replace <font> tags with their content
+        text = re.sub(r'<[^>]*>', '', text)  # Remove any other HTML tags
+        
+        # Replace multiple spaces with single space
+        text = re.sub(r' +', ' ', text)
+        
+        # Normalize line breaks but preserve intentional line breaks
+        text = text.replace('\r\n', '\n').replace('\r', '\n')
+        
+        return text.strip()
+
     # ---- Flask Web UI ----
     app = Flask(__name__)
     # Use a secret key for session management if needed later, even if simple
@@ -538,7 +706,7 @@ def run_web_ui():
                   <div class="{{ category }}">{{ message }}</div>
                 {% endfor %}
               {% endif %}
-            {% endwith %}
+              {% endwith %}
             <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
                 <label for="srtfile">Select SRT File:</label>
                 <input type="file" id="srtfile" name="srtfile" accept=".srt" required>
@@ -617,6 +785,7 @@ def run_web_ui():
     @app.route("/upload", methods=["POST"])
     def upload():
         from flask import flash # Import flash here
+        import re  # Import regular expression module
 
         if "srtfile" not in request.files:
             flash("No SRT file part in the request.", "error")
@@ -657,6 +826,9 @@ def run_web_ui():
             cfg = load_config(CONFIG_FILENAME)
             target_lang = cfg.get("general", "target_language", fallback="translated").strip('"\' ')
             source_lang = cfg.get("general", "source_language", fallback="original").strip('"\' ')
+            # Get ISO codes for filename
+            target_iso = get_iso_code(target_lang)
+            source_iso = get_iso_code(source_lang)
         except Exception as e:
              append_log(f"[ERROR] Failed to load or parse config during upload: {e}")
              flash("Server error loading configuration.", "error")
@@ -664,13 +836,33 @@ def run_web_ui():
 
         # Construct the output filename based on target language
         base, ext = os.path.splitext(input_filename)
-        # Attempt to replace source lang code if present, otherwise append target lang
-        output_filename = base.replace(f'.{source_lang}', f'.{target_lang}')
-        if output_filename == base: # If source lang wasn't found/replaced
-             output_filename = f"{base}.{target_lang}{ext}"
-        else:
-             output_filename += ext # Add back the extension
-
+        
+        # More sophisticated language code replacement in filename
+        # Try different patterns: .en., .en-, .en_, en., -en., _en.
+        patterns = [
+            f'.{source_iso}.', f'.{source_iso}-', f'.{source_iso}_',
+            f'{source_iso}.', f'-{source_iso}.', f'_{source_iso}.'
+        ]
+        
+        replaced = False
+        output_filename = base
+        
+        # Try each pattern
+        for pattern in patterns:
+            if pattern in base.lower():
+                # Replace the pattern with target language equivalent
+                replacement = pattern.replace(source_iso, target_iso)
+                output_filename = re.sub(pattern, replacement, base, flags=re.IGNORECASE)
+                replaced = True
+                break
+        
+        # If no pattern matched, append the language code
+        if not replaced:
+            output_filename = f"{base}.{target_iso}"
+        
+        # Add back the extension
+        output_filename += ext
+            
         # Ensure filename is safe
         from werkzeug.utils import secure_filename
         output_filename = secure_filename(output_filename)
@@ -732,15 +924,23 @@ def run_web_ui():
 
     # --- Start Server ---
     append_log("Starting Flask web server...")
+    
+    # Load config for server settings
+    cfg = load_config(CONFIG_FILENAME)
+    
+    # Get host and port from config
+    host = cfg.get("general", "host", fallback="127.0.0.1")
+    port = cfg.getint("general", "port", fallback=5000)
+    
     print("="*40)
     print(f"  Subtitle Translator UI running at:")
-    print(f"  http://127.0.0.1:5000/")
+    print(f"  http://{host}:{port}/")
     print(f"  Open this URL in your web browser.")
     print("="*40)
     print("Press CTRL+C to stop the server.")
     try:
         # Use waitress or gunicorn for production, but Flask dev server is fine for this script
-        app.run(host="127.0.0.1", port=5000, debug=False) # Turn off Flask debug mode for cleaner logs
+        app.run(host=host, port=port, debug=False) # Turn off Flask debug mode for cleaner logs
     except Exception as e:
         append_log(f"[ERROR] Failed to start Flask server: {e}")
         sys.exit(1)
