@@ -4,9 +4,18 @@ target_language = danish
 context_size_before = 10
 context_size_after = 10
 use_deepl = false
+use_google = true
+use_libretranslate = true
+use_mymemory = true
 host = 127.0.0.1
 port = 5000
 temperature = 0.2
+
+[logging]
+file_enabled = true
+log_file = translator.log
+max_size_mb = 5
+backup_count = 2
 
 [ollama]
 enabled = true
@@ -24,3 +33,32 @@ model = gpt-3.5-turbo
 enabled = false
 api_key = YOUR_DEEPL_API_KEY
 api_url = https://api-free.deepl.com/v2/translate
+
+[libretranslate]
+api_url = https://libretranslate.de/translate
+
+[agent_critic]
+enabled = false
+temperature = 0.2
+
+[multi_critic]
+enabled = false
+num_passes = 2
+
+[critic_pass_1]
+enabled = false
+type = grammar
+temperature = 0.2
+description = Grammar Critic - focuses on improving grammar and syntax
+
+[critic_pass_2]
+enabled = false
+type = cultural
+temperature = 0.2
+description = Cultural Critic - focuses on improving idioms and cultural references
+
+[critic_pass_3]
+enabled = false
+type = consistency
+temperature = 0.2
+description = Consistency Critic - focuses on terminology consistency across subtitle lines

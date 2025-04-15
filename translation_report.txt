@@ -1,0 +1,4090 @@
+================================================================================
+SUBTITLE TRANSLATION REPORT
+Generated: 2025-04-15 11:59:13
+--------------------------------------------------------------------------------
+Input file: Kipo and the Age of Wonderbeasts.S03E06.It's a Trap.en.hi.srt
+Output file: Kipo_and_the_Age_of_Wonderbeasts.S03E06.Its_a_Trap.da.hi.srt
+Source language: english
+Target language: danish
+================================================================================
+
+TRANSLATION DETAILS
+--------------------------------------------------------------------------------
+Line 1:
+  Original: "#BRACKET_OPEN#snoring#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#snorren#BRACKET_CLOSE#."
+  First pass: "[snorren]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[snorren]"
+------------------------------------------------------------
+Line 2:
+  Original: "#BRACKET_OPEN#squeals#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#squeals#BRACKET_CLOSE#."
+  First pass: "[squeals]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[squeals]"
+------------------------------------------------------------
+Line 3:
+  Original: "#BRACKET_OPEN#humming#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#humming#BRACKET_CLOSE#."
+  First pass: "[humming]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[humming]"
+------------------------------------------------------------
+Line 4:
+  Original: "#BRACKET_OPEN#bleating#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#blødning#BRACKET_CLOSE#."
+  First pass: "[bradren]."
+  Critic: "[bradren]" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[bradren]"
+------------------------------------------------------------
+Line 5:
+  Original: "- #BRACKET_OPEN#grunting#BRACKET_CLOSE#
+- #BRACKET_OPEN#straining#BRACKET_CLOSE#"
+  DeepL: "- #BRACKET_OPEN#grynter#BRACKET_CLOSE#
+- #BRACKET_OPEN#træning#BRACKET_CLOSE#."
+  First pass: "- [grynter]
+- [anstrenger]."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- [grynter]
+- [anstrenger]."
+------------------------------------------------------------
+Line 6:
+  Original: "Why did we all try
+to get in at the same time?"
+  DeepL: "Hvorfor prøvede vi alle
+at komme ind på samme tid?"
+  First pass: "Hvorfor prøvede vi alle
+at komme ind på samme tid?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Hvorfor prøvede vi alle at komme ind samtidig?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Hvorfor prøvede vi alle at komme ind samtidig?"
+------------------------------------------------------------
+Line 7:
+  Original: "- #BRACKET_OPEN#grunts#BRACKET_CLOSE#
+- #BRACKET_OPEN#chuckling#BRACKET_CLOSE#"
+  DeepL: "- #BRACKET_OPEN#grynt#BRACKET_CLOSE#
+- #BRACKET_OPEN#klynker#BRACKET_CLOSE#."
+  First pass: "- [grynt]
+- [klynker]."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- [grynt]
+- [klynker]."
+------------------------------------------------------------
+Line 8:
+  Original: "Hi, ladies."
+  DeepL: "Hej, de damer."
+  First pass: "Hej, de damer."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hej, de damer."
+------------------------------------------------------------
+Line 9:
+  Original: "- Kipo!
+- Thank goodness you're safe."
+  DeepL: "- Kipo!
+- Gudskelov er du i sikkerhed."
+  First pass: "- Kipo!
+- Sik en god ting, du er i sikkerhed."
+  Critic: "- Kipo!
+- Tak gode det, du er i sikkerhed." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Kipo!
+- Tak gode det, du er i sikkerhed."
+------------------------------------------------------------
+Line 10:
+  Original: "We have to leave now.
+We're here to take you to—"
+  DeepL: "Vi er nødt til at gå nu.
+Vi er her for at tage dig til..."
+  First pass: "Vi er nødt til at gå nu.
+Vi er her for at tage dig med..."
+  Critic: "Vi er nødt til at gå nu. Vi er her for at tage dig med..." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Vi er nødt til at gå nu. Vi er her for at hente dig..." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Vi er nødt til at gå nu. Vi er her for at hente dig..."
+------------------------------------------------------------
+Line 11:
+  Original: "Buh-buh-buh-buh-buh-buh,
+they know why we're here."
+  DeepL: "Buh-buh-buh-buh-buh-buh,
+de ved, hvorfor vi er her."
+  First pass: "Buh-buh-buh-buh-buh-buh,
+de ved, hvorfor vi er her."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Buh-buh-buh-buh-buh-buh,
+de ved, hvorfor vi er her."
+------------------------------------------------------------
+Line 12:
+  Original: "They saw it in the cheese."
+  DeepL: "De så det i osten."
+  First pass: "De så det i osten."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "De så det i osten."
+------------------------------------------------------------
+Line 13:
+  Original: "- Actually, we're washing dishes.
+- I broke the sink!"
+  DeepL: "- Faktisk vasker vi op.
+- Jeg ødelagde vasken!"
+  First pass: "- Faktisk vasker vi op.
+- Jeg smadrede vasken!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Faktisk vasker vi op.
+- Jeg smadrede vasken!"
+------------------------------------------------------------
+Line 14:
+  Original: "It's not cheese, Dave."
+  DeepL: "Det er ikke ost, Dave."
+  First pass: "Det er ikke ost, Dave."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Det er ikke ost, Dave."
+------------------------------------------------------------
+Line 15:
+  Original: "Yet."
+  DeepL: "Endnu."
+  First pass: "Endnu."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Endnu."
+------------------------------------------------------------
+Line 16:
+  Original: "Quit eating, and start packing!"
+  DeepL: "Hold op med at spise, og begynd at pakke!"
+  First pass: "Hold op med at spise, og begynd at pakke!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hold op med at spise, og begynd at pakke!"
+------------------------------------------------------------
+Line 17:
+  Original: "#BRACKET_OPEN#Bev#BRACKET_CLOSE# And where exactly are we going?"
+  DeepL: "#BRACKET_OPEN#Bev#BRACKET_CLOSE# Og hvor er det lige, vi skal hen?"
+  First pass: "[Bev] Og hvor skal vi hen?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Og hvor skal vi hen?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Og hvor skal vi hen?"
+------------------------------------------------------------
+Line 18:
+  Original: "- To Timbercat Village, because we—
+- Because..."
+  DeepL: "- Til Timbercat Village, fordi vi...
+- Fordi..."
+  First pass: "- Til Timbercat Village, fordi vi... 
+- Fordi..."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Til Timbercat Village, fordi vi... 
+- Fordi..."
+------------------------------------------------------------
+Line 19:
+  Original: "- We've built a death ivy wall to...
+- Death ivy wall to..."
+  DeepL: "- Vi har bygget en mur af dødens efeu for at...
+- Dødsefeu-mur til..."
+  First pass: "- Vi har bygget en mur af dødens efeu for at...
+- Dødeefeu-mur til..."
+  Critic: "- Vi har bygget en mur af dødens efeu for at... 
+- Dødeefeu-mur til..." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Vi har bygget en mur af dødens efeu for at... 
+- Dødeefeu-mur til..."
+------------------------------------------------------------
+Line 20:
+  Original: "protect you from the horrible killer
+that Doctor Emilia just finished making!"
+  DeepL: "beskytte dig mod den forfærdelige morder
+som doktor Emilia lige har lavet!"
+  First pass: "beskytte dig mod den forfærdelige morder,
+som doktor Emilia lige har lavet!"
+  Critic: "beskytte dig mod den forfærdelige morder, som doktor Emilia lige har fremstillet!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "beskytte dig mod den forfærdelige morder, som doktor Emilia lige har skabt!" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "beskytte dig mod den forfærdelige morder, som doktor Emilia lige har skabt!"
+------------------------------------------------------------
+Line 21:
+  Original: "Do you guys even cheese anymore?"
+  DeepL: "Laver I overhovedet ost længere?"
+  First pass: "Spiser I overhovedet ost længere?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Spiser I overhovedet ost mere?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Spiser I overhovedet ost mere?"
+------------------------------------------------------------
+Line 22:
+  Original: "He's right."
+  DeepL: "Han har ret."
+  First pass: "Han har ret."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Han har ret."
+------------------------------------------------------------
+Line 23:
+  Original: "Before we go anywhere,
+we should look in the cheese."
+  DeepL: "Før vi går nogen steder,
+bør vi kigge i osten."
+  First pass: "Før vi går nogen steder,
+bør vi kigge i osten."
+  Critic: No changes
+  Critic 1 (technical_grammar): "Før vi går nogen steder, bør vi kigge i osten." (CHANGED)
+  Critic 2 (cultural): "Før vi går nogen steder, bør vi kigge i mejeriprodukterne." (CHANGED)
+  Critic 3 (consistency): "Før vi går nogen steder, bør vi kigge i osten." (CHANGED)
+  Final: "Før vi går nogen steder, bør vi kigge i osten."
+------------------------------------------------------------
+Line 24:
+  Original: "Fine.
+But please hurry."
+  DeepL: "Fint nok.
+Men vær sød at skynde dig."
+  First pass: "Fint nok.
+Men skynd dig."
+  Critic: "Okay. Men skynd dig." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Okay. Men skynd dig."
+------------------------------------------------------------
+Line 25:
+  Original: "I'm trying to save your life here."
+  DeepL: "Jeg prøver at redde dit liv."
+  First pass: "Jeg prøver at redde dit liv."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg prøver at redde dit liv."
+------------------------------------------------------------
+Line 26:
+  Original: "#BRACKET_OPEN#chanting#BRACKET_CLOSE# Feta, gouda, chèvre, fromage."
+  DeepL: "#BRACKET_OPEN#chanting#BRACKET_CLOSE# Feta, gouda, chèvre, fromage."
+  First pass: "[chanting] Feta, gouda, chèvre, fromage."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[chanting] Feta, gouda, chèvre, fromage."
+------------------------------------------------------------
+Line 27:
+  Original: "#BRACKET_OPEN#Bev#BRACKET_CLOSE# Doctor Emilia will not waver
+from ridding the surface of all mutekind."
+  DeepL: "#BRACKET_OPEN#Bev#BRACKET_CLOSE# Doktor Emilia vil ikke tøve med at befri
+fra at befri overfladen for alle mutekind."
+  First pass: "[Bev] Doktor Emilia vil ikke tøve med at befri overfladen for alle mutekind."
+  Critic: "[Bev] Doktor Emilia vil ikke vakle fra at befri overfladen for alle mutekind." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Bev] Doktor Emilia vil ikke vakle fra at befri overfladen for alle mutekind."
+------------------------------------------------------------
+Line 28:
+  Original: "#BRACKET_OPEN#Ida#BRACKET_CLOSE# With her new army, she will succeed."
+  DeepL: "#BRACKET_OPEN#Ida#BRACKET_CLOSE# Med sin nye hær vil hun få succes."
+  First pass: "[Ida] Med sin nye hær vil hun lykkes."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Ida] Med sin nye hær vil hun lykkes."
+------------------------------------------------------------
+Line 29:
+  Original: "#BRACKET_OPEN#Florabel#BRACKET_CLOSE# Unless you stop them."
+  DeepL: "#BRACKET_OPEN#Florabel#BRACKET_CLOSE# Medmindre du stopper dem."
+  First pass: "[Florabel] Medmindre I stopper dem."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Florabel] Medmindre I stopper dem."
+------------------------------------------------------------
+Line 30:
+  Original: "You will need to fight the ones
+you care about"
+  DeepL: "Du bliver nødt til at kæmpe mod dem
+du holder af"
+  First pass: "Du bliver nødt til at kæmpe mod dem
+du holder af"
+  Critic: No changes
+  Critic 1 (technical_grammar): "Du bliver nødt til at kæmpe mod dem, du holder af" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Du bliver nødt til at kæmpe mod dem, du holder af"
+------------------------------------------------------------
+Line 31:
+  Original: "in order to save us all."
+  DeepL: "for at redde os alle."
+  First pass: "for at redde os alle."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "for at redde os alle."
+------------------------------------------------------------
+Line 32:
+  Original: "#BRACKET_OPEN#all gasp#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#alle gisper#BRACKET_CLOSE#."
+  First pass: "[alle gisper]."
+  Critic: "[alle gisper]" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[alle gisper]"
+------------------------------------------------------------
+Line 33:
+  Original: "Dang, really?
+I gotta fight you guys?"
+  DeepL: "Virkelig?
+Skal jeg slås med jer?"
+  First pass: "Virkelig?
+Skal jeg slås med jer?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): "Virkelig?
+Skal jeg kæmpe med jer?" (CHANGED)
+  Final: "Virkelig?
+Skal jeg kæmpe med jer?"
+------------------------------------------------------------
+Line 34:
+  Original: "But to save the world...
+I'll do it."
+  DeepL: "Men for at redde verden...
+Så gør jeg det."
+  First pass: "Men for at redde verden…
+Vil jeg gøre det."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Men for at redde verden…
+Vil jeg gøre det."
+------------------------------------------------------------
+Line 35:
+  Original: "Not you.
+We meant her."
+  DeepL: "Ikke dig.
+Vi mente hende."
+  First pass: "Ikke dig.
+Vi mente hende."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Ikke dig.
+Vi mente hende."
+------------------------------------------------------------
+Line 36:
+  Original: "I'm so sorry, sweetheart."
+  DeepL: "Jeg er så ked af det, skat."
+  First pass: "Jeg er så ked af det, skat."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg er så ked af det, skat."
+------------------------------------------------------------
+Line 37:
+  Original: "#BRACKET_OPEN#theme music playing#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#temamusik spiller#BRACKET_CLOSE#."
+  First pass: "[temamusik spiller]."
+  Critic: "[temamusik spiller]" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[temamusik spiller]"
+------------------------------------------------------------
+Line 38:
+  Original: "#BRACKET_OPEN#galloping#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#galloping#BRACKET_CLOSE#."
+  First pass: "[galloping]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[galloping]"
+------------------------------------------------------------
+Line 39:
+  Original: "#BRACKET_OPEN#growling#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#growling#BRACKET_CLOSE#."
+  First pass: "[growling]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[growling]"
+------------------------------------------------------------
+Line 40:
+  Original: "#BRACKET_OPEN#whispering#BRACKET_CLOSE#
+The password is "open the wall.""
+  DeepL: "#BRACKET_OPEN#hvisker#BRACKET_CLOSE#
+Kodeordet er "åbn væggen"."
+  First pass: "[hvisker]
+Kodeordet er \"
+  Critic: "[hvisker] Koden er "åben muren."" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[hvisker] Koden er "åben muren.""
+------------------------------------------------------------
+Line 41:
+  Original: "#BRACKET_OPEN#speaking Bee#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#speaking Bee#BRACKET_CLOSE#."
+  First pass: "[talende Bien]."
+  Critic: "[talende Bien]" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[talende Bien]"
+------------------------------------------------------------
+Line 42:
+  Original: "Oh, I mean..."
+  DeepL: "Åh, jeg mener..."
+  First pass: "Åh, jeg mener..."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Åh, jeg mener..."
+------------------------------------------------------------
+Line 43:
+  Original: "#BRACKET_OPEN#imitates firefly speaking Bee#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#imiterer ildflue, der taler bi#BRACKET_CLOSE#."
+  First pass: "[imiterer ildflue, der taler bi["
+  Critic: "imiterer ildflue, der taler bier" (CHANGED)
+  Critic 1 (technical_grammar): "imiterer ildflue, der taler som bier" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "imiterer ildflue, der taler som bier"
+------------------------------------------------------------
+Line 44:
+  Original: "Molly! Is the perimeter secure?"
+  DeepL: "Molly! Er området sikret?"
+  First pass: "Molly! Er området sikret?"
+  Critic: "Molly! Er omkredsen sikret?" (CHANGED)
+  Critic 1 (technical_grammar): "Molly! Er perimeteret sikret?" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Molly! Er perimeteret sikret?"
+------------------------------------------------------------
+Line 45:
+  Original: "Any holes?
+Any breaches?"
+  DeepL: "Er der huller?
+Nogen brud?"
+  First pass: "Er der huller?
+Nogen brud?"
+  Critic: "Er der huller?
+Huller i defensiven?" (CHANGED)
+  Critic 1 (technical_grammar): "Er der huller? 
+Huller i forsvaret?" (CHANGED)
+  Critic 2 (cultural): "Er der huller? 
+Huller i sikkerheden?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Er der huller? 
+Huller i sikkerheden?"
+------------------------------------------------------------
+Line 46:
+  Original: "Did I say the right words?"
+  DeepL: "Sagde jeg de rigtige ord?"
+  First pass: "Sagde jeg de rigtige ord?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Sagde jeg de rigtige ord?"
+------------------------------------------------------------
+Line 47:
+  Original: "Yeah. Way to go."
+  DeepL: "Ja, ja. Godt gået."
+  First pass: "Ja, ja. Godt gået."
+  Critic: "Ja, fint gået." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Ja, godt gået." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Ja, godt gået."
+------------------------------------------------------------
+Line 48:
+  Original: "The perimeter is set."
+  DeepL: "Omkredsen er fastlagt."
+  First pass: "Omkredsen er sikret."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Omkredsen er sikret."
+------------------------------------------------------------
+Line 49:
+  Original: "Our scouts have reported
+no signs of Emilia."
+  DeepL: "Vores spejdere har rapporteret
+ingen tegn på Emilia."
+  First pass: "Vores spejdere har rapporteret
+ingen tegn på Emilia."
+  Critic: "Vores spejdere har rapporteret
+inger tegn på Emilia." (CHANGED)
+  Critic 1 (technical_grammar): "Vores spejdere har rapporteret ingen tegn på Emilia." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vores spejdere har rapporteret ingen tegn på Emilia."
+------------------------------------------------------------
+Line 50:
+  Original: "- Did we leave the lanai?
+- Right, the welcome speech."
+  DeepL: "- Har vi forladt lanai'en?
+- Ja, velkomsttalen."
+  First pass: "- Har vi forladt lanai'en?
+- Ja, velkomsttalen."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Har vi forladt lanai'en?
+- Ja, velkomsttalen."
+------------------------------------------------------------
+Line 51:
+  Original: "Hurray!
+Welcome to Timbercat Village."
+  DeepL: "Hurra!
+Velkommen til Timbercat Village."
+  First pass: "Hurra!
+Velkommen til Timbercat Village."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hurra!
+Velkommen til Timbercat Village."
+------------------------------------------------------------
+Line 52:
+  Original: "It's the best place on the surface,
+and you're totally gonna love it here."
+  DeepL: "Det er det bedste sted på overfladen,
+og du vil elske at være her."
+  First pass: "Det er det bedste sted på overfladen, 
+og du kommer helt sikkert til at elske det her."
+  Critic: "Det er det bedste sted på overfladen, og du vil helt sikkert elske det her." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Det er det bedste sted på overfladen, og du kommer til at elske det her." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Det er det bedste sted på overfladen, og du kommer til at elske det her."
+------------------------------------------------------------
+Line 53:
+  Original: "Hurray."
+  DeepL: "Hurra!"
+  First pass: "Hurra!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hurra!"
+------------------------------------------------------------
+Line 54:
+  Original: "Breach, breach, breach!"
+  DeepL: "Overtrædelse, overtrædelse, overtrædelse!"
+  First pass: "Brud, brud, brud!"
+  Critic: "Alarm, alarm, alarm!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Alarm, alarm, alarm!"
+------------------------------------------------------------
+Line 55:
+  Original: "Relax.
+It's just us."
+  DeepL: "Tag det roligt.
+Det er bare os."
+  First pass: "Slap af.
+Det er bare os."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Slap af.
+Det er bare os."
+------------------------------------------------------------
+Line 56:
+  Original: "Phew. I thought you were my people
+and I was gonna have to fight you."
+  DeepL: "Phew. Jeg troede, I var mit folk
+og at jeg skulle kæmpe mod jer."
+  First pass: "Phew. Jeg troede, I var mit folk
+og at jeg skulle slås med jer."
+  Critic: "Phew. Jeg troede, I var jeres folk, og at jeg skulle slås med jer." (CHANGED)
+  Critic 1 (technical_grammar): "Phew. Jeg troede, du var jeres folk, og at jeg skulle slås med jer." (CHANGED)
+  Critic 2 (cultural): "Phew. Jeg troede, du var jeres folk, og at jeg skulle kæmpe med jer." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Phew. Jeg troede, du var jeres folk, og at jeg skulle kæmpe med jer."
+------------------------------------------------------------
+Line 57:
+  Original: "OK, everybody stand down."
+  DeepL: "Okay, alle trækker sig tilbage."
+  First pass: "Okay, alle trækker sig tilbage."
+  Critic: "Okay, alle stopper." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Okay, alle stopper."
+------------------------------------------------------------
+Line 58:
+  Original: "Good practice!
+Good practice."
+  DeepL: "God praksis!
+God praksis."
+  First pass: "God træning!
+God træning!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "God træning!
+God træning!"
+------------------------------------------------------------
+Line 59:
+  Original: "Kipo, we can finish the welcome tour."
+  DeepL: "Kipo, vi kan afslutte velkomstturen."
+  First pass: "Kipo, vi kan afslutte velkomstturen."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Kipo, vi kan slutte velkomstturen." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Kipo, vi kan slutte velkomstturen."
+------------------------------------------------------------
+Line 60:
+  Original: "OK, so, over there is the place we eat."
+  DeepL: "Okay, derovre er det sted, vi spiser."
+  First pass: "Okay, derovre er det sted, vi spiser."
+  Critic: "Okay, derovre er det sted, hvor vi spiser." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Okay, derovre er det sted, hvor vi spiser."
+------------------------------------------------------------
+Line 61:
+  Original: "And over there is where I sleep sometimes,
+but I'm not supposed to. #BRACKET_OPEN#chuckles#BRACKET_CLOSE#"
+  DeepL: "Og derovre sover jeg nogle gange,
+men det er ikke meningen, at jeg skal. #BRACKET_OPEN#chuckles#BRACKET_CLOSE#"
+  First pass: "Og derovre sover jeg nogle gange, men jeg får ikke lov. [chuckles]"
+  Critic: "Og derovre sover jeg nogle gange, men jeg må ikke. [chuckles]" (CHANGED)
+  Critic 1 (technical_grammar): "Og derovre sover jeg nogle gange, men jeg bør ikke." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Og derovre sover jeg nogle gange, men jeg bør ikke."
+------------------------------------------------------------
+Line 62:
+  Original: "And that bush right there
+is where I hid all Molly's axes."
+  DeepL: "Og den busk lige der
+er der, hvor jeg gemte alle Mollys økser."
+  First pass: "Og den busk lige der
+er der, hvor jeg gemte alle Mollys økser."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Og den busk lige der
+er der, hvor jeg gemte alle Mollys økser."
+------------------------------------------------------------
+Line 63:
+  Original: "- You do know they can't see?
+- And that's Zane in the cage."
+  DeepL: "- Du ved godt, at de ikke kan se?
+- Og det er Zane i buret."
+  First pass: "- Du ved godt, at de ikke kan se?
+- Og det er Zane i buret."
+  Critic: "- Du ved godt, at de ikke kan se? - Og det er Zane i buret." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Du ved godt, at de ikke kan se? - Og det er Zane i buret."
+------------------------------------------------------------
+Line 64:
+  Original: "He's our prisoner.
+He used to work for Emilia."
+  DeepL: "Han er vores fange.
+Han plejede at arbejde for Emilia."
+  First pass: "Han er vores fange.
+Han arbejdede før for Emilia."
+  Critic: "Han er vores fange.
+Han arbejdede tidligere for Emilia." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Han er vores fange.
+Han arbejdede tidligere for Emilia."
+------------------------------------------------------------
+Line 65:
+  Original: "Yeah. I tried to kill them,
+but I'm reconsidering."
+  DeepL: "Ja, jeg prøvede at slå dem ihjel,
+men jeg genovervejer det."
+  First pass: "Ja, jeg prøvede at slå dem ihjel, men jeg er ved at omstikke det."
+  Critic: "Ja, jeg prøvede at slå dem ihjel, men jeg er ved at revurdere." (CHANGED)
+  Critic 1 (technical_grammar): "Ja, jeg prøvede at slå dem ihjel, men jeg er ved at genoverveje." (CHANGED)
+  Critic 2 (cultural): "Ja, jeg prøvede at slå dem ihjel, men jeg er ved at revurdere." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Ja, jeg prøvede at slå dem ihjel, men jeg er ved at revurdere."
+------------------------------------------------------------
+Line 66:
+  Original: "#BRACKET_OPEN#Label#BRACKET_CLOSE# Here you go!"
+  DeepL: "#BRACKET_OPEN#Label#BRACKET_CLOSE# Værsgo!"
+  First pass: "[Label] Her har du!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Label] Her har du!"
+------------------------------------------------------------
+Line 67:
+  Original: "Huh?"
+  DeepL: "Hvad?"
+  First pass: "Hvad?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hvad?"
+------------------------------------------------------------
+Line 68:
+  Original: "An apple a day keeps the doctor away!"
+  DeepL: "Et æble om dagen holder lægen væk!"
+  First pass: "Et æble om dagen holder lægen væk!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Et æble om dagen holder lægen væk!"
+------------------------------------------------------------
+Line 69:
+  Original: "Thank you, Label!"
+  DeepL: "Tak, Label!"
+  First pass: "Tak, Label!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Tak, Label!"
+------------------------------------------------------------
+Line 70:
+  Original: "Thank you for saying thanks!"
+  DeepL: "Tak, fordi du sagde tak!"
+  First pass: "Tak fordi du sagde tak!"
+  Critic: "Tak fordi du takkede!" (CHANGED)
+  Critic 1 (technical_grammar): "Tak fordi du sagde tak!" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Tak fordi du sagde tak!"
+------------------------------------------------------------
+Line 71:
+  Original: "We're working on him."
+  DeepL: "Vi arbejder på ham."
+  First pass: "Vi arbejder på ham."
+  Critic: "Vi arbejder på sagen." (CHANGED)
+  Critic 1 (technical_grammar): "Vi arbejder på ham." (CHANGED)
+  Critic 2 (cultural): "Vi arbejder på sagen." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Vi arbejder på sagen."
+------------------------------------------------------------
+Line 72:
+  Original: "Anyway, let me show you all
+my favorite yarn ball."
+  DeepL: "Nå, men lad mig vise jer alle
+min yndlingsgarnnøgle."
+  First pass: "Nå, men lad mig vise jer alle
+min yndlingsgarnbold."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Nå, men lad mig vise jer alle
+min yndlingsgarnbold."
+------------------------------------------------------------
+Line 73:
+  Original: "#BRACKET_OPEN#Kipo#BRACKET_CLOSE# I'm so glad you decided to come."
+  DeepL: "#BRACKET_OPEN#Kipo#BRACKET_CLOSE# Jeg er så glad for, at du besluttede dig for at komme."
+  First pass: "[Kipo] Jeg er så glad for, at du besluttede dig for at komme."
+  Critic: No changes
+  Critic 1 (technical_grammar): "[Kipo] Jeg er så glad for, at du besluttede at komme." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Kipo] Jeg er så glad for, at du besluttede at komme."
+------------------------------------------------------------
+Line 74:
+  Original: "Not only will you be so safe here,
+but we're gonna become such great friends."
+  DeepL: "Ikke alene vil du være så sikker her,
+men vi bliver også rigtig gode venner."
+  First pass: "Ikke alene vil du være så sikker her,
+men vi bliver også rigtig gode venner."
+  Critic: "Ikke alene vil du være så sikker her, men vi bliver også rigtig gode venner." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Ikke alene vil du være så sikker her, men vi bliver også gode venner." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Ikke alene vil du være så sikker her, men vi bliver også gode venner."
+------------------------------------------------------------
+Line 75:
+  Original: "We're here until the danger passes,
+then we're out."
+  DeepL: "Vi er her, indtil faren er drevet over,
+så er vi ude."
+  First pass: "Vi er her, indtil faren er overstået, så er vi ude."
+  Critic: "Vi er her, indtil faren er ovre, og så er vi ude." (CHANGED)
+  Critic 1 (technical_grammar): "Vi er her, indtil faren er overstået, og så er vi ude." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi er her, indtil faren er overstået, og så er vi ude."
+------------------------------------------------------------
+Line 76:
+  Original: "- #BRACKET_OPEN#meows#BRACKET_CLOSE#
+- #BRACKET_OPEN#gasps#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "- Mjav! 
+- Gisp!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Mjav! 
+- Gisp!"
+------------------------------------------------------------
+Line 77:
+  Original: "#BRACKET_OPEN#Kipo#BRACKET_CLOSE# Yumyan!"
+  DeepL: N/A
+  First pass: "Kipo! Mumsagt!"
+  Critic: "Kipo! Mjav!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Kipo! Mjav!"
+------------------------------------------------------------
+Line 78:
+  Original: "That "doctor" gives science a bad name."
+  DeepL: N/A
+  First pass: "Den "læge" bringer videnskaben i dårligt lys."
+  Critic: "Den "læge" bringer videnskaben i et dårligt lys." (CHANGED)
+  Critic 1 (technical_grammar): "Den "læge" bringer videnskaben et dårligt lys." (CHANGED)
+  Critic 2 (cultural): "Den "læge" bringer videnskaben i et dårligt lys." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Den "læge" bringer videnskaben i et dårligt lys."
+------------------------------------------------------------
+Line 79:
+  Original: "Monster."
+  DeepL: N/A
+  First pass: "Monster."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Monster."
+------------------------------------------------------------
+Line 80:
+  Original: "Don't be afraid."
+  DeepL: N/A
+  First pass: "Vær ikke bange."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vær ikke bange."
+------------------------------------------------------------
+Line 81:
+  Original: "Today is the first step
+in taking back what is rightfully ours."
+  DeepL: N/A
+  First pass: "I dag er første skridt mod at tage det, der med rette er vores, tilbage."
+  Critic: "I dag er første skridt i at tage det, der med rette er vores, tilbage." (CHANGED)
+  Critic 1 (technical_grammar): "I dag er første skridt i at tage det, der med rette tilhører os, tilbage." (CHANGED)
+  Critic 2 (cultural): "I dag er første skridt i at genvinde det, der med rette tilhører os." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "I dag er første skridt i at genvinde det, der med rette tilhører os."
+------------------------------------------------------------
+Line 82:
+  Original: "Humans on top!"
+  DeepL: N/A
+  First pass: "Mennesker på toppen!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Mennesker er øverst!" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Mennesker er øverst!"
+------------------------------------------------------------
+Line 83:
+  Original: "Humans on top!
+Humans on top! Humans on top!"
+  DeepL: N/A
+  First pass: "Mennesker på toppen! Mennesker på toppen! Mennesker på toppen!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Mennesker på toppen! Mennesker på toppen! Mennesker på toppen!"
+------------------------------------------------------------
+Line 84:
+  Original: "#BRACKET_OPEN#fireflies speaking Bee#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "[ildlys snekkende bi]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[ildlys snekkende bi]"
+------------------------------------------------------------
+Line 85:
+  Original: "Ooh. My mom would know what you're saying,"
+  DeepL: N/A
+  First pass: "Åh. Min mor ville forstå, hvad du siger, "
+  Critic: "Åh. Min mor ville forstå, hvad du siger." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Åh. Min mor ville forstå, hvad du siger."
+------------------------------------------------------------
+Line 86:
+  Original: "but she's off getting supplies
+to make the vaccine with my dad."
+  DeepL: N/A
+  First pass: "men hun henter forsyninger til at lave vaccinen med min far."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "men hun henter forsyninger til at lave vaccinen med min far."
+------------------------------------------------------------
+Line 87:
+  Original: "I'm fluent in Bee."
+  DeepL: N/A
+  First pass: "Jeg taler Bi."
+  Critic: "Jeg forstår Bi." (CHANGED)
+  Critic 1 (technical_grammar): "Jeg forstår Biesprog." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg forstår Biesprog."
+------------------------------------------------------------
+Line 88:
+  Original: "They've said... #BRACKET_OPEN#clears throat#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "De har sagt... [hoster sig]"
+  Critic: "De har sagt... [rydder halsen]" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "De har sagt... [hoster sig" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "De har sagt... [hoster sig"
+------------------------------------------------------------
+Line 89:
+  Original: ""The dragonflies have agreed
+to avoid any human contact,"
+  DeepL: N/A
+  First pass: "”Sommerfuglene har aftalt"
+  Critic: "”Libellen har aftalt" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "”Libellen har aftalt"
+------------------------------------------------------------
+Line 90:
+  Original: "so they can't fly over the wall,
+my dudes.""
+  DeepL: N/A
+  First pass: "så de ikke kan flyve over muren, drenge."
+  Critic: "så de ikke kan flyve over muren, mine venner." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "så de ikke kan flyve over muren, mine venner."
+------------------------------------------------------------
+Line 91:
+  Original: "Excellent. That means Emilia's
+got no way over the wall."
+  DeepL: N/A
+  First pass: "Fremragende. Det betyder, at Emilia ikke kan komme over muren."
+  Critic: "Fremragende. Det betyder, at Emilia ikke har nogen måde at komme over muren." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Fremragende. Det betyder, at Emilia ikke kan komme over muren." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Fremragende. Det betyder, at Emilia ikke kan komme over muren."
+------------------------------------------------------------
+Line 92:
+  Original: "And here, we have the great hall
+where we have important meetings."
+  DeepL: N/A
+  First pass: "Og her, har vi den store sal, hvor vi har vigtige møder."
+  Critic: "Og her, har vi den store sal, hvor vi afholder vigtige møder." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Og her, har vi den store sal, hvor vi holder vigtige møder." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Og her, har vi den store sal, hvor vi holder vigtige møder."
+------------------------------------------------------------
+Line 93:
+  Original: "Like the one that we're interrupting."
+  DeepL: N/A
+  First pass: "Som den vi afbryder."
+  Critic: "Som den, vi afbryder." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Som den, vi er ved at afbryde." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Som den, vi er ved at afbryde."
+------------------------------------------------------------
+Line 94:
+  Original: "Point is, we have enough food
+and supplies to ride this out"
+  DeepL: N/A
+  First pass: "Pointen er, vi har rigeligt med mad og forsyninger til at klare det her."
+  Critic: "Pointen er, vi har rigeligt med mad og forsyninger til at klare det." (CHANGED)
+  Critic 1 (technical_grammar): "Pointen er, vi har rigeligt med mad og forsyninger til at klare os igennem det." (CHANGED)
+  Critic 2 (cultural): "Pointen er, vi har rigeligt med mad og forsyninger til at overleve det." (CHANGED)
+  Critic 3 (consistency): "Pointen er, vi har rigeligt med mad og forsyninger til at klare det." (CHANGED)
+  Final: "Pointen er, vi har rigeligt med mad og forsyninger til at klare det."
+------------------------------------------------------------
+Line 95:
+  Original: "until the humans turn around."
+  DeepL: N/A
+  First pass: "indtil menneskerne ændrer mening."
+  Critic: "indtil menneskerne ombestemmer sig." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "indtil menneskerne ændrer mening." (CHANGED)
+  Critic 3 (consistency): "indtil menneskerne ændrer holdning." (CHANGED)
+  Final: "indtil menneskerne ændrer holdning."
+------------------------------------------------------------
+Line 96:
+  Original: "For how long?"
+  DeepL: N/A
+  First pass: "Hvor længe?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hvor længe?"
+------------------------------------------------------------
+Line 97:
+  Original: "Until my mom figures out the vaccine
+or my people realize we're not a threat."
+  DeepL: N/A
+  First pass: "Indtil min mor finder ud af vaccinen, eller mit folk indser, at vi ikke er en trussel."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Indtil min mor finder ud af vaccinen, eller mit folk indser, at vi ikke er en trussel."
+------------------------------------------------------------
+Line 98:
+  Original: "Or they get bored
+and completely change their minds."
+  DeepL: N/A
+  First pass: "Eller de keder sig og ændrer fuldstændigt deres mening."
+  Critic: "Eller de keder sig og ændrer fuldstændigt mening." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Eller de keder sig og skifter mening." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Eller de keder sig og skifter mening."
+------------------------------------------------------------
+Line 99:
+  Original: "See?
+Lots of options."
+  DeepL: N/A
+  First pass: "Se? Masser af muligheder."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Se? Masser af muligheder."
+------------------------------------------------------------
+Line 100:
+  Original: "None of which end with us,
+specifically me, fighting my people."
+  DeepL: N/A
+  First pass: "Ingen af dem ender med, at vi - specifikt mig - kæmper mod mit folk."
+  Critic: "Ingen af dem ender med, at vi - specifikt mig - ender med at slås med mit folk." (CHANGED)
+  Critic 1 (technical_grammar): "Ingen af dem ender med, at vi - specifikt jeg - ender med at slås med mit folk." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Ingen af dem ender med, at vi - specifikt jeg - ender med at slås med mit folk."
+------------------------------------------------------------
+Line 101:
+  Original: "#BRACKET_OPEN#laughs#BRACKET_CLOSE#
+Take that, prophecy."
+  DeepL: N/A
+  First pass: "Haha. Pas lige, profeti."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Haha. Pas lige, profeti."
+------------------------------------------------------------
+Line 102:
+  Original: "You're working very hard, dear.
+But you can't fight destiny."
+  DeepL: N/A
+  First pass: "Du arbejder virkelig hårdt, skat. Men du kan ikke bekæmpe skæbnen."
+  Critic: "Du arbejder virkelig hårdt, skat. Men du kan ikke kæmpe mod skæbnen." (CHANGED)
+  Critic 1 (technical_grammar): "Du arbejder virkelig hårdt, skat. Men du kan ikke kæmpe imod skæbnen." (CHANGED)
+  Critic 2 (cultural): "Du arbejder virkelig hårdt, skat. Men du kan ikke ændre din skæbne." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Du arbejder virkelig hårdt, skat. Men du kan ikke ændre din skæbne."
+------------------------------------------------------------
+Line 103:
+  Original: "Sure I can."
+  DeepL: N/A
+  First pass: "Selvfølgelig kan jeg."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Selvfølgelig kan jeg."
+------------------------------------------------------------
+Line 104:
+  Original: "- We've helped Kipo fight destiny before.
+- We'll do it again."
+  DeepL: N/A
+  First pass: "- Vi har tidligere hjulpet Kipo med at bekæmpe skæbnen.
+- Vi gør det igen."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "- Vi har tidligere hjulpet Kipo med at kæmpe mod skæbnen.
+- Vi gør det igen." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "- Vi har tidligere hjulpet Kipo med at kæmpe mod skæbnen.
+- Vi gør det igen."
+------------------------------------------------------------
+Line 105:
+  Original: "#BRACKET_OPEN#meowing alarm over loudspeaker#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "[Miav-alarm over højttaler]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Miav-alarm over højttaler]"
+------------------------------------------------------------
+Line 106:
+  Original: "All right, all right!
+She's here."
+  DeepL: N/A
+  First pass: "Okay, okay! Hun er her."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Okay, okay! Hun er her."
+------------------------------------------------------------
+Line 107:
+  Original: "What's going on?"
+  DeepL: N/A
+  First pass: "Hvad sker der?"
+  Critic: "Hvad foregår der?" (CHANGED)
+  Critic 1 (technical_grammar): "Hvad sker der?" (CHANGED)
+  Critic 2 (cultural): "Hvad foregår der?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Hvad foregår der?"
+------------------------------------------------------------
+Line 108:
+  Original: "The people from the burrow
+actually did come with her?"
+  DeepL: N/A
+  First pass: "Folkene fra reden, de var faktisk med hende?"
+  Critic: "Folkene fra skjulestedet, de var faktisk med hende?" (CHANGED)
+  Critic 1 (technical_grammar): "Folkene fra skjulestedet var rent faktisk med hende?" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Folkene fra skjulestedet var rent faktisk med hende?"
+------------------------------------------------------------
+Line 109:
+  Original: "Do you think
+Mom and Dad are down there?"
+  DeepL: N/A
+  First pass: "Tror du,
+Mor og Far er dernede?"
+  Critic: "Tror du, 
+Mor og Far er dernede?" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Tror du, 
+Mor og Far er dernede?"
+------------------------------------------------------------
+Line 110:
+  Original: "- What? They'd never.
+- Troy's right."
+  DeepL: N/A
+  First pass: "- Hvad? De ville aldrig.
+- Troy har ret."
+  Critic: "- Hvad? De ville aldrig. 
+- Troy har ret." (CHANGED)
+  Critic 1 (technical_grammar): "- Hvad? De ville aldrig.
+- Troy har ret." (CHANGED)
+  Critic 2 (cultural): "- Hvad? Det ville de aldrig.
+- Troy har ret." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "- Hvad? Det ville de aldrig.
+- Troy har ret."
+------------------------------------------------------------
+Line 111:
+  Original: "Your mom stopped us
+from running with scissors."
+  DeepL: N/A
+  First pass: "Din mor stoppede os fra at løbe med saks."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Din mor stoppede os fra at løbe med saks."
+------------------------------------------------------------
+Line 112:
+  Original: "She would never run with a crossbow."
+  DeepL: N/A
+  First pass: "Hun ville aldrig løbe med en armbrøst."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hun ville aldrig løbe med en armbrøst."
+------------------------------------------------------------
+Line 113:
+  Original: "Regardless, all the humans...
+How should I put this?"
+  DeepL: N/A
+  First pass: "Uanset, alle mennesker…"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Uanset, alle mennesker…"
+------------------------------------------------------------
+Line 114:
+  Original: "despise me."
+  DeepL: N/A
+  First pass: "hader mig."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "hader mig."
+------------------------------------------------------------
+Line 115:
+  Original: "And here I am, all packaged up
+in a see-through to-go box."
+  DeepL: N/A
+  First pass: "Og her er jeg, pakket ind i en gennemsigtig takeaway-boks."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Og her er jeg, pakket ind i en gennemsigtig madkasse." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Og her er jeg, pakket ind i en gennemsigtig madkasse."
+------------------------------------------------------------
+Line 116:
+  Original: "So, go ahead.
+Pop the top."
+  DeepL: N/A
+  First pass: "Så, gå i gang. Åbn låget."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Så, gå i gang. Åbn låget."
+------------------------------------------------------------
+Line 117:
+  Original: "Let me out so they don't kill me.
+Thank you."
+  DeepL: N/A
+  First pass: "Lad mig ud, så de ikke dræber mig. Tak."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Lad mig ud, så de ikke dræber mig. Tak."
+------------------------------------------------------------
+Line 118:
+  Original: "- Kipo, our parents did come!
+- What?"
+  DeepL: N/A
+  First pass: "- Kipo, vores forældre var her faktisk!
+- Hvad?"
+  Critic: "- Kipo, vores forældre var faktisk med!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Kipo, vores forældre var faktisk med!"
+------------------------------------------------------------
+Line 119:
+  Original: "#BRACKET_OPEN#gasps#BRACKET_CLOSE# It is them!"
+  DeepL: N/A
+  First pass: "Gasp! Det er dem!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Gasp! Det er dem!"
+------------------------------------------------------------
+Line 120:
+  Original: "And that's Mr. Filburn."
+  DeepL: N/A
+  First pass: "Og det er hr. Filburn."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Og det er hr. Filburn."
+------------------------------------------------------------
+Line 121:
+  Original: "But he's a math teacher."
+  DeepL: N/A
+  First pass: "Men han er jo en matematiklærer."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Men han er jo en matematiklærer."
+------------------------------------------------------------
+Line 122:
+  Original: "And they're heading
+right for the death ivy!"
+  DeepL: N/A
+  First pass: "Og de er på vej lige hen mod dødevinen!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Og de er på vej lige hen mod dødevinen!"
+------------------------------------------------------------
+Line 123:
+  Original: "They don't realize what it is."
+  DeepL: N/A
+  First pass: "De indser ikke, hvad det er."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "De indser ikke, hvad det er."
+------------------------------------------------------------
+Line 124:
+  Original: "I have to warn them!"
+  DeepL: N/A
+  First pass: "Jeg må advare dem!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg må advare dem!"
+------------------------------------------------------------
+Line 125:
+  Original: "Look out!
+The wall is death ivy!"
+  DeepL: N/A
+  First pass: "Pas på!"
+  Critic: "Pas på! Det er dødive!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Pas på! Det er dødive!"
+------------------------------------------------------------
+Line 126:
+  Original: "I think she said, "Dinner's ready.""
+  DeepL: N/A
+  First pass: "Jeg tror, hun sagde: "Middag er klar.""
+  Critic: "Jeg tror, hun sagde: \" (CHANGED)
+  Critic 1 (technical_grammar): "Jeg tror, hun sagde: "Middagen er klar."" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg tror, hun sagde: "Middagen er klar.""
+------------------------------------------------------------
+Line 127:
+  Original: "No. She said, "It's death ivy.""
+  DeepL: N/A
+  First pass: "Nej. Hun sagde, "Det er dødelig ivej.""
+  Critic: "Nej. Hun sagde, "Det er dødelig murranke." " (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Nej. Hun sagde, \" (CHANGED)
+  Critic 3 (consistency): "Nej. Hun sagde, "Det er dødevidde."" (CHANGED)
+  Final: "Nej. Hun sagde, "Det er dødevidde.""
+------------------------------------------------------------
+Line 128:
+  Original: "Watch this."
+  DeepL: N/A
+  First pass: "Se det."
+  Critic: "Se lige." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Se lige."
+------------------------------------------------------------
+Line 129:
+  Original: "Why is the enemy warning us?"
+  DeepL: N/A
+  First pass: "Hvorfor advarer fjenden os?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hvorfor advarer fjenden os?"
+------------------------------------------------------------
+Line 130:
+  Original: "That's Kipo.
+Kipo! Are you OK?"
+  DeepL: N/A
+  First pass: "Det er Kipo. Kipo!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Det er Kipo. Kipo!"
+------------------------------------------------------------
+Line 131:
+  Original: "Don't worry, kids."
+  DeepL: N/A
+  First pass: "Bare ro, børn."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Bare ro, børn."
+------------------------------------------------------------
+Line 132:
+  Original: "We'll save you!"
+  DeepL: N/A
+  First pass: "Vi redder jer!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi redder jer!"
+------------------------------------------------------------
+Line 133:
+  Original: "The wall goes all the way around."
+  DeepL: N/A
+  First pass: "Væggen går hele vejen rundt."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Væggen går hele vejen rundt."
+------------------------------------------------------------
+Line 134:
+  Original: "There's no way in!"
+  DeepL: N/A
+  First pass: "Der er ingen vej ind!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Der er ingen vej ind!"
+------------------------------------------------------------
+Line 135:
+  Original: "We don't wanna fight.
+You should just go home!"
+  DeepL: N/A
+  First pass: "Vi vil ikke slås. I skulle bare gå hjem!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Vi vil ikke slås. I skulle bare tage hjem!" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Vi vil ikke slås. I skulle bare tage hjem!"
+------------------------------------------------------------
+Line 136:
+  Original: "Don't listen to her.
+She has your children."
+  DeepL: N/A
+  First pass: "Lyt ikke til hende. Hun har dine børn."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Lyt ikke til hende. Hun har dine børn."
+------------------------------------------------------------
+Line 137:
+  Original: "One way or another,
+we are getting through this wall."
+  DeepL: N/A
+  First pass: "Uanset hvad, så kommer vi igennem den mur."
+  Critic: "Uanset hvad, så kommer vi igennem muren." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Uanset hvad, så kommer vi igennem muren."
+------------------------------------------------------------
+Line 138:
+  Original: "Shall I burn it?"
+  DeepL: N/A
+  First pass: "Skal jeg brænde den?"
+  Critic: "Skal jeg sætte den i brand?" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Skal jeg sætte ild til den?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Skal jeg sætte ild til den?"
+------------------------------------------------------------
+Line 139:
+  Original: "No, Greta!
+The fumes are poisonous."
+  DeepL: N/A
+  First pass: "Nej, Greta! Røgen er giftig."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Nej, Greta! Røgen er giftig."
+------------------------------------------------------------
+Line 140:
+  Original: "We'll find another way."
+  DeepL: N/A
+  First pass: "Vi finder en anden vej."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Vi finder en anden løsning." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Vi finder en anden løsning."
+------------------------------------------------------------
+Line 141:
+  Original: "#BRACKET_OPEN#chuckles#BRACKET_CLOSE# We did it."
+  DeepL: N/A
+  First pass: "Øh, vi gjorde det."
+  Critic: "Øh, vi klarede det." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Øh, vi klarede det."
+------------------------------------------------------------
+Line 142:
+  Original: "Thank you for leaving!
+Have a great day!"
+  DeepL: N/A
+  First pass: "Tak for at du tog afsted! Hav en god dag!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Tak for at du tog afsted! Hav en god dag!"
+------------------------------------------------------------
+Line 143:
+  Original: "It's OK, everybody.
+The death ivy worked."
+  DeepL: N/A
+  First pass: "Det er okay, alle sammen. Død ive virkede."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Det er okay, alle sammen. Død ive virkede."
+------------------------------------------------------------
+Line 144:
+  Original: "I knew they wouldn't
+risk their lives to cure us."
+  DeepL: N/A
+  First pass: "Jeg vidste, de ikke ville risikere deres liv for at kurere os."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg vidste, de ikke ville risikere deres liv for at kurere os."
+------------------------------------------------------------
+Line 145:
+  Original: "Or... maybe they would."
+  DeepL: N/A
+  First pass: "Eller... måske ville de."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Eller... måske ville de."
+------------------------------------------------------------
+Line 146:
+  Original: "We came here for the protection
+of the death ivy wall."
+  DeepL: N/A
+  First pass: "Vi kom her for beskyttelsen af dødevillets mur."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi kom her for beskyttelsen af dødevillets mur."
+------------------------------------------------------------
+Line 147:
+  Original: "But it seems
+that hypothesis was erroneous."
+  DeepL: N/A
+  First pass: "Men det ser ud til, at den hypotese var forkert."
+  Critic: "Men det ser ud til, at hypotesen var forkert." (CHANGED)
+  Critic 1 (technical_grammar): "Men det ser ud til, at hypotesen var fejlagtig." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Men det ser ud til, at hypotesen var fejlagtig."
+------------------------------------------------------------
+Line 148:
+  Original: "Yeah, what he said!
+I think."
+  DeepL: N/A
+  First pass: "Ja, præcis som han sagde! Jeg tror."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Ja, præcis som han sagde! Jeg tror."
+------------------------------------------------------------
+Line 149:
+  Original: "He's saying we fight."
+  DeepL: N/A
+  First pass: "Han siger, at vi skal kæmpe."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Han siger, at vi skal slås." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Han siger, at vi skal slås."
+------------------------------------------------------------
+Line 150:
+  Original: "The egghead and stinky cats are right."
+  DeepL: N/A
+  First pass: "Hjernevrøvlerne og stinky-kattene har ret."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hjernevrøvlerne og stinky-kattene har ret."
+------------------------------------------------------------
+Line 151:
+  Original: "Yumyan would want us to fight
+to protect our village!"
+  DeepL: N/A
+  First pass: "Yumyan ville have, at vi skulle kæmpe for at beskytte vores landsby!"
+  Critic: No changes
+  Critic 1 (technical_grammar): "Yumyan ville ønske, at vi skulle kæmpe for at beskytte vores landsby!" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Yumyan ville ønske, at vi skulle kæmpe for at beskytte vores landsby!"
+------------------------------------------------------------
+Line 152:
+  Original: "Based on the density of the wall,"
+  DeepL: N/A
+  First pass: "Baseret på væggens tæthed, "
+  Critic: "Baseret på væggens tæthed," (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Baseret på væggens tæthed,"
+------------------------------------------------------------
+Line 153:
+  Original: "it looks like we have
+approximately two hours,"
+  DeepL: N/A
+  First pass: "Det ser ud som om vi har"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Det ser ud som om vi har"
+------------------------------------------------------------
+Line 154:
+  Original: "give or take seven minutes,
+before they get in."
+  DeepL: N/A
+  First pass: "cirka syv minutter, før de er inde."
+  Critic: "cirka syv minutter, før de er indenfor." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "cirka syv minutter, før de er indenfor."
+------------------------------------------------------------
+Line 155:
+  Original: "- That wall was a terrible idea!
+- Let's fight!"
+  DeepL: N/A
+  First pass: "- Det var en forfærdelig idé med den mur!
+- Lad os kæmpe!"
+  Critic: "- Det var en forfærdelig idé med den mur! - Lad os kæmpe!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Det var en forfærdelig idé med den mur! - Lad os kæmpe!"
+------------------------------------------------------------
+Line 156:
+  Original: "We don't have to fight."
+  DeepL: N/A
+  First pass: "Vi behøver ikke at kæmpe."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi behøver ikke at kæmpe."
+------------------------------------------------------------
+Line 157:
+  Original: "We just have to get them in one spot.
+Then we can talk to them."
+  DeepL: N/A
+  First pass: "Vi skal bare have dem samlet ét sted. Så kan vi tale med dem."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi skal bare have dem samlet ét sted. Så kan vi tale med dem."
+------------------------------------------------------------
+Line 158:
+  Original: "- #BRACKET_OPEN#Label#BRACKET_CLOSE# Lemme take that.
+- Thanks, it was delicious."
+  DeepL: N/A
+  First pass: "- Mærk lige det. 
+- Tak, det smagte lækkert."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Mærk lige det. 
+- Tak, det smagte lækkert."
+------------------------------------------------------------
+Line 159:
+  Original: "- Did you add something?
+- I added pepper."
+  DeepL: N/A
+  First pass: "- Tilføjede du noget?
+- Jeg tilføjede peber."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Tilføjede du noget?
+- Jeg tilføjede peber."
+------------------------------------------------------------
+Line 160:
+  Original: "- I thought you'd like a little kick.
+- You're not wrong."
+  DeepL: N/A
+  First pass: "- Jeg tænkte, du kunne lide lidt spark.
+- Du tager fejl."
+  Critic: "- Jeg tænkte, du kunne lide lidt spark.
+- Du har ret." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Jeg tænkte, du kunne lide lidt spark.
+- Du har ret."
+------------------------------------------------------------
+Line 161:
+  Original: "The pepper kicked me right in the teeth.
+Right where I like it."
+  DeepL: N/A
+  First pass: "Pebret stødte lige mig i munden.
+Rett i det, jeg kan lide."
+  Critic: "Peber stødte lige mig i munden. Lige der, hvor jeg kan lide det." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Peber stødte lige mig i munden. Lige der, hvor jeg kan lide det."
+------------------------------------------------------------
+Line 162:
+  Original: "You know what else gives me a kick?"
+  DeepL: N/A
+  First pass: "Du ved, hvad der ellers giver mig et spark?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Du ved, hvad der ellers giver mig et spark?"
+------------------------------------------------------------
+Line 163:
+  Original: "- No, what?
+- A good ab workout!"
+  DeepL: N/A
+  First pass: "- Hvad så?
+- En god maveøvelse!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Hvad så?
+- En god maveøvelse!"
+------------------------------------------------------------
+Line 164:
+  Original: "Good to know. Thanks, Label."
+  DeepL: N/A
+  First pass: "Godt at vide. Tak, Label."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Godt at vide. Tak, Label."
+------------------------------------------------------------
+Line 165:
+  Original: "What you doing, shaky head?"
+  DeepL: N/A
+  First pass: "Hvad laver du, med det rystende hoved?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hvad laver du, med det rystende hoved?"
+------------------------------------------------------------
+Line 166:
+  Original: "I've got it! Zane!"
+  DeepL: N/A
+  First pass: "Jeg har den! Zane!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg har den! Zane!"
+------------------------------------------------------------
+Line 167:
+  Original: "Zane talks to us"
+  DeepL: N/A
+  First pass: "Zane taler med os"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Zane taler med os"
+------------------------------------------------------------
+Line 168:
+  Original: "because he's in a small space
+he can't leave."
+  DeepL: N/A
+  First pass: "fordi han er i et lille rum
+han ikke kan forlade."
+  Critic: "fordi han er i et lille rum, han ikke kan forlade." (CHANGED)
+  Critic 1 (technical_grammar): "fordi han er i et lille rum, kan han ikke forlade." (CHANGED)
+  Critic 2 (cultural): "fordi han er i et lille rum, kan han ikke komme ud." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "fordi han er i et lille rum, kan han ikke komme ud."
+------------------------------------------------------------
+Line 169:
+  Original: "We need to Zane my people."
+  DeepL: N/A
+  First pass: "Vi skal Zane vores folk."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi skal Zane vores folk."
+------------------------------------------------------------
+Line 170:
+  Original: "Is that Kipo for "trap"?"
+  DeepL: N/A
+  First pass: "Er er 'fælde' på Kipo-sprog?"
+  Critic: "Er 'fælde' et Kipo-ord?" (CHANGED)
+  Critic 1 (technical_grammar): "Er det et Kipo-udtryk for 'fælde'?" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Er det et Kipo-udtryk for 'fælde'?"
+------------------------------------------------------------
+Line 171:
+  Original: "That's not my word of choice, but yes."
+  DeepL: N/A
+  First pass: "Det er ikke mit foretrukne ord, men ja."
+  Critic: "Det er ikke et ord, jeg ville have valgt, men ja." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Det er ikke et ord, jeg ville have valgt, men ja."
+------------------------------------------------------------
+Line 172:
+  Original: "Why would we waste our time on that,
+when the Mega Jaguar"
+  DeepL: N/A
+  First pass: "Hvorfor skulle vi spilde vores tid på det,
+"
+  Critic: "Hvorfor skulle vi spilde vores tid på det," (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Hvorfor skulle vi spilde vores tid på det, " (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Hvorfor skulle vi spilde vores tid på det, "
+------------------------------------------------------------
+Line 173:
+  Original: "could just devour them?"
+  DeepL: N/A
+  First pass: "kunne bare sluge dem?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "kunne bare sluge dem?"
+------------------------------------------------------------
+Line 174:
+  Original: "First of all, ew."
+  DeepL: N/A
+  First pass: "Først og fremmest, uæææ!"
+  Critic: "Først og fremmest, udelukkende klamt." (CHANGED)
+  Critic 1 (technical_grammar): "Først og fremmest, ækelt." (CHANGED)
+  Critic 2 (cultural): "Først og fremmest, uadlyde" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Først og fremmest, uadlyde"
+------------------------------------------------------------
+Line 175:
+  Original: "Second, traps will work."
+  DeepL: N/A
+  First pass: "And secondly, fælder virker."
+  Critic: "Og for det andet, fælder virker." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Og for det andet, fælder virker."
+------------------------------------------------------------
+Line 176:
+  Original: "I knew Kipo would
+come up with a smart plan."
+  DeepL: N/A
+  First pass: "Jeg vidste, at Kipo ville finde på en smart plan."
+  Critic: No changes
+  Critic 1 (technical_grammar): "Jeg vidste, at Kipo ville finde på en smart løsning." (CHANGED)
+  Critic 2 (cultural): "Jeg vidste, at Kipo ville finde på en klog løsning." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Jeg vidste, at Kipo ville finde på en klog løsning."
+------------------------------------------------------------
+Line 177:
+  Original: "That plan is foolish.
+They came for a fight!"
+  DeepL: N/A
+  First pass: "Den plan er dum. De kom for at slås!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Den plan er dum. De kom for at slås!"
+------------------------------------------------------------
+Line 178:
+  Original: "- We need to prepare.
+- I dunno, traps are kind of fun."
+  DeepL: N/A
+  First pass: "- Vi skal gøre os klar.
+- Jeg ved ikke, fælder er ret sjove."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Vi skal gøre os klar.
+- Jeg ved ikke, fælder er ret sjove."
+------------------------------------------------------------
+Line 179:
+  Original: "Not wanting to fight
+your people is admirable. But—"
+  DeepL: N/A
+  First pass: "Det er beundringsværdigt, at du ikke vil kæmpe mod mit folk. Men—"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Det er beundringsværdigt, at du ikke vil kæmpe mod mit folk. Men—"
+------------------------------------------------------------
+Line 180:
+  Original: "The cheese has spoken."
+  DeepL: N/A
+  First pass: "Osten har talt."
+  Critic: No changes
+  Critic 1 (technical_grammar): "Østen har talt." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Østen har talt."
+------------------------------------------------------------
+Line 181:
+  Original: "And it's always right."
+  DeepL: N/A
+  First pass: "Og det har altid ret."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Og det har altid ret."
+------------------------------------------------------------
+Line 182:
+  Original: "I refuse to let that cheese
+show me who's boss."
+  DeepL: N/A
+  First pass: "Jeg nægter at lade den ost diktere, hvem der bestemmer."
+  Critic: "Jeg nægter at lade den ost bestemme, hvem der bestemmer." (CHANGED)
+  Critic 1 (technical_grammar): "Jeg nægter at lade den ost bestemme over mig." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg nægter at lade den ost bestemme over mig."
+------------------------------------------------------------
+Line 183:
+  Original: "That's my girl!
+These prophecies are not set in stone."
+  DeepL: N/A
+  First pass: "Sej, min pige!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Sej, min pige!"
+------------------------------------------------------------
+Line 184:
+  Original: "But they were pretty spot-on
+about the Mega Jaguar prophecy."
+  DeepL: N/A
+  First pass: "Men de ramte plet med Mega Jaguar profetien."
+  Critic: "Men de havde ret i forhold til Mega Jaguar profetien." (CHANGED)
+  Critic 1 (technical_grammar): "Men de havde ret angående Mega Jaguar-profetien." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Men de havde ret angående Mega Jaguar-profetien."
+------------------------------------------------------------
+Line 185:
+  Original: "Yeah, but we avoided
+the scary parts last time,"
+  DeepL: N/A
+  First pass: "Ja, men vi undgik de farlige dele sidst, "
+  Critic: "Ja, men vi undgik de farlige dele sidst," (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): "Ja, men vi undgik de farlige dele sidst" (CHANGED)
+  Final: "Ja, men vi undgik de farlige dele sidst"
+------------------------------------------------------------
+Line 186:
+  Original: "and we'll do it again."
+  DeepL: N/A
+  First pass: "og vi gør det igen."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "og vi gør det igen."
+------------------------------------------------------------
+Line 187:
+  Original: "We're with you, Kipo."
+  DeepL: N/A
+  First pass: "Vi er med dig, Kipo."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi er med dig, Kipo."
+------------------------------------------------------------
+Line 188:
+  Original: "And if you wanna do traps,
+I've caught a lot of food."
+  DeepL: N/A
+  First pass: "Og hvis du vil lave fælder, så har jeg fanget en masse mad."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Og hvis du vil lave fælder, så har jeg fanget en masse mad."
+------------------------------------------------------------
+Line 189:
+  Original: "#BRACKET_OPEN#squeals#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Pifter!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Pifter!"
+------------------------------------------------------------
+Line 190:
+  Original: "Which I don't do anymore."
+  DeepL: N/A
+  First pass: "Det gør jeg ikke mere."
+  Critic: "Det gør jeg ikke længere." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Det gør jeg ikke mere." (CHANGED)
+  Critic 3 (consistency): "Det gør jeg ikke længere." (CHANGED)
+  Final: "Det gør jeg ikke længere."
+------------------------------------------------------------
+Line 191:
+  Original: "Yeah, I used to trap Dave all the time."
+  DeepL: N/A
+  First pass: "Ja, jeg fangede Dave hele tiden førhen."
+  Critic: "Ja, jeg fangede Dave hele tiden før." (CHANGED)
+  Critic 1 (technical_grammar): "Ja, jeg fangede Dave hele tiden tidligere." (CHANGED)
+  Critic 2 (cultural): "Ja, jeg fangede Dave hele tiden før." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Ja, jeg fangede Dave hele tiden før."
+------------------------------------------------------------
+Line 192:
+  Original: "You were going to eat Dave?"
+  DeepL: N/A
+  First pass: "Du skulle spise Dave?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Du skulle spise Dave?"
+------------------------------------------------------------
+Line 193:
+  Original: "What, what, what? No way!
+Just to mess with him."
+  DeepL: N/A
+  First pass: "Hvad, hvad, hvad? Ikke i millioner!"
+  Critic: "Hvad, hvad, hvad? Slet ikke!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Hvad, hvad, hvad? Overhovedet ikke!" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Hvad, hvad, hvad? Overhovedet ikke!"
+------------------------------------------------------------
+Line 194:
+  Original: "You know, like a prank?"
+  DeepL: N/A
+  First pass: "Ved du, ligesom et dril?"
+  Critic: "Ved du, ligesom et puds?" (CHANGED)
+  Critic 1 (technical_grammar): "Ved du, ligesom et dril?" (CHANGED)
+  Critic 2 (cultural): "Ved du, ligesom et puds?" (CHANGED)
+  Critic 3 (consistency): "Ved du, ligesom et dril?" (CHANGED)
+  Final: "Ved du, ligesom et dril?"
+------------------------------------------------------------
+Line 195:
+  Original: "Strange.
+But interesting."
+  DeepL: N/A
+  First pass: "Mærkeligt. Men interessant."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Mærkeligt. Men interessant."
+------------------------------------------------------------
+Line 196:
+  Original: "OK, team. Now, we just
+have to convince all of... them."
+  DeepL: N/A
+  First pass: "Okay, hold. Nu skal vi bare overbevise dem alle..."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Okay, hold. Nu skal vi bare overbevise dem alle..."
+------------------------------------------------------------
+Line 197:
+  Original: "- Walls don't work anyway!
+- We have no choice."
+  DeepL: N/A
+  First pass: "- Mure virker alligevel ikke!
+- Vi har intet valg."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Mure virker alligevel ikke!
+- Vi har intet valg."
+------------------------------------------------------------
+Line 198:
+  Original: "No walls for timbercats!"
+  DeepL: N/A
+  First pass: "Ingen mure for timbercats!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Ingen mure for timbercats!"
+------------------------------------------------------------
+Line 199:
+  Original: "Hey!"
+  DeepL: N/A
+  First pass: "Hey!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hey!"
+------------------------------------------------------------
+Line 200:
+  Original: "Kipo said we're doing traps!"
+  DeepL: N/A
+  First pass: "Kipo sagde, vi skal lave fælder!"
+  Critic: "Kipo sagde, vi laver fælder!" (CHANGED)
+  Critic 1 (technical_grammar): "Kipo sagde, at vi laver fælder!" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Kipo sagde, at vi laver fælder!"
+------------------------------------------------------------
+Line 201:
+  Original: "We're doing traps!"
+  DeepL: N/A
+  First pass: "Vi laver fælder!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi laver fælder!"
+------------------------------------------------------------
+Line 202:
+  Original: "- OK.
+- Yes, we're doing traps!"
+  DeepL: N/A
+  First pass: "- Okay.
+- Ja, vi laver fælder!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Okay.
+- Ja, vi laver fælder!"
+------------------------------------------------------------
+Line 203:
+  Original: "I'm gonna dig a hole
+and cover it with leaves,"
+  DeepL: N/A
+  First pass: "Jeg skal grave et hul
+og dække det med blade,"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg skal grave et hul
+og dække det med blade,"
+------------------------------------------------------------
+Line 204:
+  Original: "somebody's gonna fall right into it.
+Such a trap."
+  DeepL: N/A
+  First pass: "Nogen kommer til at falde lige i den. En ordentlig fælde."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Nogen kommer til at falde lige i den. En ordentlig fælde."
+------------------------------------------------------------
+Line 205:
+  Original: "#BRACKET_OPEN#Dave laughing#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Dave griner"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Dave griner"
+------------------------------------------------------------
+Line 206:
+  Original: "Breaker, breaker, this is Mega Jag."
+  DeepL: N/A
+  First pass: "Breaker, breaker, her er Mega Jag."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Breaker, breaker, her er Mega Jag."
+------------------------------------------------------------
+Line 207:
+  Original: "How's "Operation Rock You
+Like a Hurricane?" Over."
+  DeepL: N/A
+  First pass: "Hvordan går det med "Operation Rock You Like a Hurricane?" Over."
+  Critic: "Hvordan går det med 'Operation Rock You Like a Hurricane?' Over." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hvordan går det med 'Operation Rock You Like a Hurricane?' Over."
+------------------------------------------------------------
+Line 208:
+  Original: "#BRACKET_OPEN#Jamack#BRACKET_CLOSE# Amps are in position."
+  DeepL: N/A
+  First pass: "Jamack: Forstærkerne er på plads."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Jamack: Forstærkerne er klar." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Jamack: Forstærkerne er klar."
+------------------------------------------------------------
+Line 209:
+  Original: "Oh, man, you know, I was just thinking,
+this is gonna be so good."
+  DeepL: N/A
+  First pass: "Av, mand, du ved, jeg tænkte lige, det bliver så fedt."
+  Critic: "Av, mand, du ved, jeg tænkte lige, det bliver så godt." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Av, mand, du ved, jeg tænkte lige, det bliver så fedt." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Av, mand, du ved, jeg tænkte lige, det bliver så fedt."
+------------------------------------------------------------
+Line 210:
+  Original: "This is gonna be so good!
+I mean, we even have a net. Come on!"
+  DeepL: N/A
+  First pass: "Det bliver så godt! Jeg mener, vi har endda et net. Kom nu!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Det bliver så godt! Jeg mener, vi har endda et net. Kom nu!"
+------------------------------------------------------------
+Line 211:
+  Original: "It's, like, they'll be listening
+to some music, and then boom!"
+  DeepL: N/A
+  First pass: "Det er som, de vil lytte til noget musik, og så bum!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Det er som, de vil lytte til noget musik, og så plop!" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Det er som, de vil lytte til noget musik, og så plop!"
+------------------------------------------------------------
+Line 212:
+  Original: "- Net! And then—
+- Over."
+  DeepL: N/A
+  First pass: "- Net! Og så—
+- Over."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Net! Og så—
+- Over."
+------------------------------------------------------------
+Line 213:
+  Original: "Right. Totally. Sorry."
+  DeepL: N/A
+  First pass: "Okay. Helt sikkert. Undskyld."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Okay. Helt sikkert. Undskyld."
+------------------------------------------------------------
+Line 214:
+  Original: "Over.
+But nets, right?"
+  DeepL: N/A
+  First pass: "Over.
+Men net, ikke sandt?"
+  Critic: "Over.
+Men net, vel?" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Over.
+Men net, ikke sandt?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Over.
+Men net, ikke sandt?"
+------------------------------------------------------------
+Line 215:
+  Original: "#BRACKET_OPEN#sniffing#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "lugter"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "lugter"
+------------------------------------------------------------
+Line 216:
+  Original: "#BRACKET_OPEN#gasps#BRACKET_CLOSE# Oh, sweet, sweet cheese."
+  DeepL: N/A
+  First pass: "Åh, lækre, lækre ost."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Åh, lækre, lækre ost."
+------------------------------------------------------------
+Line 217:
+  Original: "#BRACKET_OPEN#grunting#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "[stønnen]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[stønnen]"
+------------------------------------------------------------
+Line 218:
+  Original: "#BRACKET_OPEN#cackling#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Hjælpe"
+  Critic: "Hånlig gråd" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Hånlig latter" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Hånlig latter"
+------------------------------------------------------------
+Line 219:
+  Original: "- Prank!
+- Why'd you tell her what pranks are?"
+  DeepL: N/A
+  First pass: "- Stikprælle! 
+- Hvorfor fortalte du hende, hvad en stikprælle er?"
+  Critic: "- Præst! 
+- Hvorfor fortalte du hende, hvad en præst er?" (CHANGED)
+  Critic 1 (technical_grammar): "- Præst! 
+- Hvorfor fortalte du hende, hvad en prank er?" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Præst! 
+- Hvorfor fortalte du hende, hvad en prank er?"
+------------------------------------------------------------
+Line 220:
+  Original: "Now I look like a porcupine."
+  DeepL: N/A
+  First pass: "Nu ser jeg ud som et pindsvin."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Nu ser jeg ud som et pindsvin."
+------------------------------------------------------------
+Line 221:
+  Original: "What?
+Too much?"
+  DeepL: N/A
+  First pass: "Hvad? For meget?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hvad? For meget?"
+------------------------------------------------------------
+Line 222:
+  Original: "Yep.
+Maybe a little."
+  DeepL: N/A
+  First pass: "Ja. Måske lidt."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Ja. Måske lidt."
+------------------------------------------------------------
+Line 223:
+  Original: "First one through
+gets to be the first one through."
+  DeepL: N/A
+  First pass: "Den første der er igennem,
+
+ får lov til at være den første der er igennem."
+  Critic: "Den første der er igennem, får lov til at være den første der er igennem." (CHANGED)
+  Critic 1 (technical_grammar): "Den første der er igennem, får lov til at være den første, der er igennem." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Den første der er igennem, får lov til at være den første, der er igennem."
+------------------------------------------------------------
+Line 224:
+  Original: "Not if I'm the first one through."
+  DeepL: N/A
+  First pass: "Ikke hvis jeg er den første gennem."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Ikke hvis jeg er den første igennem." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Ikke hvis jeg er den første igennem."
+------------------------------------------------------------
+Line 225:
+  Original: "#BRACKET_OPEN#grunting#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Stønnen"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Stønnen"
+------------------------------------------------------------
+Line 226:
+  Original: "I admire the enthusiasm, but be careful."
+  DeepL: N/A
+  First pass: "Jeg beundrer entusiasmen, men pas på."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg beundrer entusiasmen, men pas på."
+------------------------------------------------------------
+Line 227:
+  Original: "I just can't wait to get in there
+and start curing every single one of them."
+  DeepL: N/A
+  First pass: "Jeg kan simpelthen ikke vente med at komme derind og begynde at helbrede dem alle."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg kan simpelthen ikke vente med at komme derind og begynde at helbrede dem alle."
+------------------------------------------------------------
+Line 228:
+  Original: "The surface will finally
+be safe for my daughter."
+  DeepL: N/A
+  First pass: "Overfladen vil endelig være sikker for min datter."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Overfladen vil endelig være sikker for min datter."
+------------------------------------------------------------
+Line 229:
+  Original: "#BRACKET_OPEN#grunting#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "[stønnen]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[stønnen]"
+------------------------------------------------------------
+Line 230:
+  Original: "#BRACKET_OPEN#Kipo#BRACKET_CLOSE# Bad Dog. Come in, Bad Dog."
+  DeepL: N/A
+  First pass: "Kipo, snyde hund. Kom ind, snyde hund."
+  Critic: "Kipo, drille hund. Kom ind, drille hund." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Kipo, snydehund. Kom ind, snydehund." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Kipo, snydehund. Kom ind, snydehund."
+------------------------------------------------------------
+Line 231:
+  Original: "Is "Operation Balloon Pop and Fall"
+in place?"
+  DeepL: N/A
+  First pass: "Er "Operation Ballonpop og Fald" klar?"
+  Critic: "Er "Operation Ballonpop og Fald" på plads?" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Er "Operation Ballonpop og Fald" på plads?"
+------------------------------------------------------------
+Line 232:
+  Original: "Over."
+  DeepL: N/A
+  First pass: "Færdig."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Færdig."
+------------------------------------------------------------
+Line 233:
+  Original: "#BRACKET_OPEN#groans#BRACKET_CLOSE# Over."
+  DeepL: N/A
+  First pass: "Støn. Over."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Støn. Over."
+------------------------------------------------------------
+Line 234:
+  Original: "#BRACKET_OPEN#gasps, whines#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "[hvæs, knurren]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[hvæs, knurren]"
+------------------------------------------------------------
+Line 235:
+  Original: "I'll take that as a yes.
+Over."
+  DeepL: N/A
+  First pass: "Jeg tager det som et ja. Over."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg tager det som et ja. Over."
+------------------------------------------------------------
+Line 236:
+  Original: "So, you want me to paralyze them"
+  DeepL: N/A
+  First pass: "Så, du vil have mig til at lamme dem"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Så, du vil have mig til at lamme dem"
+------------------------------------------------------------
+Line 237:
+  Original: "with abject fear
+while a trap encloses them?"
+  DeepL: N/A
+  First pass: "med forfærdelig frygt, mens en fælde lukker sig om dem?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "med frygtelig rædsel, mens en fælde lukker sig om dem?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "med frygtelig rædsel, mens en fælde lukker sig om dem?"
+------------------------------------------------------------
+Line 238:
+  Original: "#BRACKET_OPEN#laughing#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "BRACKET_OPEN#griner]"
+  Critic: No changes
+  Critic 1 (technical_grammar): "BRACKET_OPEN#griner#BRACKET_CLOSE" (CHANGED)
+  Critic 2 (cultural): "BRACKET_OPEN#grin#BRACKET_CLOSE" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "BRACKET_OPEN#grin#BRACKET_CLOSE"
+------------------------------------------------------------
+Line 239:
+  Original: "Good plan."
+  DeepL: N/A
+  First pass: "God plan."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "God plan."
+------------------------------------------------------------
+Line 240:
+  Original: "Are you sure we can trust him?
+Look at his hands."
+  DeepL: N/A
+  First pass: "Er du sikker på, at vi kan stole på ham? Se på hans hænder."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Er du sikker på, at vi kan stole på ham? Se på hans hænder."
+------------------------------------------------------------
+Line 241:
+  Original: "Oh."
+  DeepL: N/A
+  First pass: "Åh."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Åh."
+------------------------------------------------------------
+Line 242:
+  Original: "Yes. I know we can because he promises
+he won't mind control anyone."
+  DeepL: N/A
+  First pass: "Ja. Jeg ved, vi kan, fordi han lover"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Ja. Jeg ved, vi kan, fordi han lover"
+------------------------------------------------------------
+Line 243:
+  Original: "At all."
+  DeepL: N/A
+  First pass: "Slet ikke."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Slet ikke."
+------------------------------------------------------------
+Line 244:
+  Original: "All right, no mind control, I promise."
+  DeepL: N/A
+  First pass: "Okay, ingen tankekontrol, jeg lover."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Okay, ingen tankekontrol, jeg lover."
+------------------------------------------------------------
+Line 245:
+  Original: "Lead the way, mon capitaine."
+  DeepL: N/A
+  First pass: "Sig godt for mig, min kaptajn."
+  Critic: "Vis vejen, min kaptajn." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vis vejen, min kaptajn."
+------------------------------------------------------------
+Line 246:
+  Original: "Perfect.
+Now help me with "Operation Leafy Leaf.""
+  DeepL: N/A
+  First pass: "Perfekt."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Perfekt.
+" (CHANGED)
+  Critic 3 (consistency): "Perfekt." (CHANGED)
+  Final: "Perfekt."
+------------------------------------------------------------
+Line 247:
+  Original: "#BRACKET_OPEN#cackles#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Høhø"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Høhø"
+------------------------------------------------------------
+Line 248:
+  Original: "#BRACKET_OPEN#Emilia#BRACKET_CLOSE# Don't forget
+who we're fighting to protect."
+  DeepL: N/A
+  First pass: "[Emilia] Glem ikke, hvem vi kæmper for at beskytte."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Emilia] Glem ikke, hvem vi kæmper for at beskytte."
+------------------------------------------------------------
+Line 249:
+  Original: "Our sisters, our brothers,
+our parents..."
+  DeepL: N/A
+  First pass: "Vores søstre, vores brødre,
+vores forældre..."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vores søstre, vores brødre,
+vores forældre..."
+------------------------------------------------------------
+Line 250:
+  Original: "our children."
+  DeepL: N/A
+  First pass: "vores børn."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "vores børn."
+------------------------------------------------------------
+Line 251:
+  Original: "Earl, you know nothing matters more to me
+than Asher and Dahlia, but..."
+  DeepL: N/A
+  First pass: "Earl, du ved, intet betyder mere for mig end Asher og Dahlia, men..."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Earl, du ved, intet betyder mere for mig end Asher og Dahlia, men..."
+------------------------------------------------------------
+Line 252:
+  Original: "Are we sure we're making
+the right decision?"
+  DeepL: N/A
+  First pass: "Er vi sikre på, at vi træffer den rigtige beslutning?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Er vi sikre på, at vi træffer det rigtige valg?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Er vi sikre på, at vi træffer det rigtige valg?"
+------------------------------------------------------------
+Line 253:
+  Original: "I don't know.
+You saw what Emilia did to that wolf kid."
+  DeepL: N/A
+  First pass: "Jeg ved det ikke. I så, hvad Emilia gjorde ved det ulveunger."
+  Critic: "Jeg ved det ikke. Du så, hvad Emilia gjorde ved den lille ulv." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg ved det ikke. Du så, hvad Emilia gjorde ved den lille ulv."
+------------------------------------------------------------
+Line 254:
+  Original: "It was heartless."
+  DeepL: N/A
+  First pass: "Det var hensynsløst."
+  Critic: "Det var nådesløst." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Det var ubarmhjertigt." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Det var ubarmhjertigt."
+------------------------------------------------------------
+Line 255:
+  Original: "How can we trust someone
+who could hurt anyone that easily?"
+  DeepL: N/A
+  First pass: "Hvordan kan vi stole på en, der kan såre hvem som helst så let?"
+  Critic: "Hvordan kan vi stole på en, der så let kan gøre nogen fortræd?" (CHANGED)
+  Critic 1 (technical_grammar): "Hvordan kan vi stole på en, der så let kan gøre andre fortræd?" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hvordan kan vi stole på en, der så let kan gøre andre fortræd?"
+------------------------------------------------------------
+Line 256:
+  Original: "#BRACKET_OPEN#Hoag#BRACKET_CLOSE# Everyone, keep going!"
+  DeepL: N/A
+  First pass: "Hoag: Alle i gang!"
+  Critic: "Hoag: Alle, fortsæt!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Hoag: Alle, bliv ved!" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Hoag: Alle, bliv ved!"
+------------------------------------------------------------
+Line 257:
+  Original: "#BRACKET_OPEN#Kipo#BRACKET_CLOSE# Everyone's in place?"
+  DeepL: N/A
+  First pass: "Er alle på plads?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Er alle på plads?"
+------------------------------------------------------------
+Line 258:
+  Original: "#BRACKET_OPEN#Billions#BRACKET_CLOSE# Balloon team, standing by."
+  DeepL: N/A
+  First pass: "[Billions] Ballonhold, klar til afgang."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Billions] Ballonhold, klar til afgang."
+------------------------------------------------------------
+Line 259:
+  Original: "#BRACKET_OPEN#Jamack#BRACKET_CLOSE# Hurricane team, standing by."
+  DeepL: N/A
+  First pass: "[Jamack] Orkanteam, klar til indsats."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Jamack] Orkanteam, klar til indsats."
+------------------------------------------------------------
+Line 260:
+  Original: "Side note, love our code name."
+  DeepL: N/A
+  First pass: "Bare sidebemærkning, jeg elsker vores kodeord."
+  Critic: "Bare en sidebemærkning, jeg elsker vores kode-navn." (CHANGED)
+  Critic 1 (technical_grammar): "Bare en sidebemærkning, jeg elsker vores kaldenavn." (CHANGED)
+  Critic 2 (cultural): "Bare en sidebemærkning, jeg elsker vores kodeord." (CHANGED)
+  Critic 3 (consistency): "Bare en sidebemærkning, jeg elsker vores kodebetegnelse." (CHANGED)
+  Final: "Bare en sidebemærkning, jeg elsker vores kodebetegnelse."
+------------------------------------------------------------
+Line 261:
+  Original: "#BRACKET_OPEN#Scarlemagne#BRACKET_CLOSE# I'm not doing
+a cutesy name... but I'm set."
+  DeepL: N/A
+  First pass: "[Scarlemagne] Jeg laver ikke et sødt kaldenavn... men jeg er klar."
+  Critic: "Jeg laver ikke et sødt kaldenavn... men jeg er klar." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg laver ikke et sødt kaldenavn... men jeg er klar."
+------------------------------------------------------------
+Line 262:
+  Original: "I can't believe they're all
+actually working together."
+  DeepL: N/A
+  First pass: "Jeg kan slet ikke tro, at de alle arbejder sammen."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg kan slet ikke tro, at de alle arbejder sammen."
+------------------------------------------------------------
+Line 263:
+  Original: "Even Scarlemagne."
+  DeepL: N/A
+  First pass: "Selv Scarlemagne."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Selv Scarlemagne."
+------------------------------------------------------------
+Line 264:
+  Original: "You looked destiny in the eye and said,
+"Not today, destiny.""
+  DeepL: N/A
+  First pass: "Du så skæbnen i øjnene og sagde: "Ikke i dag, skæbne." "
+  Critic: "Du så skæbnen i øjnene og sagde: "Ikke i dag, skæbne."" (CHANGED)
+  Critic 1 (technical_grammar): "Du så skæbnen i øjnene og sagde: "Ikke i dag, skæbne." " (CHANGED)
+  Critic 2 (cultural): "Du så skæbnen i øjnene og sagde: "Ikke i dag, skæbne."" (CHANGED)
+  Critic 3 (consistency): "Du så skæbnen i øjnene og sagde: "Ikke i dag, skæbne." " (CHANGED)
+  Final: "Du så skæbnen i øjnene og sagde: "Ikke i dag, skæbne." "
+------------------------------------------------------------
+Line 265:
+  Original: "Look who came around to realizing
+the cheese can be wrong!"
+  DeepL: N/A
+  First pass: "Se hvem der er kommet til sigt for at indse, at osten kan tage fejl!"
+  Critic: "Se hvem der er kommet til fornuft og indser, at osten kan tage fejl!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Se hvem der er kommet til fornuft og indser, at man kan tage fejl!" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Se hvem der er kommet til fornuft og indser, at man kan tage fejl!"
+------------------------------------------------------------
+Line 266:
+  Original: "Or... maybe you did exactly
+what destiny wanted,"
+  DeepL: N/A
+  First pass: "Eller... måske gjorde du præcis, hvad skæbnen ville have dig til."
+  Critic: "Eller... måske gjorde du præcis, hvad skæbnen ønskede." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Eller... måske gjorde du lige præcis, hvad skæbnen ville have dig til." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Eller... måske gjorde du lige præcis, hvad skæbnen ville have dig til."
+------------------------------------------------------------
+Line 267:
+  Original: "and now you will
+have to fight your own people."
+  DeepL: N/A
+  First pass: "og nu vil du være nødt til at kæmpe mod dit eget folk."
+  Critic: "og nu vil du være nødt til at kæmpe mod dine egne." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "og nu vil du være nødt til at kæmpe mod dine egne."
+------------------------------------------------------------
+Line 268:
+  Original: "Destiny is an unstoppable force."
+  DeepL: N/A
+  First pass: "Skæbnen er en uovervindelig kraft."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Skæbnen er en uovervindelig kraft."
+------------------------------------------------------------
+Line 269:
+  Original: "You think you can stop it,
+but you can't."
+  DeepL: N/A
+  First pass: "Du tror, du kan stoppe det,
+men det kan du ikke."
+  Critic: "Du tror, du kan stoppe det,
+men du kan ikke." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Du tror, du kan stoppe det,
+men du kan ikke."
+------------------------------------------------------------
+Line 270:
+  Original: "It stops when it wants to stop.
+And it never wants to."
+  DeepL: N/A
+  First pass: "Den stopper, når den vil stoppe. Og den vil aldrig stoppe."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Den stopper, når den vil stoppe. Og den vil aldrig stoppe."
+------------------------------------------------------------
+Line 271:
+  Original: "#BRACKET_OPEN#rustling#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Raslen"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Raslen"
+------------------------------------------------------------
+Line 272:
+  Original: "#BRACKET_OPEN#wind whistling#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Vindens hviner"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vindens hviner"
+------------------------------------------------------------
+Line 273:
+  Original: "#BRACKET_OPEN#screams#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Skrig"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Skrig"
+------------------------------------------------------------
+Line 274:
+  Original: "#BRACKET_OPEN#Emilia#BRACKET_CLOSE# This place is rigged.
+Watch your step."
+  DeepL: N/A
+  First pass: "[Emilia] Det her er rigget. Pas på, hvor du træder."
+  Critic: No changes
+  Critic 1 (technical_grammar): "[Emilia] Det her er rigged. Pas på, hvor du træder." (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Emilia] Det her er rigged. Pas på, hvor du træder."
+------------------------------------------------------------
+Line 275:
+  Original: "Phase two.
+It's go time."
+  DeepL: N/A
+  First pass: "Fase to. Nu går det løs."
+  Critic: "Fase to. Nu er det løs. " (CHANGED)
+  Critic 1 (technical_grammar): "Fase to. Nu er det sat i gang." (CHANGED)
+  Critic 2 (cultural): "Fase to. Nu starter det for alvor." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Fase to. Nu starter det for alvor."
+------------------------------------------------------------
+Line 276:
+  Original: "#BRACKET_OPEN#hissing#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "[hvæsen]"
+  Critic: No changes
+  Critic 1 (technical_grammar): "[siflen]" (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[siflen]"
+------------------------------------------------------------
+Line 277:
+  Original: "Remember, we're doing this
+for Asher and Dahlia."
+  DeepL: N/A
+  First pass: "Husk, vi gør det her for Asher og Dahlia."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Husk, vi gør det her for Asher og Dahlia."
+------------------------------------------------------------
+Line 278:
+  Original: "We can't risk them getting hurt."
+  DeepL: N/A
+  First pass: "Vi kan ikke risikere, at de kommer til skade."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi kan ikke risikere, at de kommer til skade."
+------------------------------------------------------------
+Line 279:
+  Original: "Hey!"
+  DeepL: N/A
+  First pass: "Hey!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hey!"
+------------------------------------------------------------
+Line 280:
+  Original: "Finally."
+  DeepL: N/A
+  First pass: "Endelig."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Endelig."
+------------------------------------------------------------
+Line 281:
+  Original: "My muscles are getting weak
+sitting in this litter box."
+  DeepL: N/A
+  First pass: "Mine muskler er ved at blive svage af at sidde i den her kattebakke."
+  Critic: "Mine muskler er ved at blive svage af at sidde her." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Mine muskler er ved at blive svage af at sidde her."
+------------------------------------------------------------
+Line 282:
+  Original: "Uh..."
+  DeepL: N/A
+  First pass: "Øh..."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Øh..."
+------------------------------------------------------------
+Line 283:
+  Original: "Hello to you, too, Doctor."
+  DeepL: N/A
+  First pass: "Goddag, doktor."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Goddag, doktor."
+------------------------------------------------------------
+Line 284:
+  Original: "Greta!"
+  DeepL: N/A
+  First pass: "Greta!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Greta!"
+------------------------------------------------------------
+Line 285:
+  Original: "Hi, Zane."
+  DeepL: N/A
+  First pass: "Hej, Zane."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hej, Zane."
+------------------------------------------------------------
+Line 286:
+  Original: "Do you mind?"
+  DeepL: N/A
+  First pass: "Kan du holde op?"
+  Critic: "Vil du holde op?" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vil du holde op?"
+------------------------------------------------------------
+Line 287:
+  Original: "No...?"
+  DeepL: N/A
+  First pass: "Nej...?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Nej...?"
+------------------------------------------------------------
+Line 288:
+  Original: "Can you let me out?"
+  DeepL: N/A
+  First pass: "Kan du lade mig ud?"
+  Critic: No changes
+  Critic 1 (technical_grammar): "Kan du lukke mig ud?" (CHANGED)
+  Critic 2 (cultural): "Kan du lade mig ud?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Kan du lade mig ud?"
+------------------------------------------------------------
+Line 289:
+  Original: "Oh. OK."
+  DeepL: N/A
+  First pass: "Åh. Okay."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Åh. Okay."
+------------------------------------------------------------
+Line 290:
+  Original: "#BRACKET_OPEN#guitar music continues#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "[guitar musik fortsætter]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[guitar musik fortsætter]"
+------------------------------------------------------------
+Line 291:
+  Original: "#BRACKET_OPEN#grunts#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Mmm."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Mmm."
+------------------------------------------------------------
+Line 292:
+  Original: "- #BRACKET_OPEN#laughs#BRACKET_CLOSE# Net!
+- Miss me?"
+  DeepL: N/A
+  First pass: "- Haha! Net! 
+- Savner du mig?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Haha! Net! 
+- Savner du mig?"
+------------------------------------------------------------
+Line 293:
+  Original: "#BRACKET_OPEN#Kipo#BRACKET_CLOSE# Emilia!"
+  DeepL: N/A
+  First pass: "Kipo, Emilia!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Kipo, Emilia!"
+------------------------------------------------------------
+Line 294:
+  Original: "We don't have to fight!"
+  DeepL: N/A
+  First pass: "Vi behøver ikke at slås!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi behøver ikke at slås!"
+------------------------------------------------------------
+Line 295:
+  Original: "Of course, we do."
+  DeepL: N/A
+  First pass: "Selvfølgelig gør vi."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Selvfølgelig gør vi."
+------------------------------------------------------------
+Line 296:
+  Original: "We'll only be safe when you
+and the animals you've sided with"
+  DeepL: N/A
+  First pass: "Vi vil kun være sikre, når du
+og de dyr, du har støttet,
+"
+  Critic: "Vi vil kun være sikre, når du
+og de dyr, du har støttet," (CHANGED)
+  Critic 1 (technical_grammar): "Vi vil kun være sikre, når du og de dyr, du har støttet," (CHANGED)
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi vil kun være sikre, når du og de dyr, du har støttet,"
+------------------------------------------------------------
+Line 297:
+  Original: "are cured of that virus."
+  DeepL: N/A
+  First pass: "er kureret for den virus."
+  Critic: "er er kureret for den virus." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): "er er kureret for den virus" (CHANGED)
+  Final: "er er kureret for den virus"
+------------------------------------------------------------
+Line 298:
+  Original: "What are you talking about?"
+  DeepL: N/A
+  First pass: "Hvad snakker du om?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Hvad fanden snakker du om?" (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Hvad fanden snakker du om?"
+------------------------------------------------------------
+Line 299:
+  Original: "The most dangerous part
+of the surface is you."
+  DeepL: N/A
+  First pass: "Den farligste del af overfladen er dig."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Den farligste del af overfladen er dig."
+------------------------------------------------------------
+Line 300:
+  Original: "#BRACKET_OPEN#laughing#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "griner"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "griner"
+------------------------------------------------------------
+Line 301:
+  Original: "#BRACKET_OPEN#grunts, laughs#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "rynken, fnis"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "rynken, fnis"
+------------------------------------------------------------
+Line 302:
+  Original: "#BRACKET_OPEN#screaming#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Skrig"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Skrig"
+------------------------------------------------------------
+Line 303:
+  Original: "You don't scare me, ball."
+  DeepL: N/A
+  First pass: "Du skræmmer mig ikke, bold."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Du skræmmer mig ikke, bold."
+------------------------------------------------------------
+Line 304:
+  Original: "#BRACKET_OPEN#Kipo#BRACKET_CLOSE# HMUFA!"
+  DeepL: N/A
+  First pass: "[Kipo] HMUFA!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[Kipo] HMUFA!"
+------------------------------------------------------------
+Line 305:
+  Original: "Nice try, Kipo."
+  DeepL: N/A
+  First pass: "Godt forsøg, Kipo."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Godt forsøg, Kipo."
+------------------------------------------------------------
+Line 306:
+  Original: "Come out, come out,
+wherever you are!"
+  DeepL: N/A
+  First pass: "Kom ud, kom ud, hvor end du er!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Kom ud, kom ud, hvor end du er!"
+------------------------------------------------------------
+Line 307:
+  Original: "You just got
+"Operation Leafy Leafed.""
+  DeepL: N/A
+  First pass: "Du fik lige "Operation Bladeblad." "
+  Critic: "Du fik lige "Operation Bladeblad."" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Du fik lige "Operation Bladeblad.""
+------------------------------------------------------------
+Line 308:
+  Original: "That sounds ridiculous."
+  DeepL: N/A
+  First pass: "Det lyder latterligt."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Det lyder absurd." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Det lyder absurd."
+------------------------------------------------------------
+Line 309:
+  Original: "Says the lady in a box of leafy leaves."
+  DeepL: N/A
+  First pass: "Siger damen i en kasse med blade."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Siger damen i en kasse med blade."
+------------------------------------------------------------
+Line 310:
+  Original: "Now for "Operation Talk To Humans So That
+They Love HMUFA As Much As I Do.""
+  DeepL: N/A
+  First pass: "Nu skal vi have "Operation Tal til Mennesker, Så de Elsker HMUFA Lige Så Meget Som Jeg Gør"."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Nu skal vi have "Operation Tal til Mennesker, Så de Elsker HMUFA Lige Så Meget Som Jeg Gør"."
+------------------------------------------------------------
+Line 311:
+  Original: "You're really bad at code names."
+  DeepL: N/A
+  First pass: "Du er virkelig dårlig til kodeord."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Du er virkelig dårlig til kodenavne." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Du er virkelig dårlig til kodenavne."
+------------------------------------------------------------
+Line 312:
+  Original: "I reject that criticism,
+but you're entitled to your opinion."
+  DeepL: N/A
+  First pass: "Jeg afvisser den kritik, men du har ret til din mening."
+  Critic: "Jeg afviser den kritik, men du har ret til din mening." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg afviser den kritik, men du har ret til din mening."
+------------------------------------------------------------
+Line 313:
+  Original: "#BRACKET_OPEN#sighs#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Sukker"
+  Critic: "Suk" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Suk"
+------------------------------------------------------------
+Line 314:
+  Original: "#BRACKET_OPEN#screams, grunts#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "[skriger, knurrer]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[skriger, knurrer]"
+------------------------------------------------------------
+Line 315:
+  Original: "Emilia!"
+  DeepL: N/A
+  First pass: "Emilia!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Emilia!"
+------------------------------------------------------------
+Line 316:
+  Original: "#BRACKET_OPEN#laughing#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "[grin]"
+  Critic: "[griner]" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[griner]"
+------------------------------------------------------------
+Line 317:
+  Original: "Emilia!
+Where are you?"
+  DeepL: N/A
+  First pass: "Emilia! Hvor er du?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Emilia! Hvor er du?"
+------------------------------------------------------------
+Line 318:
+  Original: "Right here, Greta."
+  DeepL: N/A
+  First pass: "Her, Greta."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Her, Greta."
+------------------------------------------------------------
+Line 319:
+  Original: "Wait...
+Are you a bush now?"
+  DeepL: N/A
+  First pass: "Vent... Er du en busk nu?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vent... Er du en busk nu?"
+------------------------------------------------------------
+Line 320:
+  Original: "Behind the leaves?"
+  DeepL: N/A
+  First pass: "Bagved bladene?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Bagved bladene?"
+------------------------------------------------------------
+Line 321:
+  Original: "I knew I kept you around for a reason."
+  DeepL: N/A
+  First pass: "Jeg vidste, jeg beholdt dig med et formål."
+  Critic: "Jeg vidste, at der var en grund til, at jeg beholdt dig." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg vidste, at der var en grund til, at jeg beholdt dig."
+------------------------------------------------------------
+Line 322:
+  Original: "Let's get the others out."
+  DeepL: N/A
+  First pass: "Lad os få de andre ud."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Lad os få de andre fri." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Lad os få de andre fri."
+------------------------------------------------------------
+Line 323:
+  Original: "Mom! Dad!"
+  DeepL: N/A
+  First pass: "Mor! Far!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Mor! Far!"
+------------------------------------------------------------
+Line 324:
+  Original: "Kids!"
+  DeepL: N/A
+  First pass: "Unge!"
+  Critic: "Børn!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Børn!"
+------------------------------------------------------------
+Line 325:
+  Original: "We'll get you out,
+but you have to hand over your crossbows."
+  DeepL: N/A
+  First pass: "Vi får dig ud, men du skal aflevere dine krydsbows."
+  Critic: "Vi får dig ud, men du skal aflevere dine armbrøster." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi får dig ud, men du skal aflevere dine armbrøster."
+------------------------------------------------------------
+Line 326:
+  Original: "#BRACKET_OPEN#grunting#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Stønnen"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Stønnen"
+------------------------------------------------------------
+Line 327:
+  Original: "- No!
+- Leave our kids alone!"
+  DeepL: N/A
+  First pass: "- Nej! 
+- Lad vær med at røre vores børn!"
+  Critic: "- Nej!
+- Lad være med at røre vores børn!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Nej!
+- Lad være med at røre vores børn!"
+------------------------------------------------------------
+Line 328:
+  Original: "#BRACKET_OPEN#Molly#BRACKET_CLOSE# Are you OK?"
+  DeepL: N/A
+  First pass: "Er du okay, Molly?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Er du okay, Molly?"
+------------------------------------------------------------
+Line 329:
+  Original: "Be careful."
+  DeepL: N/A
+  First pass: "Pas på."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Pas på."
+------------------------------------------------------------
+Line 330:
+  Original: "You saved them?"
+  DeepL: N/A
+  First pass: "Du reddede dem?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Du reddede dem?"
+------------------------------------------------------------
+Line 331:
+  Original: "- We told you.
+- They're our friends."
+  DeepL: N/A
+  First pass: "- Vi sagde det.
+- De er vores venner."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Vi sagde det.
+- De er vores venner."
+------------------------------------------------------------
+Line 332:
+  Original: "So, you see, you've got things all wrong."
+  DeepL: N/A
+  First pass: "Sådan, du ser, du har misforstået det hele."
+  Critic: "Sådan, du ser, du har taget fejl hele tiden." (CHANGED)
+  Critic 1 (technical_grammar): "Sådan, du ser, du har hele tiden taget fejl." (CHANGED)
+  Critic 2 (cultural): "Sådan, du ser, du har hele tiden forstået det forkert." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Sådan, du ser, du har hele tiden forstået det forkert."
+------------------------------------------------------------
+Line 333:
+  Original: "Mutes like funny-face flapjacks
+and live theatrical performances,"
+  DeepL: N/A
+  First pass: "Stumme som sjov-i-ansigtet pandekager
+og levende teaterforestillinger,"
+  Critic: "Stumme som sjov-i-ansigtet pandekager og levende teaterforestillinger," (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Stumme som sjov-i-ansigtet pandekager og levende teaterforestillinger,"
+------------------------------------------------------------
+Line 334:
+  Original: "just like the rest of us."
+  DeepL: N/A
+  First pass: "ligesom alle andre."
+  Critic: "ligesom os andre." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "ligesom alle andre." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "ligesom alle andre."
+------------------------------------------------------------
+Line 335:
+  Original: "Guys, no!
+Do nice faces."
+  DeepL: N/A
+  First pass: "Folkens, nej! Smil pænt."
+  Critic: "Folkens, nej! Vær søde." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Folkens, nej! Vær søde."
+------------------------------------------------------------
+Line 336:
+  Original: "- #BRACKET_OPEN#Hoag grunting#BRACKET_CLOSE# They're shooting at us!
+- #BRACKET_OPEN#gun shot sounds#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "- Hoag stønner. De skyder på os! - (Lyde af skud)"
+  Critic: "- Hoag stønner. De skyder på os! - (Skudlyde)" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "- Hoag stønner. De skyder på os! - (Skudlyde)"
+------------------------------------------------------------
+Line 337:
+  Original: "#BRACKET_OPEN#humans grunting#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "[mennesker gryntende]"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "[mennesker gryntende]"
+------------------------------------------------------------
+Line 338:
+  Original: "It's working!"
+  DeepL: N/A
+  First pass: "Det virker!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Det virker!"
+------------------------------------------------------------
+Line 339:
+  Original: "Kipo, slight problem."
+  DeepL: N/A
+  First pass: "Kipo, lille problem."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Kipo, lille problem."
+------------------------------------------------------------
+Line 340:
+  Original: "Greta is crazy strong."
+  DeepL: N/A
+  First pass: "Greta er sindssygt stærk."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Greta er sindssygt stærk."
+------------------------------------------------------------
+Line 341:
+  Original: "She burst that yarn ball like a piñata!"
+  DeepL: N/A
+  First pass: "Hun sprængte den garnbold som en piñata!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hun sprængte den garnbold som en piñata!"
+------------------------------------------------------------
+Line 342:
+  Original: "It was insane!
+Over."
+  DeepL: N/A
+  First pass: "Det var vanvittigt!
+Slut."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Det var sindssygt!
+Slut." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Det var sindssygt!
+Slut."
+------------------------------------------------------------
+Line 343:
+  Original: "Brother?"
+  DeepL: N/A
+  First pass: "Bro?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Bro?"
+------------------------------------------------------------
+Line 344:
+  Original: "I can feel my mind fading..."
+  DeepL: N/A
+  First pass: "Jeg kan mærke, mit sind svinder..."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg kan mærke, mit sind svinder..."
+------------------------------------------------------------
+Line 345:
+  Original: "like... a dying star."
+  DeepL: N/A
+  First pass: "ligesom... en døende stjerne."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "ligesom... en døende stjerne."
+------------------------------------------------------------
+Line 346:
+  Original: "No!"
+  DeepL: N/A
+  First pass: "Nej!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Nej!"
+------------------------------------------------------------
+Line 347:
+  Original: "#BRACKET_OPEN#howls#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Hylen"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hylen"
+------------------------------------------------------------
+Line 348:
+  Original: "No."
+  DeepL: N/A
+  First pass: "Nej."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Nej."
+------------------------------------------------------------
+Line 349:
+  Original: "#BRACKET_OPEN#mellow music playing#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Blid musik spiller"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Blid musik spiller"
+------------------------------------------------------------
+Line 350:
+  Original: "Wheels?"
+  DeepL: N/A
+  First pass: "Hjul?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hjul?"
+------------------------------------------------------------
+Line 351:
+  Original: "Wheels!"
+  DeepL: N/A
+  First pass: "Hjul!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hjul!"
+------------------------------------------------------------
+Line 352:
+  Original: "Sorry, man."
+  DeepL: N/A
+  First pass: "Undskyld, mand"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Undskyld, mand"
+------------------------------------------------------------
+Line 353:
+  Original: "My muscles really did get weak
+in that litter box."
+  DeepL: N/A
+  First pass: "Mine muskler blev altså ret svage"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Mine muskler blev altså ret svage"
+------------------------------------------------------------
+Line 354:
+  Original: "Ya know?"
+  DeepL: N/A
+  First pass: "Ja, du ved?"
+  Critic: "Ja, ved du?" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Ja, ved du?"
+------------------------------------------------------------
+Line 355:
+  Original: "Fight it, Camille!
+It's just like venom."
+  DeepL: N/A
+  First pass: "Bekæmp det, Camille! Det er som gift."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Bekæmp det, Camille! Det er som gift."
+------------------------------------------------------------
+Line 356:
+  Original: "How could I let this happen?"
+  DeepL: N/A
+  First pass: "Hvordan kunne jeg lade det ske?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hvordan kunne jeg lade det ske?"
+------------------------------------------------------------
+Line 357:
+  Original: "I-I-I'm so sorry, Brad!"
+  DeepL: N/A
+  First pass: "Jeg er så ked af det, Brad!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg er så ked af det, Brad!"
+------------------------------------------------------------
+Line 358:
+  Original: "It's all my fault."
+  DeepL: N/A
+  First pass: "Det er min skyld."
+  Critic: "Det er min fejl." (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Det er min skyld." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Det er min skyld."
+------------------------------------------------------------
+Line 359:
+  Original: "Stop... hurting... my friends!"
+  DeepL: N/A
+  First pass: "Stop... vær sød at stoppe... med at såre... mine venner!"
+  Critic: "Stop... hold op med at... såre... mine venner!" (CHANGED)
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): "Stop... hold op med at... gøre mine venner ondt!" (CHANGED)
+  Final: "Stop... hold op med at... gøre mine venner ondt!"
+------------------------------------------------------------
+Line 360:
+  Original: "Kipo!"
+  DeepL: N/A
+  First pass: "Kipo!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Kipo!"
+------------------------------------------------------------
+Line 361:
+  Original: "Wha—"
+  DeepL: N/A
+  First pass: "Hva—"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hva—"
+------------------------------------------------------------
+Line 362:
+  Original: "Why isn't this working?"
+  DeepL: N/A
+  First pass: "Hvorfor virker det ikke?"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hvorfor virker det ikke?"
+------------------------------------------------------------
+Line 363:
+  Original: "Of course."
+  DeepL: N/A
+  First pass: "Selvfølgelig."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Selvfølgelig."
+------------------------------------------------------------
+Line 364:
+  Original: "I used your DNA for the cure."
+  DeepL: N/A
+  First pass: "Jeg brugte din DNA til kuren."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg brugte din DNA til kuren."
+------------------------------------------------------------
+Line 365:
+  Original: "You're immune!"
+  DeepL: N/A
+  First pass: "Du er immun!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Du er immun!"
+------------------------------------------------------------
+Line 366:
+  Original: "Retreat!"
+  DeepL: N/A
+  First pass: "Tilbagetrukning!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Tilbagetruk!" (CHANGED)
+  Critic 3 (consistency): "Tilbagetrækning!" (CHANGED)
+  Final: "Tilbagetrækning!"
+------------------------------------------------------------
+Line 367:
+  Original: "You did what you had to do, Kipo."
+  DeepL: N/A
+  First pass: "Du gjorde, hvad du var nødt til, Kipo."
+  Critic: No changes
+  Critic 1 (technical_grammar): "Du gjorde, hvad du måtte gøre, Kipo." (CHANGED)
+  Critic 2 (cultural): "Du gjorde, hvad du skulle gøre, Kipo." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Du gjorde, hvad du skulle gøre, Kipo."
+------------------------------------------------------------
+Line 368:
+  Original: "We won!"
+  DeepL: N/A
+  First pass: "Vi vandt!"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Vi vandt!"
+------------------------------------------------------------
+Line 369:
+  Original: "This... is no win."
+  DeepL: N/A
+  First pass: "Dette... er ingen sejr."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Dette... er ingen sejr."
+------------------------------------------------------------
+Line 370:
+  Original: "He's right."
+  DeepL: N/A
+  First pass: "Han har ret."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Han har ret."
+------------------------------------------------------------
+Line 371:
+  Original: "If I would've just
+accepted my fate from the start..."
+  DeepL: N/A
+  First pass: "Hvis jeg bare havde accepteret min skæbne fra starten..."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Hvis jeg bare havde accepteret min skæbne fra starten..."
+------------------------------------------------------------
+Line 372:
+  Original: "none of this would've happened."
+  DeepL: N/A
+  First pass: "Ingen af dette ville være sket."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Ingen af dette var sket." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Ingen af dette var sket."
+------------------------------------------------------------
+Line 373:
+  Original: "I'm sorry, dear.
+The cheese tried to warn you."
+  DeepL: N/A
+  First pass: "Jeg er ked af det, skat. Osten prøvede at advare dig."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): "Jeg er ked af det, skat. Osten forsøgte at advare dig." (CHANGED)
+  Critic 3 (consistency): No changes
+  Final: "Jeg er ked af det, skat. Osten forsøgte at advare dig."
+------------------------------------------------------------
+Line 374:
+  Original: "I won't make the same mistake again."
+  DeepL: N/A
+  First pass: "Jeg vil ikke begå den samme fejl igen."
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Jeg vil ikke begå den samme fejl igen."
+------------------------------------------------------------
+Line 375:
+  Original: "#BRACKET_OPEN#music continues#BRACKET_CLOSE#"
+  DeepL: N/A
+  First pass: "Musikken fortsætter"
+  Critic: No changes
+  Critic 1 (technical_grammar): No changes
+  Critic 2 (cultural): No changes
+  Critic 3 (consistency): No changes
+  Final: "Musikken fortsætter"
+------------------------------------------------------------
+
+
+SUMMARY STATISTICS
+--------------------------------------------------------------------------------
+Total lines translated: 375
+DeepL suggestions used: 75
+Standard Critic changes: 118 (31.5%)
+Multi-critic enabled with 2 passes
+  Critic 1 (technical_grammar) changes: 48 (12.8%)
+  Critic 2 (cultural) changes: 73 (19.5%)
+  Critic 3 (consistency) changes: 14 (3.7%)
+Total processing time: 0h 38m 28s
+Average time per line: 0.08 seconds
+================================================================================
