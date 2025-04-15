@@ -613,6 +613,9 @@ def run_web_ui():
         if translation.startswith('{"translation": "') and translation.endswith('"}'):
             translation = translation[17:-2]  # Extract just the translation part
         
+        # Restore brackets in scene descriptions (which were temporarily replaced during sanitization)
+        translation = translation.replace('#BRACKET_OPEN#', '[').replace('#BRACKET_CLOSE#', ']')
+        
         # Log the result clearly
         append_log("-" * 60)
         append_log(f"  Line {line_index+1}/{len(lines)}")
@@ -662,6 +665,10 @@ def run_web_ui():
         import re
         text = re.sub(r'<font[^>]*>(.*?)</font>', r'\1', text)  # Replace <font> tags with their content
         text = re.sub(r'<[^>]*>', '', text)  # Remove any other HTML tags
+        
+        # Preserve opening and closing brackets in scene descriptions
+        # Like [character] or [action] which are common in subtitles
+        text = re.sub(r'\[(.*?)\]', r'#BRACKET_OPEN#\1#BRACKET_CLOSE#', text)
         
         # Replace multiple spaces with single space
         text = re.sub(r' +', ' ', text)
