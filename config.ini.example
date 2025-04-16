@@ -11,6 +11,15 @@ host = 127.0.0.1
 port = 5000
 temperature = 0.2
 
+[translation]
+# Configure the service priority (comma-separated list)
+# Services will be tried in this order
+service_priority = deepl,google,libretranslate,mymemory
+
+# Retry settings for translation services
+max_retries = 3
+base_delay = 2
+
 [logging]
 file_enabled = true
 log_file = translator.log
@@ -19,9 +28,14 @@ backup_count = 2
 
 [ollama]
 enabled = true
-server_url = http://localhost:11434
+server_url = http://10.0.10.23:11434
 endpoint = /api/generate
 model = gemma3:12b
+# Performance settings for Ollama
+num_gpu = 1      # Number of GPUs to use (increase for multi-GPU systems)
+num_thread = 4   # Number of threads to use for computation
+use_mmap = true  # Memory-map the model (usually improves performance)
+use_mlock = true # Lock the model in RAM (prevents swapping to disk)
 
 [openai]
 enabled = false

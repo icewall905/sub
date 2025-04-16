@@ -25,6 +25,61 @@ from flask import Flask, request, render_template_string, redirect, url_for, jso
 from werkzeug.utils import secure_filename
 from collections import deque
 
+def call_translation_service_with_retry(translate_func, *args, max_retries=3, base_delay=2, log_func=print, service_name=None, **kwargs):
+    """
+    Generic retry wrapper for translation service calls with exponential backoff.
+    
+    Args:
+        translate_func: The translation function to call
+        max_retries: Maximum number of retry attempts
+        base_delay: Initial delay in seconds (will be multiplied exponentially)
+        log_func: Function to use for logging messages (defaults to print)
+        service_name: Optional name of the service for better logging
+        *args, **kwargs: Arguments to pass to the translation function
+    
+    Returns:
+        The translation result or empty string if all retries fail
+    """
+    import random
+    import time
+    
+    service_label = f"[{service_name}]" if service_name else ""
+    
+    for attempt in range(max_retries + 1):
+        try:
+            result = translate_func(*args, **kwargs)
+            if result:  # If we got a valid result, return it
+                return result
+            
+            # If the result is empty but no exception occurred, we might still want to retry
+            if attempt < max_retries:
+                log_func(f"[WARNING] {service_label} Empty result from translation service. Retrying ({attempt + 1}/{max_retries})...")
+            else:
+                log_func(f"[WARNING] {service_label} Empty result from translation service after {max_retries} retries.")
+                return ""
+                
+        except Exception as e:
+            if "429" in str(e) or "Too Many Requests" in str(e):
+                if attempt < max_retries:
+                    # Calculate delay with exponential backoff and jitter
+                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    log_func(f"[WARNING] {service_label} Rate limit exceeded. Retrying in {delay:.2f} seconds ({attempt + 1}/{max_retries})...")
+                    time.sleep(delay)
+                else:
+                    log_func(f"[ERROR] {service_label} Rate limit exceeded after {max_retries} retries.")
+                    return ""
+            else:
+                # For other types of errors, we might still want to retry
+                if attempt < max_retries:
+                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    log_func(f"[WARNING] {service_label} Translation error: {e}. Retrying in {delay:.2f} seconds ({attempt + 1}/{max_retries})...")
+                    time.sleep(delay)
+                else:
+                    log_func(f"[ERROR] {service_label} Translation failed after {max_retries} retries: {e}")
+                    return ""
+    
+    return ""
+
 # HTML template for viewing logs in a separate tab
 LOG_VIEWER_TEMPLATE = r"""
 <!DOCTYPE html>
@@ -147,9 +202,6 @@ LOG_VIEWER_TEMPLATE = r"""
                     statusElement.textContent = `Error: ${error.message}`;
                 });
         }
-
-        function toggleAutoRefresh() {
-            if (autoRefreshCheckbox.checked) {
                 refreshInterval = setInterval(fetchLogs, 3000);
                 statusElement.textContent = "Auto-refresh enabled";
             } else {
@@ -351,6 +403,23 @@ CONFIG_EDITOR_TEMPLATE = """
                 sectionTitle.textContent = section.toUpperCase();
                 sectionDiv.appendChild(sectionTitle);
                 
+                // Add section description for important sections
+                if (section === 'ollama') {
+                    const description = document.createElement('p');
+                    description.style.fontStyle = 'italic';
+                    description.style.marginBottom = '1em';
+                    description.style.color = '#666';
+                    description.textContent = 'Configure Ollama performance settings like GPU count, thread count, and memory options.';
+                    sectionDiv.appendChild(description);
+                } else if (section === 'translation') {
+                    const description = document.createElement('p');
+                    description.style.fontStyle = 'italic';
+                    description.style.marginBottom = '1em';
+                    description.style.color = '#666';
+                    description.textContent = 'Configure service priority and retry settings for translation services.';
+                    sectionDiv.appendChild(description);
+                }
+                
                 const settings = config[section];
                 const sortedKeys = Object.keys(settings).sort();
                 
@@ -362,6 +431,29 @@ CONFIG_EDITOR_TEMPLATE = """
                     const label = document.createElement('label');
                     label.setAttribute('for', `${section}-${key}`);
                     label.textContent = formatSettingName(key);
+                    
+                    // Add tooltips/descriptions for specific settings
+                    if (section === 'ollama' && key === 'num_gpu') {
+                        const tooltip = document.createElement('small');
+                        tooltip.textContent = ' (Number of GPUs to use for processing)';
+                        tooltip.style.color = '#666';
+                        label.appendChild(tooltip);
+                    } else if (section === 'ollama' && key === 'num_thread') {
+                        const tooltip = document.createElement('small');
+                        tooltip.textContent = ' (Number of CPU threads to use)';
+                        tooltip.style.color = '#666';
+                        label.appendChild(tooltip);
+                    } else if (section === 'ollama' && key === 'use_mmap') {
+                        const tooltip = document.createElement('small');
+                        tooltip.textContent = ' (Memory-map the model for better performance)';
+                        tooltip.style.color = '#666';
+                        label.appendChild(tooltip);
+                    } else if (section === 'ollama' && key === 'use_mlock') {
+                        const tooltip = document.createElement('small');
+                        tooltip.textContent = ' (Lock the model in RAM to prevent swapping)';
+                        tooltip.style.color = '#666';
+                        label.appendChild(tooltip);
+                    }
                     
                     let input;
                     
@@ -389,7 +481,7 @@ CONFIG_EDITOR_TEMPLATE = """
                         input = document.createElement('select');
                         
                         // Common Ollama models
-                        const models = ['llama2', 'llama2:13b', 'llama2:70b', 'mistral', 'mixtral', 'codellama', 'codellama:13b', 'codellama:34b', 'phi', 'phi:2.7b'];
+                        const models = ['llama2', 'llama2:13b', 'llama2:70b', 'mistral', 'mixtral', 'codellama', 'codellama:13b', 'codellama:34b', 'phi', 'phi:2.7b', 'gemma3:12b'];
                         
                         // Add current value if not in list
                         if (value && !models.includes(value)) {
@@ -421,6 +513,15 @@ CONFIG_EDITOR_TEMPLATE = """
                             option.selected = model === value;
                             input.appendChild(option);
                         }
+                    } else if (key === 'service_priority' && section === 'translation') {
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = value;
+                        input.placeholder = 'e.g., deepl,google,libretranslate,mymemory';
+                        const hint = document.createElement('small');
+                        hint.textContent = ' (Comma-separated list of services in preferred order)';
+                        hint.style.color = '#666';
+                        label.appendChild(hint);
                     } else {
                         input = document.createElement('input');
                         input.type = 'text';
@@ -922,10 +1023,37 @@ def run_web_ui():
             sys.exit(f"Error parsing {config_path}.")
         return cfg
 
-    def call_ollama(server_url: str, endpoint_path: str, model: str, prompt: str, temperature: float = 0.2) -> str:
+    def call_ollama(server_url: str, endpoint_path: str, model: str, prompt: str, temperature: float = 0.2, cfg=None) -> str:
         url = f"{server_url.rstrip('/')}{endpoint_path}"
-        data = {"model": model, "prompt": prompt, "stream": False, "temperature": temperature}
-        append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model} | Temperature: {temperature}")
+        
+        # Load config to get Ollama performance parameters if not provided
+        if cfg is None:
+            # Use default values if cfg is not provided
+            num_gpu = 1
+            num_thread = 4
+            use_mmap = True
+            use_mlock = True
+            append_log(f"[DEBUG] Calling Ollama with default parameters: POST {url} | Model: {model} | Temperature: {temperature}")
+        else:
+            # Use values from cfg if available
+            num_gpu = cfg.getint("ollama", "num_gpu", fallback=1)
+            num_thread = cfg.getint("ollama", "num_thread", fallback=4)
+            use_mmap = cfg.getboolean("ollama", "use_mmap", fallback=True)
+            use_mlock = cfg.getboolean("ollama", "use_mlock", fallback=True)
+            append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model} | Temperature: {temperature} | num_gpu: {num_gpu} | num_thread: {num_thread} | use_mmap: {use_mmap} | use_mlock: {use_mlock}")
+        
+        data = {
+            "model": model, 
+            "prompt": prompt, 
+            "stream": False, 
+            "temperature": temperature,
+            "options": {
+                "num_gpu": num_gpu,
+                "num_thread": num_thread,
+                "use_mmap": use_mmap,
+                "use_mlock": use_mlock
+            }
+        }
 
         try:
             resp = requests.post(url, json=data, timeout=300)
@@ -1033,7 +1161,7 @@ def run_web_ui():
             
             # Google returns an array of translated segments
             for segment in result[0]:
-                if segment[0]:
+                if (segment[0]):
                     translated_text += segment[0]
             
             append_log(f"[DEBUG] Google Translate result: \"{translated_text}\"")
@@ -1046,137 +1174,395 @@ def run_web_ui():
             append_log(f"[ERROR] Failed to parse Google Translate response: {e}")
             return ""
 
-    def call_libretranslate(text: str, source_lang: str, target_lang: str, api_url: str = "https://libretranslate.de/translate") -> str:
-        """
-        Uses LibreTranslate API for an alternative free translation with fallback servers.
-        """
+    def call_libretranslate(text: str, source_lang: str, target_lang: str) -> str:
+        """Call LibreTranslate service"""
         source_iso = get_iso_code(source_lang)
         target_iso = get_iso_code(target_lang)
         
-        # List of fallback servers in case the main one fails
-        fallback_servers = [
+        append_log(f"[DEBUG] Calling LibreTranslate: {source_iso} -> {target_iso}")
+        
+        # Track which servers have failed recently
+        global libre_failed_servers
+        if not hasattr(call_libretranslate, "failed_servers"):
+            call_libretranslate.failed_servers = {}
+        
+        # Configuration for LibreTranslate servers
+        servers = [
             "https://libretranslate.de/translate",
             "https://translate.argosopentech.com/translate",
             "https://libretranslate.com/translate"
         ]
         
-        # If a custom URL was provided, try it first
-        if api_url != "https://libretranslate.de/translate" and api_url not in fallback_servers:
-            fallback_servers.insert(0, api_url)
-        elif api_url in fallback_servers:
-            # Move the provided URL to the front of the list
-            fallback_servers.remove(api_url)
-            fallback_servers.insert(0, api_url)
+        current_time = time.time()
+        # Clear servers that have been in failed state for more than 10 minutes
+        for server, fail_time in list(call_libretranslate.failed_servers.items()):
+            if current_time - fail_time > 600:  # 10 minutes
+                del call_libretranslate.failed_servers[server]
         
-        append_log(f"[DEBUG] Calling LibreTranslate: {source_iso} -> {target_iso}")
-        
-        payload = {
-            "q": text,
-            "source": source_iso,
-            "target": target_iso,
-            "format": "text"
-        }
-        
-        # Try each server until one works
-        for server_url in fallback_servers:
+        # Try each server, skipping recently failed ones
+        for server in servers:
+            # Skip servers that failed in the last 10 minutes
+            if server in call_libretranslate.failed_servers:
+                append_log(f"[INFO] Skipping recently failed LibreTranslate server: {server}")
+                continue
+                
+            append_log(f"[DEBUG] Trying LibreTranslate server: {server}")
             try:
-                append_log(f"[DEBUG] Trying LibreTranslate server: {server_url}")
-                response = requests.post(server_url, json=payload, timeout=8)
+                payload = {
+                    "q": text,
+                    "source": source_iso,
+                    "target": target_iso,
+                    "format": "text"
+                }
+                
+                # Reduced timeout from 8 seconds to 3 seconds
+                response = requests.post(server, json=payload, timeout=3)
                 response.raise_for_status()
                 
-                resp_json = response.json()
-                result = resp_json.get("translatedText", "")
-                append_log(f"[DEBUG] LibreTranslate result from {server_url}: \"{result}\"")
-                return result
-                
+                data = response.json()
+                if "translatedText" in data:
+                    result = data["translatedText"]
+                    return result
+                    
             except requests.exceptions.RequestException as e:
-                append_log(f"[WARNING] LibreTranslate server {server_url} failed: {e}")
-                # Continue to the next server
+                append_log(f"[WARNING] LibreTranslate server {server} failed: {e}")
+                # Mark this server as failed
+                call_libretranslate.failed_servers[server] = current_time
                 continue
-            except json.JSONDecodeError as e:
-                append_log(f"[WARNING] Failed to parse LibreTranslate response from {server_url}: {e}")
+            except (json.JSONDecodeError, KeyError) as e:
+                append_log(f"[WARNING] Failed to parse LibreTranslate response from {server}: {e}")
                 continue
         
-        # If we get here, all servers failed
-        append_log(f"[ERROR] All LibreTranslate servers failed. Unable to get translation.")
+        append_log("[ERROR] All LibreTranslate servers failed. Unable to get translation.")
         return ""
 
     def call_mymemory_translate(text: str, source_lang: str, target_lang: str) -> str:
-        """
-        Uses MyMemory Translation API (free tier) for translation.
-        """
+        """Call MyMemory translation API"""
         source_iso = get_iso_code(source_lang)
         target_iso = get_iso_code(target_lang)
         
         append_log(f"[DEBUG] Calling MyMemory Translation: {source_iso} -> {target_iso}")
         
-        base_url = "https://api.mymemory.translated.net/get"
+        # Track recent failures
+        if not hasattr(call_mymemory_translate, "last_failure_time"):
+            call_mymemory_translate.last_failure_time = 0
         
-        # Combine source and target languages with a pipe
-        lang_pair = f"{source_iso}|{target_iso}"
+        current_time = time.time()
+        # Skip MyMemory if it failed recently (within the last 5 minutes)
+        if current_time - call_mymemory_translate.last_failure_time < 300:
+            append_log(f"[INFO] Skipping MyMemory due to recent failures")
+            return ""
+        
+        try:
+            url = "https://api.mymemory.translated.net/get"
+            params = {
+                "q": text,
+                "langpair": f"{source_iso}|{target_iso}"
+            }
+            
+            # Reduced timeout from default to 3 seconds
+            response = requests.get(url, params=params, timeout=3)
+            response.raise_for_status()
+            
+            data = response.json()
+            if data and "responseData" in data and "translatedText" in data["responseData"]:
+                result = data["responseData"]["translatedText"]
+                append_log(f"[DEBUG] MyMemory result: \"{result}\"")
+                return result
+            else:
+                append_log(f"[WARNING] Unexpected response format from MyMemory: {data}")
+                return ""
+                
+        except requests.exceptions.RequestException as e:
+            append_log(f"[ERROR] MyMemory request failed: {e}")
+            call_mymemory_translate.last_failure_time = current_time
+            return ""
+        except (json.JSONDecodeError, KeyError) as e:
+            append_log(f"[ERROR] Failed to parse MyMemory response: {e}")
+            call_mymemory_translate.last_failure_time = current_time
+            return ""
+
+    def get_multiple_translations(text: str, source_lang: str, target_lang: str, cfg) -> dict:
+        """
+        Calls multiple translation services in parallel and returns all available translations.
+        Ollama is used to evaluate and decide on the best translation, not as a fallback.
+        
+        Args:
+            text: The text to translate
+            source_lang: Source language
+            target_lang: Target language
+            cfg: Configuration object
+            
+        Returns:
+            dict: Dictionary with service names as keys and translations as values
+        """
+        translations = {}
+        service_errors = {}
+        service_priority = cfg.get("translation", "service_priority", fallback="deepl,google,libretranslate,mymemory,azure,yandex")
+        max_retries = cfg.getint("translation", "max_retries", fallback=2)
+        base_delay = cfg.getfloat("translation", "base_delay", fallback=1.0)
+        timeout = cfg.getfloat("translation", "timeout", fallback=3.0)  # Default timeout for services
+        
+        # Parse priority list
+        service_priority = [s.strip().lower() for s in service_priority.split(',')]
+        
+        # Only try services that are enabled in the config
+        use_deepl = cfg.getboolean("general", "use_deepl", fallback=False)
+        use_google = cfg.getboolean("general", "use_google", fallback=True)
+        use_libretranslate = cfg.getboolean("general", "use_libretranslate", fallback=True)
+        use_mymemory = cfg.getboolean("general", "use_mymemory", fallback=True)
+        use_azure = cfg.getboolean("general", "use_azure", fallback=False)
+        use_yandex = cfg.getboolean("general", "use_yandex", fallback=False)
+        
+        # Process each online translation service according to priority
+        import concurrent.futures
+        import time
+        
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {}
+            
+            # Submit tasks for each enabled service
+            for service in service_priority:
+                if service == "deepl" and use_deepl and cfg.getboolean("deepl", "enabled", fallback=False):
+                    d_key = cfg.get("deepl", "api_key", fallback="")
+                    d_url = cfg.get("deepl", "api_url", fallback="")
+                    if d_key and d_url:
+                        futures[executor.submit(
+                            call_translation_service_with_retry,
+                            call_deepl, d_key, d_url, text, source_lang, target_lang, 
+                            max_retries=max_retries, base_delay=base_delay,
+                            service_name="DeepL", log_func=append_log
+                        )] = "DeepL"
+                
+                elif service == "google" and use_google:
+                    # Google Translate - always available as it doesn't require API key
+                    futures[executor.submit(
+                        call_translation_service_with_retry,
+                        call_google_translate, text, source_lang, target_lang,
+                        max_retries=max_retries, base_delay=base_delay,
+                        service_name="Google", log_func=append_log
+                    )] = "Google"
+                
+                elif service == "libretranslate" and use_libretranslate:
+                    futures[executor.submit(
+                        call_translation_service_with_retry,
+                        call_libretranslate, text, source_lang, target_lang,
+                        max_retries=max_retries, base_delay=base_delay,
+                        service_name="LibreTranslate", log_func=append_log
+                    )] = "LibreTranslate"
+                
+                elif service == "mymemory" and use_mymemory:
+                    futures[executor.submit(
+                        call_translation_service_with_retry,
+                        call_mymemory_translate, text, source_lang, target_lang,
+                        max_retries=max_retries, base_delay=base_delay,
+                        service_name="MyMemory", log_func=append_log
+                    )] = "MyMemory"
+                    
+                elif service == "azure" and use_azure and cfg.getboolean("azure", "enabled", fallback=False):
+                    a_key = cfg.get("azure", "api_key", fallback="")
+                    a_region = cfg.get("azure", "region", fallback="")
+                    if a_key and a_region:
+                        futures[executor.submit(
+                            call_translation_service_with_retry,
+                            call_azure_translate, a_key, a_region, text, source_lang, target_lang, 
+                            max_retries=max_retries, base_delay=base_delay,
+                            service_name="Azure", log_func=append_log
+                        )] = "Azure"
+                
+                elif service == "yandex" and use_yandex and cfg.getboolean("yandex", "enabled", fallback=False):
+                    y_key = cfg.get("yandex", "api_key", fallback="")
+                    if y_key:
+                        futures[executor.submit(
+                            call_translation_service_with_retry,
+                            call_yandex_translate, y_key, text, source_lang, target_lang, 
+                            max_retries=max_retries, base_delay=base_delay,
+                            service_name="Yandex", log_func=append_log
+                        )] = "Yandex"
+            
+            # Process completed tasks
+            for future in concurrent.futures.as_completed(futures):
+                service_name = futures[future]
+                try:
+                    result = future.result()
+                    if result:
+                        translations[service_name] = result
+                    else:
+                        service_errors[service_name] = "Empty result"
+                except Exception as e:
+                    service_errors[service_name] = str(e)
+        
+        # Log the results
+        if translations:
+            append_log(f"[INFO] Got translations from {len(translations)} services: {', '.join(translations.keys())}")
+        if service_errors:
+            append_log(f"[INFO] Failed to get translations from {len(service_errors)} services: {', '.join(service_errors.keys())}")
+        
+        # Now use Ollama to select the best translation if it's enabled
+        # This ensures Ollama evaluates the results rather than being used as a fallback
+        try:
+            if cfg.getboolean("ollama", "enabled", fallback=False) and translations:
+                # We'll add Ollama's own translation to the mix
+                ollama_translation = run_ollama_translation(text, source_lang, target_lang, cfg, online_translations=translations)
+                if ollama_translation:
+                    translations["Ollama"] = ollama_translation
+        except Exception as e:
+            append_log(f"[ERROR] Ollama evaluation failed: {e}")
+            # Continue with what we have from online services
+        
+        return translations
+
+    def run_ollama_translation(text: str, source_lang: str, target_lang: str, cfg, online_translations=None) -> str:
+        """
+        Run Ollama translation, potentially using online translations as reference.
+        This ensures Ollama can evaluate and improve upon online translations.
+        
+        Args:
+            text: Text to translate
+            source_lang: Source language
+            target_lang: Target language
+            cfg: Configuration object
+            online_translations: Dictionary of online translation results to use as reference
+            
+        Returns:
+            str: Ollama's translation or empty string if failed
+        """
+        if not cfg.getboolean("ollama", "enabled", fallback=False):
+            return ""
+            
+        server_url = cfg.get("ollama", "server_url", fallback="")
+        endpoint_path = cfg.get("ollama", "endpoint", fallback="/api/generate")
+        model_name = cfg.get("ollama", "model", fallback="")
+        
+        if not (server_url and model_name):
+            append_log("[WARNING] Ollama is enabled but missing server_url or model_name")
+            return ""
+            
+        # Build a prompt that includes online translations for Ollama to evaluate
+        prompt_lines = [
+            f"You are an expert translator from {source_lang} to {target_lang}.",
+            "",
+            f"TEXT TO TRANSLATE: \"{text}\"",
+            ""
+        ]
+        
+        if online_translations:
+            prompt_lines.append("AVAILABLE TRANSLATIONS FROM ONLINE SERVICES:")
+            for service, translation in online_translations.items():
+                prompt_lines.append(f"{service}: \"{translation}\"")
+            prompt_lines.append("")
+            prompt_lines.append("Your task:")
+            prompt_lines.append("1. Review the translations from online services")
+            prompt_lines.append("2. Select the best one or provide your own improved translation")
+            prompt_lines.append("3. The translation should be accurate, natural-sounding, and convey the original meaning")
+        else:
+            prompt_lines.append("Please translate this text accurately and naturally.")
+            
+        prompt_lines.append("\nProvide ONLY the translated text with no additional commentary or explanation.")
+        prompt = "\n".join(prompt_lines)
+        
+        temperature = cfg.getfloat("ollama", "temperature", fallback=0.3)
+        result = call_ollama(server_url, endpoint_path, model_name, prompt, temperature)
+        
+        # Clean up the result - remove any quotes or extra text
+        result = result.strip(' "\'\n')
+        
+        return result
+
+    def call_azure_translate(api_key: str, region: str, text: str, source_lang: str, target_lang: str) -> str:
+        """
+        Use Azure Translator service for translation.
+        """
+        source_iso = get_iso_code(source_lang)
+        target_iso = get_iso_code(target_lang)
+        
+        append_log(f"[DEBUG] Calling Azure Translator: {source_iso} -> {target_iso}")
+        
+        endpoint = f"https://api.cognitive.microsofttranslator.com/translate?api-version=3.0"
+        
+        headers = {
+            'Ocp-Apim-Subscription-Key': api_key,
+            'Ocp-Apim-Subscription-Region': region,
+            'Content-type': 'application/json',
+        }
         
         params = {
-            "q": text,
-            "langpair": lang_pair
+            'from': source_iso,
+            'to': target_iso
+        }
+        
+        body = [{
+            'text': text
+        }]
+        
+        try:
+            response = requests.post(endpoint, headers=headers, params=params, json=body, timeout=5)
+            response.raise_for_status()
+            
+            result = response.json()
+            if result and len(result) > 0 and 'translations' in result[0] and len(result[0]['translations']) > 0:
+                translation = result[0]['translations'][0]['text']
+                append_log(f"[DEBUG] Azure Translator result: \"{translation}\"")
+                return translation
+            else:
+                append_log(f"[WARNING] Unexpected response format from Azure Translator: {result}")
+                return ""
+                
+        except requests.exceptions.RequestException as e:
+            append_log(f"[ERROR] Azure Translator request failed: {e}")
+            return ""
+        except (json.JSONDecodeError, KeyError, IndexError) as e:
+            append_log(f"[ERROR] Failed to parse Azure Translator response: {e}")
+            return ""
+
+    def call_yandex_translate(api_key: str, text: str, source_lang: str, target_lang: str) -> str:
+        """
+        Use Yandex Translate service for translation.
+        """
+        source_iso = get_iso_code(source_lang)
+        target_iso = get_iso_code(target_lang)
+        
+        append_log(f"[DEBUG] Calling Yandex Translate: {source_iso} -> {target_iso}")
+        
+        url = "https://translate.api.cloud.yandex.net/translate/v2/translate"
+        
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Api-Key {api_key}"
+        }
+        
+        data = {
+            "texts": [text],
+            "sourceLanguageCode": source_iso,
+            "targetLanguageCode": target_iso,
+            "format": "PLAIN_TEXT"
         }
         
         try:
-            response = requests.get(base_url, params=params, timeout=10)
+            response = requests.post(url, json=data, headers=headers, timeout=5)
             response.raise_for_status()
             
-            resp_json = response.json()
-            result = resp_json.get("responseData", {}).get("translatedText", "")
-            append_log(f"[DEBUG] MyMemory result: \"{result}\"")
-            return result
-            
+            result = response.json()
+            if 'translations' in result and len(result['translations']) > 0:
+                translation = result['translations'][0]['text']
+                append_log(f"[DEBUG] Yandex Translate result: \"{translation}\"")
+                return translation
+            else:
+                append_log(f"[WARNING] Unexpected response format from Yandex Translate: {result}")
+                return ""
+                
         except requests.exceptions.RequestException as e:
-            append_log(f"[ERROR] MyMemory request failed: {e}")
+            append_log(f"[ERROR] Yandex Translate request failed: {e}")
             return ""
-        except json.JSONDecodeError as e:
-            append_log(f"[ERROR] Failed to parse MyMemory response: {e}")
+        except (json.JSONDecodeError, KeyError, IndexError) as e:
+            append_log(f"[ERROR] Failed to parse Yandex Translate response: {e}")
             return ""
-            
-    def get_multiple_translations(text: str, source_lang: str, target_lang: str, cfg) -> dict:
-        """
-        Get translations from multiple services and return them as a dictionary.
-        """
-        translations = {}
-        
-        # Add DeepL if enabled
-        if cfg.getboolean("general", "use_deepl", fallback=False) and cfg.getboolean("deepl", "enabled", fallback=False):
-            d_key = cfg.get("deepl", "api_key", fallback="")
-            d_url = cfg.get("deepl", "api_url", fallback="")
-            if d_key and d_url:
-                deepl_result = call_deepl(d_key, d_url, text, source_lang, target_lang)
-                if deepl_result:
-                    translations["DeepL"] = deepl_result
-        
-        # Add Google Translate (always available as it doesn't require API key)
-        if cfg.getboolean("general", "use_google", fallback=True):
-            google_result = call_google_translate(text, source_lang, target_lang)
-            if google_result:
-                translations["Google"] = google_result
-        
-        # Add LibreTranslate if enabled
-        if cfg.getboolean("general", "use_libretranslate", fallback=False):
-            libre_api_url = cfg.get("libretranslate", "api_url", fallback="https://libretranslate.de/translate")
-            libre_result = call_libretranslate(text, source_lang, target_lang, libre_api_url)
-            if libre_result:
-                translations["LibreTranslate"] = libre_result
-        
-        # Add MyMemory if enabled
-        if cfg.getboolean("general", "use_mymemory", fallback=False):
-            mymemory_result = call_mymemory_translate(text, source_lang, target_lang)
-            if mymemory_result:
-                translations["MyMemory"] = mymemory_result
-        
-        return translations
 
     import re
     def extract_json_key(response_text: str, key_name: str) -> str:
         try:
             parsed = json.loads(response_text)
-            if isinstance(parsed, dict) and key_name in parsed:
+            if (isinstance(parsed, dict) and key_name in parsed):
                 return parsed[key_name]
         except json.JSONDecodeError:
             pass
@@ -1185,13 +1571,13 @@ def run_web_ui():
         for potential_json in json_matches:
             try:
                 parsed = json.loads(potential_json)
-                if isinstance(parsed, dict) and key_name in parsed:
+                if (isinstance(parsed, dict) and key_name in parsed):
                     return parsed[key_name]
             except json.JSONDecodeError:
                 continue
         pattern = f'"{key_name}"\\s*:\\s*"([^"]+)"'
         match = re.search(pattern, response_text)
-        if match:
+        if (match):
             return match.group(1)
         return response_text.strip()
 
@@ -1220,7 +1606,7 @@ def run_web_ui():
             "--- CONTEXT ---"
         ]
 
-        if chunk_before:
+        if (chunk_before):
             prompt_lines.append("[PREVIOUS LINES]:")
             for i, prev_line in enumerate(chunk_before):
                 prompt_lines.append(f"Line {start_idx + i + 1}: {prev_line}")
@@ -1228,13 +1614,13 @@ def run_web_ui():
         prompt_lines.append("\n[CURRENT LINE TO TRANSLATE]:")
         prompt_lines.append(f"Line {index+1}: {line_to_translate}")
 
-        if chunk_after:
+        if (chunk_after):
             prompt_lines.append("\n[NEXT LINES]:")
             for i, next_line in enumerate(chunk_after):
                 prompt_lines.append(f"Line {index + i + 2}: {next_line}")
 
         prompt_lines.append("--- END CONTEXT ---\n")
-        if deepl_translation:
+        if (deepl_translation):
             prompt_lines.append(f"DEEPL SUGGESTION: \"{deepl_translation}\"")
             prompt_lines.append("If correct or close, use it. If wrong, fix it minimally.")
         else:
@@ -1262,7 +1648,7 @@ def run_web_ui():
             "--- CONTEXT ---"
         ]
 
-        if chunk_before:
+        if (chunk_before):
             prompt_lines.append("[PREVIOUS LINES]:")
             for i, prev_line in enumerate(chunk_before):
                 prompt_lines.append(f"Line {start_idx + i + 1}: {prev_line}")
@@ -1271,7 +1657,7 @@ def run_web_ui():
         prompt_lines.append(f"Original: {original_line}")
         prompt_lines.append(f"Translation: {first_pass_translation}")
 
-        if chunk_after:
+        if (chunk_after):
             prompt_lines.append("\n[NEXT LINES]:")
             for i, next_line in enumerate(chunk_after):
                 prompt_lines.append(f"Line {index + i + 2}: {next_line}")
@@ -1292,14 +1678,64 @@ def run_web_ui():
         chunk_before = lines[start_idx:index]
         chunk_after = lines[index+1:end_idx]
 
-        prompt_lines = [
-            f"You are a specialized Critic (Pass #{pass_num}, type: {critic_type}).",
-            f"Focus on {critic_type}-related issues. Return the same translation if no fix is needed.",
-            "",
-            "--- CONTEXT ---"
-        ]
+        # Create specialized prompts based on critic type
+        if (critic_type.lower() == "standard"):
+            prompt_intro = [
+                f"You are an expert translator from {src_lang_full} to {tgt_lang_full}.",
+                "Carefully review the translation and make sure it accurately captures the meaning of the original.",
+                "Only make changes if necessary to improve accuracy or readability.",
+                ""
+            ]
+        elif (critic_type.lower() == "technical_grammar"):
+            prompt_intro = [
+                f"You are a {tgt_lang_full} language expert focusing exclusively on grammar, syntax, and punctuation.",
+                f"Your job is to make minimal edits to ensure the translation follows correct {tgt_lang_full} language rules. Pay special attention to:",
+                "- Correct word order in sentences",
+                "- Proper use of definite and indefinite articles",
+                "- Correct verb conjugation and tense",
+                "- Gender agreement in nouns and adjectives",
+                "- Proper punctuation",
+                "",
+                "Only modify the translation if there are grammar errors.",
+                ""
+            ]
+        elif (critic_type.lower() == "cultural"):
+            prompt_intro = [
+                f"You are a {tgt_lang_full} cultural expert.",
+                f"Your job is to make the translation sound natural to native {tgt_lang_full} speakers. Focus on:",
+                "- Replacing literal translations with natural expressions",
+                f"- Using appropriate {tgt_lang_full} idioms and colloquialisms",
+                "- Making dialogue sound authentic and conversational",
+                "- Adapting culturally specific references appropriately",
+                f"- Ensuring the emotional tone matches {tgt_lang_full} speech patterns",
+                "",
+                "Don't change correct translations that already sound natural.",
+                ""
+            ]
+        elif (critic_type.lower() == "consistency"):
+            prompt_intro = [
+                "You are responsible for ensuring consistency across subtitle translations.",
+                "Your job is to:",
+                "- Ensure character names and important terms are translated consistently",
+                "- Maintain consistency in tone and speaking style for each character",
+                "- Check that terminology remains consistent throughout",
+                "- Ensure that phrases appearing multiple times are translated the same way",
+                "- Verify that references to past events match earlier translations",
+                "",
+                "Only make changes to maintain consistency.",
+                ""
+            ]
+        else:
+            # Default generic prompt for any other critic type
+            prompt_intro = [
+                f"You are a specialized Critic (Pass #{pass_num}, type: {critic_type}).",
+                f"Focus on {critic_type}-related issues. Return the same translation if no fix is needed.",
+                ""
+            ]
 
-        if chunk_before:
+        prompt_lines = prompt_intro + ["--- CONTEXT ---"]
+
+        if (chunk_before):
             prompt_lines.append("[PREVIOUS LINES]:")
             for i, prev_line in enumerate(chunk_before):
                 prompt_lines.append(f"Line {start_idx + i + 1}: {prev_line}")
@@ -1308,7 +1744,7 @@ def run_web_ui():
         prompt_lines.append(f"Original: {original_line}")
         prompt_lines.append(f"Current Translation: {current_translation}")
 
-        if chunk_after:
+        if (chunk_after):
             prompt_lines.append("\n[NEXT LINES]:")
             for i, next_line in enumerate(chunk_after):
                 prompt_lines.append(f"Line {index + i + 2}: {next_line}")
@@ -1321,17 +1757,17 @@ def run_web_ui():
         ollama_enabled = cfg.getboolean("ollama", "enabled", fallback=False)
         openai_enabled = cfg.getboolean("openai", "enabled", fallback=False)
         
-        if ollama_enabled:
+        if (ollama_enabled):
             server_url = cfg.get("ollama", "server_url", fallback="")
             endpoint_path = cfg.get("ollama", "endpoint", fallback="/api/generate")
             model_name = cfg.get("ollama", "model", fallback="")
-            if server_url and model_name:
+            if (server_url and model_name):
                 return call_ollama(server_url, endpoint_path, model_name, prompt, temperature)
-        elif openai_enabled:
+        elif (openai_enabled):
             api_key = cfg.get("openai", "api_key", fallback="")
             base_url = cfg.get("openai", "api_base_url", fallback="https://api.openai.com/v1")
             model_name = cfg.get("openai", "model", fallback="")
-            if api_key and model_name:
+            if (api_key and model_name):
                 return call_openai(api_key, base_url, model_name, prompt, temperature)
         
         append_log("[WARNING] No LLM is enabled in config, or missing credentials.")
@@ -1344,6 +1780,53 @@ def run_web_ui():
         text = re.sub(r'\[(.*?)\]', r'#BRACKET_OPEN#\1#BRACKET_CLOSE#', text)
         text = re.sub(r' +', ' ', text)
         text = text.replace('\r\n', '\n').replace('\r', '\n')
+        return text.strip()
+
+    def preprocess_subtitle(text: str) -> str:
+        """
+        Pre-process subtitle text to normalize and protect special content
+        before translation.
+        """
+        # Handle bracket content consistently
+        text = re.sub(r'\[(.*?)\]', r'#BRACKET_OPEN#\1#BRACKET_CLOSE#', text)
+        
+        # Handle HTML tags properly
+        text = re.sub(r'<font[^>]*>(.*?)</font>', r'\1', text)
+        text = re.sub(r'<[^>]*>', '', text)
+        
+        # Normalize whitespace
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        # Handle special characters
+        text = text.replace('\r\n', '\n').replace('\r', '\n')
+        
+        return text.strip()
+
+    def postprocess_translation(text: str) -> str:
+        """
+        Post-process translated text to restore formatting and fix common issues.
+        """
+        # Restore brackets
+        text = text.replace('#BRACKET_OPEN#', '[').replace('#BRACKET_CLOSE#', ']')
+        
+        # Fix common Danish punctuation issues
+        text = text.replace(' ,', ',').replace(' .', '.')
+        text = text.replace(' !', '!').replace(' ?', '?')
+        text = text.replace(' :', ':').replace(' ;', ';')
+        
+        # Ensure proper spacing after punctuation
+        text = re.sub(r'([,.!?;:])([^\s])', r'\1 \2', text)
+        
+        # Fix common spacing issues with quotation marks
+        text = re.sub(r'"\s+', '" ', text)
+        text = re.sub(r'\s+"', ' "', text)
+        
+        # Fix capitalization issues
+        text = re.sub(r'^([a-zæøå])', lambda m: m.group(1).upper(), text)
+        
+        # Fix common Danish specific issues
+        text = text.replace("Jeg er", "Jeg er").replace("Du er", "Du er")
+        
         return text.strip()
 
     def translate_srt(input_path, output_path, cfg):
@@ -1378,7 +1861,7 @@ def run_web_ui():
 
         for i, sub in enumerate(subs):
             append_log(f"Processing line {i+1}/{len(subs)}...")
-            original_text = sanitize_text(sub.text)
+            original_text = preprocess_subtitle(sub.text)
             
             # Get translations from all enabled services
             service_translations = get_multiple_translations(original_text, src_lang, tgt_lang, cfg)
@@ -1392,7 +1875,8 @@ def run_web_ui():
                 "standard_critic": "",
                 "standard_critic_changed": False,
                 "critics": [],
-                "final": ""
+                "final": "",
+                "llm_status": ""  # Added this field to track LLM agent status
             }
 
             line_stats = {
@@ -1411,18 +1895,22 @@ def run_web_ui():
             # Call LLM for first pass translation
             llm_response = run_llm_call(cfg, prompt, cfg.getfloat("general", "temperature", fallback=0.2))
 
-            if not llm_response:
+            if (not llm_response):
                 sub.text = original_text
                 line_stats['first_pass'] = original_text
                 line_stats['final'] = original_text
+                translation_progress["current"]["first_pass"] = original_text
+                translation_progress["current"]["final"] = original_text
+                translation_progress["current"]["llm_status"] = "LLM translation failed, using original text"
                 translation_stats['translations'].append(line_stats)
                 continue
 
             first_pass = extract_json_key(llm_response, "translation")
-            first_pass = first_pass.replace('#BRACKET_OPEN#', '[').replace('#BRACKET_CLOSE#', ']')
+            first_pass = postprocess_translation(first_pass)
             
             line_stats['first_pass'] = first_pass
             translation_progress["current"]["first_pass"] = first_pass
+            translation_progress["current"]["llm_status"] = "First pass translation completed"
 
             live_stream_translation_info(
                 "FIRST PASS",
@@ -1436,19 +1924,21 @@ def run_web_ui():
             current_translation = first_pass
 
             # Standard agent_critic
-            if translation_stats['standard_critic_enabled']:
+            if (translation_stats['standard_critic_enabled']):
                 critic_prompt = build_critic_prompt(original_text, current_translation, clean_lines, i, cfg)
                 critic_resp = run_llm_call(cfg, critic_prompt, cfg.getfloat("agent_critic", "temperature", fallback=0.2))
                 
-                if critic_resp:
+                if (critic_resp):
                     corrected = extract_json_key(critic_resp, "corrected_translation")
+                    corrected = postprocess_translation(corrected)
                     
-                    if corrected and corrected != current_translation:
+                    if (corrected and corrected != current_translation):
                         line_stats['standard_critic'] = corrected
                         line_stats['standard_critic_changed'] = True
                         translation_stats['standard_critic_changes'] += 1
                         translation_progress["current"]["standard_critic"] = corrected
                         translation_progress["current"]["standard_critic_changed"] = True
+                        translation_progress["current"]["llm_status"] = "Standard critic improved translation"
 
                         live_stream_translation_info(
                             "CRITIC",
@@ -1464,6 +1954,7 @@ def run_web_ui():
                     else:
                         translation_progress["current"]["standard_critic"] = current_translation
                         translation_progress["current"]["standard_critic_changed"] = False
+                        translation_progress["current"]["llm_status"] = "Standard critic: No changes needed"
                         
                         live_stream_translation_info(
                             "CRITIC",
@@ -1477,10 +1968,10 @@ def run_web_ui():
             
             # Multi-critic passes
             critic_reviews = {}
-            if translation_stats['multi_critic_enabled']:
+            if (translation_stats['multi_critic_enabled']):
                 for pass_num in range(1, 4):
                     sec = f"critic_pass_{pass_num}"
-                    if cfg.has_section(sec) and cfg.getboolean(sec, "enabled", fallback=False):
+                    if (cfg.has_section(sec) and cfg.getboolean(sec, "enabled", fallback=False)):
                         ctype = cfg.get(sec, "type", fallback="general")
                         critic_prompt = build_specialized_critic_prompt(
                             original_text, current_translation, clean_lines, i, cfg, critic_type=ctype, pass_num=pass_num
@@ -1488,10 +1979,11 @@ def run_web_ui():
                         ctemp = cfg.getfloat(sec, "temperature", fallback=0.2)
                         cresp = run_llm_call(cfg, critic_prompt, ctemp)
                         
-                        if cresp:
+                        if (cresp):
                             cfix = extract_json_key(cresp, "corrected_translation")
+                            cfix = postprocess_translation(cfix)
                             
-                            if cfix and cfix != current_translation:
+                            if (cfix and cfix != current_translation):
                                 line_stats[f'critic_{pass_num}'] = cfix
                                 line_stats[f'critic_{pass_num}_changed'] = True
                                 line_stats[f'critic_{pass_num}_type'] = ctype
@@ -1532,7 +2024,7 @@ def run_web_ui():
                                 )
             
             line_stats['critic_reviews'] = critic_reviews
-            final_translation = current_translation.replace('#BRACKET_OPEN#', '[').replace('#BRACKET_CLOSE#', ']')
+            final_translation = postprocess_translation(current_translation)
             line_stats['final'] = final_translation
             sub.text = final_translation
 
@@ -1547,6 +2039,7 @@ def run_web_ui():
             )
 
             translation_stats['translations'].append(line_stats)
+            translation_progress["processed_lines"].append(translation_progress["current"])
 
         # Save the translated subtitle file
         subs.save(output_path, encoding='utf-8')
@@ -1566,11 +2059,11 @@ def run_web_ui():
         append_log("\n[INFO] TRANSLATION STATISTICS:")
         append_log(f"- Total lines translated: {len(subs)}")
         append_log(f"- Translation services used: {', '.join(service_translations.keys() if service_translations else ['None'])}")
-        if translation_stats['standard_critic_enabled']:
+        if (translation_stats['standard_critic_enabled']):
             critic_changes = translation_stats['standard_critic_changes']
             append_log(f"- Lines improved by standard critic: {critic_changes} ({(critic_changes/len(subs))*100:.1f}%)")
         append_log(f"- Total processing time: {processing_time_minutes:.2f} minutes ({processing_time_seconds:.2f} seconds)")
-        append_log(f"- Average time per line: {processing_time_seconds/len(subs):.2f} seconds")
+        append_log(f"- Average time per line: {processing_time_seconds/len(subs)::.2f} seconds")
 
         translation_progress["status"] = "done"
         translation_progress["message"] = "Translation complete."
@@ -1583,9 +2076,9 @@ def run_web_ui():
             f.write("SUBTITLE TRANSLATION REPORT\n")
             f.write(f"Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write("-"*80 + "\n")
-            if 'input_file' in stats:
+            if ('input_file' in stats):
                 f.write(f"Input file: {stats['input_file']}\n")
-            if 'output_file' in stats:
+            if ('output_file' in stats):
                 f.write(f"Output file: {stats['output_file']}\n")
             f.write(f"Source language: {stats['source_language']}\n")
             f.write(f"Target language: {stats['target_language']}\n")
@@ -1601,17 +2094,17 @@ def run_web_ui():
                 f.write(f"  Original: \"{entry['original']}\"\n")
                 
                 # Show all machine translations (DeepL, Google, LibreTranslate, etc.)
-                if 'reference_translations' in entry and entry['reference_translations']:
+                if ('reference_translations' in entry and entry['reference_translations']):
                     for service, translation in entry['reference_translations'].items():
                         f.write(f"  {service}: \"{translation}\"\n")
                 
                 # Show first pass translation
-                if 'first_pass' in entry:
+                if ('first_pass' in entry):
                     f.write(f"  First pass: \"{entry['first_pass']}\"\n")
                 
                 # Show standard critic result if available
-                if 'standard_critic' in entry:
-                    if entry.get('standard_critic_changed', False):
+                if ('standard_critic' in entry):
+                    if (entry.get('standard_critic_changed', False)):
                         f.write(f"  Critic: \"{entry['standard_critic']}\" (CHANGED)\n")
                     else:
                         f.write(f"  Critic: No changes\n")
@@ -1621,15 +2114,15 @@ def run_web_ui():
                     critic_key = f'critic_{i}'
                     critic_type_key = f'critic_{i}_type'
                     
-                    if critic_key in entry:
+                    if (critic_key in entry):
                         critic_type = entry.get(critic_type_key, f"Type {i}")
-                        if entry.get(f'{critic_key}_changed', False):
+                        if (entry.get(f'{critic_key}_changed', False)):
                             f.write(f"  Critic {i} ({critic_type}): \"{entry[critic_key]}\" (CHANGED)\n")
                         else:
                             f.write(f"  Critic {i} ({critic_type}): No changes\n")
                 
                 # Show final translation
-                if 'final' in entry:
+                if ('final' in entry):
                     f.write(f"  Final: \"{entry['final']}\"\n")
                 
                 f.write("-"*60 + "\n")
@@ -1645,35 +2138,35 @@ def run_web_ui():
             service_selected = {}
             first_pass_matches = {}
             
-            if 'translations' in stats and stats['translations']:
+            if ('translations' in stats and stats['translations']):
                 # Count how many times each service was used and analyze similarity
                 for entry in stats['translations']:
-                    if 'reference_translations' in entry and entry['reference_translations']:
+                    if ('reference_translations' in entry and entry['reference_translations']):
                         for service, translation in entry['reference_translations'].items():
                             # Track service usage
                             service_usage[service] = service_usage.get(service, 0) + 1
                             
                             # Count how often first pass matches each service
-                            if 'first_pass' in entry and entry['first_pass'] == translation:
+                            if ('first_pass' in entry and entry['first_pass'] == translation):
                                 first_pass_matches[service] = first_pass_matches.get(service, 0) + 1
                             
                             # Count how often final translation matches each service
-                            if 'final' in entry and entry['final'] == translation:
+                            if ('final' in entry and entry['final'] == translation):
                                 service_selected[service] = service_selected.get(service, 0) + 1
                             
                             # Calculate similarity between service and final translation
-                            if 'final' in entry:
+                            if ('final' in entry):
                                 # Simple character-based similarity
                                 service_trans = translation.strip()
                                 final_trans = entry['final'].strip()
                                 
                                 # Basic Levenshtein distance calculation (character-level similarity)
                                 max_len = max(len(service_trans), len(final_trans))
-                                if max_len > 0:
+                                if (max_len > 0):
                                     from difflib import SequenceMatcher
                                     similarity = SequenceMatcher(None, service_trans, final_trans).ratio() * 100
                                     
-                                    if service not in service_similarity:
+                                    if (service not in service_similarity):
                                         service_similarity[service] = []
                                     service_similarity[service].append(similarity)
                 
@@ -1688,17 +2181,17 @@ def run_web_ui():
                     f.write(f"  - Available for {usage_count} lines ({usage_percent:.1f}%)\n")
                     
                     # How often the LLM's first pass matched this service
-                    if service in first_pass_matches:
+                    if (service in first_pass_matches):
                         match_percent = (first_pass_matches[service] / usage_count) * 100
                         f.write(f"  - First pass matched exactly: {first_pass_matches[service]} times ({match_percent:.1f}%)\n")
                     
                     # How often this service's translation was selected as final
-                    if service in service_selected:
+                    if (service in service_selected):
                         selected_percent = (service_selected[service] / usage_count) * 100
                         f.write(f"  - Selected as final translation: {service_selected[service]} times ({selected_percent:.1f}%)\n")
                     
                     # Average similarity to final translation
-                    if service in service_similarity and service_similarity[service]:
+                    if (service in service_similarity and service_similarity[service]):
                         avg_similarity = sum(service_similarity[service]) / len(service_similarity[service])
                         f.write(f"  - Average similarity to final translation: {avg_similarity:.1f}%\n")
                     
@@ -1712,14 +2205,14 @@ def run_web_ui():
             first_pass_modified = 0
             
             for entry in stats['translations']:
-                if 'first_pass' in entry and 'final' in entry:
-                    if entry['first_pass'] == entry['final']:
+                if ('first_pass' in entry and 'final' in entry):
+                    if (entry['first_pass'] == entry['final']):
                         first_pass_unchanged += 1
                     else:
                         first_pass_modified += 1
             
             total_with_first_pass = first_pass_unchanged + first_pass_modified
-            if total_with_first_pass > 0:
+            if (total_with_first_pass > 0):
                 unchanged_percent = (first_pass_unchanged / total_with_first_pass) * 100
                 modified_percent = (first_pass_modified / total_with_first_pass) * 100
                 
@@ -1727,7 +2220,7 @@ def run_web_ui():
                 f.write(f"First pass translations modified by critics: {first_pass_modified} ({modified_percent:.1f}%)\n\n")
             
             # Standard critic statistics
-            if stats.get('standard_critic_enabled', False):
+            if (stats.get('standard_critic_enabled', False)):
                 f.write("\nSTANDARD CRITIC STATISTICS:\n")
                 f.write("-"*40 + "\n")
                 
@@ -1737,7 +2230,7 @@ def run_web_ui():
                 f.write(f"Standard Critic pass rate: {stats['total_lines'] - critic_changes} lines left unchanged ({100 - percentage:.1f}%)\n\n")
             
             # Multi-critic statistics
-            if stats.get('multi_critic_enabled', False):
+            if (stats.get('multi_critic_enabled', False)):
                 f.write("\nMULTI-CRITIC STATISTICS:\n")
                 f.write("-"*40 + "\n")
                 
@@ -1752,11 +2245,11 @@ def run_web_ui():
                     total = 0
                     
                     for entry in stats['translations']:
-                        if critic_key in entry:
+                        if (critic_key in entry):
                             total += 1
                             critic_type = entry.get(critic_type_key, f"Type {i}")
                             
-                            if entry.get(f'{critic_key}_changed', False):
+                            if (entry.get(f'{critic_key}_changed', False)):
                                 changes += 1
                                 critic_changes[critic_type] = critic_changes.get(critic_type, 0) + 1
                             
@@ -1771,7 +2264,7 @@ def run_web_ui():
                     f.write(f"  - Lines left unchanged: {total - changes} ({100 - percentage:.1f}%)\n\n")
                 
                 # Calculate which critic was most active
-                if critic_changes:
+                if (critic_changes):
                     most_active = max(critic_changes.items(), key=lambda x: x[1])
                     f.write(f"Most active critic: '{most_active[0]}' with {most_active[1]} changes\n\n")
             
@@ -1780,12 +2273,12 @@ def run_web_ui():
             total_target_words = 0
             
             for entry in stats['translations']:
-                if 'original' in entry:
+                if ('original' in entry):
                     total_source_words += len(entry['original'].split())
-                if 'final' in entry:
+                if ('final' in entry):
                     total_target_words += len(entry['final'].split())
             
-            if total_source_words > 0:
+            if (total_source_words > 0):
                 expansion_ratio = (total_target_words / total_source_words) * 100
                 f.write("\nWORD-LEVEL STATISTICS:\n")
                 f.write("-"*40 + "\n")
@@ -1794,7 +2287,7 @@ def run_web_ui():
                 f.write(f"Target/Source ratio: {expansion_ratio:.1f}%\n\n")
             
             # Processing time
-            if 'processing_time' in stats:
+            if ('processing_time' in stats):
                 processing_time = stats['processing_time']
                 minutes = int(processing_time // 60)
                 seconds = processing_time % 60
@@ -1802,10 +2295,10 @@ def run_web_ui():
                 f.write("\nPROCESSING TIME STATISTICS:\n")
                 f.write("-"*40 + "\n")
                 f.write(f"Total processing time: {minutes}m {seconds:.2f}s\n")
-                if stats['total_lines'] > 0:
+                if (stats['total_lines'] > 0):
                     f.write(f"Average time per line: {processing_time / stats['total_lines']:.2f} seconds\n")
-                    if total_source_words > 0:
-                        f.write(f"Average time per word: {processing_time / total_source_words:.2f} seconds\n\n")
+                    if (total_source_words > 0):
+                        f.write(f"Average time per word: {processing_time / total_source_words}:.2f seconds\n\n")
             
             f.write("="*80 + "\n")
             f.write("\nNOTE: Similarity metrics are approximate and based on character-level comparison.\n")
@@ -1884,11 +2377,99 @@ def run_web_ui():
             .info-line { color: #61afef; }
             .debug-line { color: #98c379; }
             .progress-line { color: #c678dd; }
+            .settings-panel {
+                margin-top: 2em;
+                padding: 1em;
+                background-color: #f0f0f0;
+                border-radius: 6px;
+                border: 1px solid #ddd;
+            }
+            .settings-panel h3 {
+                margin-top: 0;
+                color: #333;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 0.5em;
+            }
+            .quick-settings {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-top: 1em;
+            }
+            .setting-card {
+                flex: 1;
+                min-width: 200px;
+                padding: 1em;
+                background: white;
+                border-radius: 4px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            .setting-card h4 {
+                margin-top: 0;
+                color: #444;
+            }
+            .setting-card input, .setting-card select {
+                width: 100%;
+                padding: 0.5em;
+                margin-top: 0.3em;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+            .setting-card label {
+                font-weight: normal;
+                font-size: 0.9em;
+                color: #666;
+            }
+            .setting-card input[type="checkbox"] {
+                width: auto;
+                margin-right: 0.5em;
+            }
+            .btn-save {
+                background-color: #5bc0de;
+                color: white;
+                border: none;
+                padding: 0.6em 1em;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.9em;
+                margin-top: 1em;
+            }
+            .btn-save:hover {
+                background-color: #46b8da;
+            }
+            .nav-links {
+                text-align: center;
+                margin-bottom: 1.5em;
+            }
+            .nav-links a {
+                display: inline-block;
+                padding: 0.5em 1em;
+                margin: 0 0.5em;
+                color: #0275d8;
+                text-decoration: none;
+                border-radius: 4px;
+            }
+            .nav-links a:hover {
+                background-color: #f0f0f0;
+                text-decoration: underline;
+            }
+            .nav-links a.active {
+                font-weight: bold;
+                border-bottom: 2px solid #0275d8;
+            }
         </style>
     </head>
     <body>
         <div class="container">
             <h1>SRT Subtitle Translator</h1>
+            
+            <!-- Navigation Links -->
+            <div class="nav-links">
+                <a href="/" class="active">Home</a>
+                <a href="/config">Full Configuration</a>
+                <a href="/logs">Log Viewer</a>
+            </div>
+            
             <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
                 <label for="srtfile">Select SRT File:</label>
                 <input type="file" id="srtfile" name="srtfile" accept=".srt" required>
@@ -1898,114 +2479,435 @@ def run_web_ui():
             
             <div id="progress-box" class="progress-box" style="display:none"></div>
             
-            <!-- New console box that occupies a significant portion of the page -->
-            <h2 style="margin-top: 2em;">Live Console Output</h2>
-            <div id="console-box">Logs will appear here in real time...</div>
-        </div>
-        <script>
-            const progressBox = document.getElementById('progress-box');
-            const statusBox = document.getElementById('status');
-            const consoleBox = document.getElementById('console-box');
-            let scrollBottom = true;
+            <div id="console-box">Logs will appear here when translation starts...</div>
+            
+            <!-- Quick Settings Panel -->
+            <div class="settings-panel">
+                <h3>Quick Settings</h3>
+                <div class="quick-settings">
+                    <div class="setting-card">
+                        <h4>Ollama Performance</h4>
+                        <label>
+                            Number of GPUs:
+                            <input type="number" id="num_gpu" min="0" max="8" value="1">
+                        </label>
+                        <label>
+                            CPU Threads:
+                            <input type="number" id="num_thread" min="1" max="32" value="4">
+                        </label>
+                        <label>
+                            <input type="checkbox" id="use_mmap" checked>
+                            Memory-map model (better performance)
+                        </label>
+                        <label>
+                            <input type="checkbox" id="use_mlock" checked>
+                            Lock model in RAM (prevents swapping)
+                        </label>
+                    </div>
+                    <div class="setting-card">
+                        <h4>Translation Models</h4>
+                        <label>
+                            Ollama Model:
+                            <select id="ollama_model">
+                                <option value="gemma3:12b">gemma3:12b</option>
+                                <option value="llama2">llama2</option>
+                                <option value="llama2:13b">llama2:13b</option>
+                                <option value="mistral">mistral</option>
+                                <option value="mixtral">mixtral</option>
+                                <option value="phi">phi</option>
+                            </select>
+                        </label>
+                        <label>
+                            <input type="checkbox" id="ollama_enabled" checked>
+                            Enable Ollama
+                        </label>
+                        <label>
+                            Server URL:
+                            <input type="text" id="server_url" value="http://localhost:11434">
+                        </label>
+                    </div>
+                    <div class="setting-card">
+                        <h4>Language Settings</h4>
+                        <label>
+                            Source Language:
+                            <select id="source_language">
+                                <option value="en">English</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                                <option value="it">Italian</option>
+                                <option value="ja">Japanese</option>
+                                <option value="ko">Korean</option>
+                                <option value="zh">Chinese</option>
+                                <option value="ru">Russian</option>
+                            </select>
+                        </label>
+                        <label>
+                            Target Language:
+                            <select id="target_language">
+                                <option value="da">Danish</option>
+                                <option value="en">English</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                                <option value="it">Italian</option>
+                                <option value="ja">Japanese</option>
+                                <option value="ko">Korean</option>
+                                <option value="zh">Chinese</option>
+                                <option value="ru">Russian</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <button class="btn-save" id="save-settings">Save Quick Settings</button>
+            </div>
 
-            document.getElementById('uploadForm').addEventListener('submit', function() {
-                statusBox.style.display = 'block';
-                progressBox.style.display = 'block';
-            });
-
-            consoleBox.addEventListener('scroll', () => {
-                // Track whether user has scrolled away from the bottom
-                scrollBottom = (consoleBox.scrollHeight - consoleBox.clientHeight) <= (consoleBox.scrollTop + 10);
-            });
-
-            function renderProgressBox(data) {
-                if (!data || !data.current) return '';
-                let html = `<div><b>Line ${data.current_line} / ${data.total_lines}</b> - ${data.status}</div>`;
+            <script>
+                const form = document.getElementById('uploadForm');
+                const status = document.getElementById('status');
+                const progressBox = document.getElementById('progress-box');
+                const consoleBox = document.getElementById('console-box');
+                let scrollBottom = true;
                 
-                // Show original text
-                if (data.current.original) {
-                    html += `<div style="margin-top: 10px;"><b>Original:</b> <i>${data.current.original}</i></div>`;
+                // For the quick settings panel
+                const saveSettingsBtn = document.getElementById('save-settings');
+                
+                // Handle scroll behavior
+                consoleBox.addEventListener('scroll', function() {
+                    // Calculate if we're near the bottom
+                    const isAtBottom = Math.abs(
+                        (consoleBox.scrollHeight - consoleBox.clientHeight) - 
+                        consoleBox.scrollTop
+                    ) < 30;
+                    scrollBottom = isAtBottom;
+                });
+                
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(form);
+                    const xhr = new XMLHttpRequest();
+                    
+                    xhr.open('POST', form.action);
+                    xhr.onreadystatechange = function() {
+                        if (xhr.readyState === 4) {
+                            if (xhr.status === 200) {
+                                // Redirect to download page
+                                window.location.href = xhr.responseURL;
+                            } else {
+                                status.textContent = 'Error during translation. Check console for details.';
+                                status.style.display = 'block';
+                            }
+                        }
+                    };
+                    
+                    status.textContent = 'Processing... Please wait. This may take several minutes.';
+                    status.style.display = 'block';
+                    progressBox.style.display = 'block';
+                    
+                    xhr.send(formData);
+                });
+                
+                function colorizeLogs(logText) {
+                    if (!logText) return "No logs available";
+                    
+                    return logText
+                        .replace(/\[ERROR\].*$/gm, match => `<span class="error-line">${match}</span>`)
+                        .replace(/\[WARNING\].*$/gm, match => `<span class="warn-line">${match}</span>`)
+                        .replace(/\[INFO\].*$/gm, match => `<span class="info-line">${match}</span>`)
+                        .replace(/\[DEBUG\].*$/gm, match => `<span class="debug-line">${match}</span>`)
+                        .replace(/\[LIVE\].*$/gm, match => `<span class="progress-line">${match}</span>`);
                 }
                 
-                // Show all translation service suggestions
-                if (data.current.suggestions && Object.keys(data.current.suggestions).length > 0) {
-                    html += `<div style="margin-top: 10px;"><b>Translation Service Suggestions:</b></div>`;
-                    Object.entries(data.current.suggestions).forEach(([service, translation]) => {
-                        html += `<div style="margin-left: 15px;"><b>${service}:</b> <i>${translation}</i></div>`;
+                function pollProgress() {
+                    fetch('/api/progress')
+                        .then(r => r.json())
+                        .then(progress => {
+                            if (progress.status === 'idle') {
+                                progressBox.textContent = 'Waiting for translation to start...';
+                            } else if (progress.status === 'translating') {
+                                const percent = Math.round((progress.current_line / progress.total_lines) * 100);
+                                progressBox.innerHTML = `
+                                    <strong>Translating: ${progress.current_line} / ${progress.total_lines} lines (${percent}%)</strong><br>
+                                    <div style="background: #e9ecef; height: 20px; border-radius: 4px; margin: 10px 0;">
+                                        <div style="background: #0275d8; height: 100%; width: ${percent}%; border-radius: 4px;"></div>
+                                    </div>
+                                    ${progress.current.line_number > 0 ? `
+                                        <h4>Current Line (#${progress.current.line_number})</h4>
+                                        <div style="padding: 10px; border-left: 3px solid #0275d8; margin-bottom: 15px;">
+                                            <strong>Original:</strong> ${progress.current.original}<br>
+                                            
+                                            <div style="margin-top: 8px;">
+                                                <strong>Online Translations:</strong><br>
+                                                ${Object.entries(progress.current.suggestions || {}).map(([service, text]) => 
+                                                    `<div style="margin-left: 10px; margin-bottom: 5px;"><em>${service}:</em> ${text}</div>`
+                                                ).join('')}
+                                            </div>
+                                            
+                                            ${progress.current.first_pass ? `
+                                                <div style="margin-top: 8px;">
+                                                    <strong>First Pass:</strong> ${progress.current.first_pass}<br>
+                                                </div>
+                                            ` : ''}
+                                            
+                                            ${progress.current.standard_critic ? `
+                                                <div style="margin-top: 8px;">
+                                                    <strong>Standard Critic:</strong> ${progress.current.standard_critic} 
+                                                    ${progress.current.standard_critic_changed ? 
+                                                        '<span style="color: #d9534f;">(Changed)</span>' : 
+                                                        '<span style="color: #5cb85c;">(No Change)</span>'}
+                                                </div>
+                                            ` : ''}
+                                            
+                                            ${progress.current.critics && progress.current.critics.length > 0 ? `
+                                                <div style="margin-top: 8px;">
+                                                    <strong>Specialized Critics:</strong><br>
+                                                    ${progress.current.critics.map(critic => 
+                                                        `<div style="margin-left: 10px; margin-bottom: 5px;">
+                                                            <em>${critic.type}:</em> ${critic.translation} 
+                                                            ${critic.changed ? 
+                                                                '<span style="color: #d9534f;">(Changed)</span>' : 
+                                                                '<span style="color: #5cb85c;">(No Change)</span>'}
+                                                        </div>`
+                                                    ).join('')}
+                                                </div>
+                                            ` : ''}
+                                            
+                                            ${progress.current.final ? `
+                                                <div style="margin-top: 8px;">
+                                                    <strong>Final Translation:</strong> ${progress.current.final}<br>
+                                                </div>
+                                            ` : ''}
+                                            
+                                            ${progress.current.llm_status ? `
+                                                <div style="margin-top: 8px; color: #6c757d;">
+                                                    <strong>Status:</strong> ${progress.current.llm_status}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    ` : ''}
+                                    
+                                    <h4>Translation History</h4>
+                                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                                        ${progress.processed_lines && progress.processed_lines.length > 0 ? 
+                                            progress.processed_lines.map(line => `
+                                                <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ccc;">
+                                                    <h5 style="margin-top: 0; margin-bottom: 10px; background: #f0f0f0; padding: 5px;">Line #${line.line_number}</h5>
+                                                    
+                                                    <div style="padding-left: 10px; border-left: 3px solid #ddd;">
+                                                        <div style="margin-bottom: 10px;">
+                                                            <strong>Original:</strong> <span style="color: #333;">${line.original}</span>
+                                                        </div>
+                                                        
+                                                        <!-- All online translation service results -->
+                                                        ${Object.keys(line.suggestions || {}).length > 0 ? `
+                                                            <div style="margin-bottom: 10px;">
+                                                                <strong>Online Services:</strong>
+                                                                <ul style="margin-top: 5px; margin-bottom: 5px; padding-left: 20px;">
+                                                                    ${Object.entries(line.suggestions).map(([service, translation]) => 
+                                                                        `<li><strong>${service}:</strong> ${translation}</li>`
+                                                                    ).join('')}
+                                                                </ul>
+                                                            </div>
+                                                        ` : ''}
+                                                        
+                                                        <!-- First pass LLM translation -->
+                                                        ${line.first_pass ? `
+                                                            <div style="margin-bottom: 10px;">
+                                                                <strong>LLM First Pass:</strong> ${line.first_pass}
+                                                            </div>
+                                                        ` : ''}
+                                                        
+                                                        <!-- Standard critic results -->
+                                                        ${line.standard_critic ? `
+                                                            <div style="margin-bottom: 10px;">
+                                                                <strong>Standard Critic:</strong> ${line.standard_critic}
+                                                                ${line.standard_critic_changed ? 
+                                                                    '<span style="color: #d9534f;"> (Changed)</span>' : 
+                                                                    '<span style="color: #5cb85c;"> (No Change)</span>'}
+                                                            </div>
+                                                        ` : ''}
+                                                        
+                                                        <!-- Specialized critics results -->
+                                                        ${line.critics && line.critics.length > 0 ? `
+                                                            <div style="margin-bottom: 10px;">
+                                                                <strong>Specialized Critics:</strong>
+                                                                <ul style="margin-top: 5px; margin-bottom: 5px; padding-left: 20px;">
+                                                                    ${line.critics.map(critic => 
+                                                                        `<li><strong>${critic.type}:</strong> ${critic.translation}
+                                                                            ${critic.changed ? 
+                                                                                '<span style="color: #d9534f;"> (Changed)</span>' : 
+                                                                                '<span style="color: #5cb85c;"> (No Change)</span>'}
+                                                                        </li>`
+                                                                    ).join('')}
+                                                                </ul>
+                                                            </div>
+                                                        ` : ''}
+                                                        
+                                                        <!-- Final translation -->
+                                                        <div style="margin-bottom: 5px; font-weight: bold; background: #f8f9fa; padding: 5px; border-left: 3px solid #28a745;">
+                                                            <strong>Final Translation:</strong> ${line.final}
+                                                        </div>
+                                                        
+                                                        <!-- LLM status message if available -->
+                                                        ${line.llm_status ? `
+                                                            <div style="font-style: italic; color: #6c757d; font-size: 0.9em; margin-top: 5px;">
+                                                                ${line.llm_status}
+                                                            </div>
+                                                        ` : ''}
+                                                    </div>
+                                                </div>
+                                            `).join('') : 
+                                            '<div style="color: #666; text-align: center; padding: 10px;">No translated lines yet</div>'
+                                        }
+                                    </div>
+                                `;
+                            } else if (progress.status === 'done') {
+                                progressBox.innerHTML = `
+                                    <strong style="color: #5cb85c;">✓ Translation Complete!</strong><br>
+                                    Total lines: ${progress.total_lines}<br>
+                                    ${progress.message || ''}
+                                `;
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Error fetching progress:", err);
+                        });
+                }
+                
+                // Load current config values when page loads
+                function loadConfigValues() {
+                    fetch('/api/config')
+                        .then(r => r.json())
+                        .then(data => {
+                            const config = data.config;
+                            
+                            // Ollama settings
+                            if (config.ollama) {
+                                document.getElementById('num_gpu').value = config.ollama.num_gpu || 1;
+                                document.getElementById('num_thread').value = config.ollama.num_thread || 4;
+                                document.getElementById('use_mmap').checked = config.ollama.use_mmap !== false;
+                                document.getElementById('use_mlock').checked = config.ollama.use_mlock !== false;
+                                document.getElementById('ollama_enabled').checked = config.ollama.enabled === true;
+                                document.getElementById('server_url').value = config.ollama.server_url || 'http://localhost:11434';
+                                
+                                // Set model if it exists
+                                if (config.ollama.model) {
+                                    const modelSelect = document.getElementById('ollama_model');
+                                    
+                                    // Check if the model is in the list
+                                    let found = false;
+                                    for (let i = 0; i < modelSelect.options.length; i++) {
+                                        if (modelSelect.options[i].value === config.ollama.model) {
+                                            modelSelect.selectedIndex = i;
+                                            found = true;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    // If not found, add it
+                                    if (!found) {
+                                        const option = document.createElement('option');
+                                        option.value = config.ollama.model;
+                                        option.textContent = config.ollama.model;
+                                        option.selected = true;
+                                        modelSelect.appendChild(option);
+                                    }
+                                }
+                            }
+                            
+                            // Language settings
+                            if (config.general) {
+                                const srcLang = config.general.source_language || 'en';
+                                const tgtLang = config.general.target_language || 'da';
+                                
+                                // Set source language
+                                const srcSelect = document.getElementById('source_language');
+                                for (let i = 0; i < srcSelect.options.length; i++) {
+                                    if (srcSelect.options[i].value === srcLang) {
+                                        srcSelect.selectedIndex = i;
+                                        break;
+                                    }
+                                }
+                                
+                                // Set target language
+                                const tgtSelect = document.getElementById('target_language');
+                                for (let i = 0; i < tgtSelect.options.length; i++) {
+                                    if (tgtSelect.options[i].value === tgtLang) {
+                                        tgtSelect.selectedIndex = i;
+                                        break;
+                                    }
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Error loading config:", err);
+                        });
+                }
+                
+                // Save quick settings
+                saveSettingsBtn.addEventListener('click', function() {
+                    // Gather settings from form
+                    const updatedConfig = {
+                        ollama: {
+                            num_gpu: parseInt(document.getElementById('num_gpu').value, 10),
+                            num_thread: parseInt(document.getElementById('num_thread').value, 10),
+                            use_mmap: document.getElementById('use_mmap').checked,
+                            use_mlock: document.getElementById('use_mlock').checked,
+                            enabled: document.getElementById('ollama_enabled').checked,
+                            server_url: document.getElementById('server_url').value,
+                            model: document.getElementById('ollama_model').value
+                        },
+                        general: {
+                            source_language: document.getElementById('source_language').value,
+                            target_language: document.getElementById('target_language').value
+                        }
+                    };
+                    
+                    // Save to config
+                    fetch('/api/config', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ config: updatedConfig })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Settings saved successfully!');
+                        } else {
+                            alert('Error saving settings: ' + (data.message || 'Unknown error'));
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error saving settings:", err);
+                        alert('Error saving settings: ' + err.message);
                     });
-                }
+                });
                 
-                // Show first pass translation
-                if (data.current.first_pass) {
-                    html += `<div style="margin-top: 10px;"><b>First Pass:</b> <span style="color: #0275d8;">${data.current.first_pass}</span></div>`;
-                }
-                
-                // Show standard critic result
-                if (data.current.standard_critic) {
-                    html += `<div style="margin-top: 10px;"><b>Standard Critic:</b> <span style="color: #5bc0de;">${data.current.standard_critic}</span>`;
-                    if (data.current.standard_critic_changed) html += ` <span style="color:red">(changed)</span>`;
-                    html += `</div>`;
-                }
-                
-                // Show specialized critics
-                if (data.current.critics && data.current.critics.length > 0) {
-                    data.current.critics.forEach((c, idx) => {
-                        html += `<div style="margin-top: 5px;"><b>Critic ${idx+1} (${c.type}):</b> <span style="color: #5bc0de;">${c.translation}</span>`;
-                        if (c.changed) html += ` <span style="color:red">(changed)</span>`;
-                        html += `</div>`;
-                    });
-                }
-                
-                // Show final translation
-                if (data.current.final) {
-                    html += `<div style="margin-top: 10px;"><b>Final Translation:</b> <span style="color: #5cb85c; font-weight: bold;">${data.current.final}</span></div>`;
-                }
-                
-                return html;
-            }
+                // Initialize page
+                loadConfigValues();
 
-            function pollProgress() {
-                fetch('/api/progress')
-                  .then(r => r.json())
-                  .then(data => {
-                    if (data.status !== 'idle') {
-                        progressBox.style.display = 'block';
-                        progressBox.innerHTML = renderProgressBox(data);
-                    } else {
-                        progressBox.style.display = 'none';
-                    }
-                  })
-                  .catch(err => console.error(err));
-            }
+                function pollLogs() {
+                    fetch('/api/logs')
+                      .then(r => r.json())
+                      .then(data => {
+                        const colored = colorizeLogs(data.logs);
+                        consoleBox.innerHTML = colored;
+                        if (scrollBottom) {
+                            consoleBox.scrollTop = consoleBox.scrollHeight;
+                        }
+                      })
+                      .catch(err => {
+                        console.error("Error fetching logs:", err);
+                      });
+                }
 
-            function colorizeLogs(logText) {
-                if (!logText) return '';
-                return logText
-                   .replace(/\[ERROR\].*$/gm, m => `<span class="error-line">${m}</span>`)
-                   .replace(/\[WARNING\].*$/gm, m => `<span class="warn-line">${m}</span>`)
-                   .replace(/\[INFO\].*$/gm, m => `<span class="info-line">${m}</span>`)
-                   .replace(/\[DEBUG\].*$/gm, m => `<span class="debug-line">${m}</span>`);
-            }
-
-            function pollLogs() {
-                fetch('/api/logs')
-                  .then(r => r.json())
-                  .then(data => {
-                    const colored = colorizeLogs(data.logs);
-                    consoleBox.innerHTML = colored;
-                    if (scrollBottom) {
-                        consoleBox.scrollTop = consoleBox.scrollHeight;
-                    }
-                  })
-                  .catch(err => {
-                    console.error("Error fetching logs:", err);
-                  });
-            }
-
-            // Poll progress and logs
-            setInterval(pollProgress, 2000);
-            setInterval(pollLogs, 2000);
-        </script>
+                // Poll progress and logs
+                setInterval(pollProgress, 2000);
+                setInterval(pollLogs, 2000);
+            </script>
     </body>
     </html>
     """
@@ -2054,13 +2956,15 @@ def run_web_ui():
         "current": {
             "line_number": 0,
             "original": "",
-            "deepl": "",
+            "suggestions": {},
             "first_pass": "",
             "standard_critic": "",
             "standard_critic_changed": False,
             "critics": [],
-            "final": ""
-        }
+            "final": "",
+            "llm_status": ""  # Added this field to track LLM agent status
+        },
+        "processed_lines": []  # Store history of processed lines
     }
 
     app = Flask(__name__)
@@ -2094,13 +2998,13 @@ def run_web_ui():
         for section in c.sections():
             config_dict[section] = {}
             for key, value in c[section].items():
-                if value.lower() in ('true', 'false'):
+                if (value.lower() in ('true', 'false')):
                     config_dict[section][key] = c.getboolean(section, key)
                 else:
                     # Try to parse as number
-                    if value.replace('.', '', 1).isdigit():
+                    if (value.replace('.', '', 1).isdigit()):
                         try:
-                            if '.' in value:
+                            if ('.' in value):
                                 config_dict[section][key] = float(value)
                             else:
                                 config_dict[section][key] = int(value)
@@ -2117,10 +3021,10 @@ def run_web_ui():
             updated_config = data['config']
             current_config = load_config()
             for section, items in updated_config.items():
-                if not current_config.has_section(section):
+                if (not current_config.has_section(section)):
                     current_config.add_section(section)
                 for k, v in items.items():
-                    if isinstance(v, bool):
+                    if (isinstance(v, bool)):
                         v = 'true' if v else 'false'
                     else:
                         v = str(v)
@@ -2140,14 +3044,14 @@ def run_web_ui():
     @app.route("/upload", methods=["POST"])
     def upload():
         from flask import flash
-        if "srtfile" not in request.files:
+        if ("srtfile" not in request.files):
             flash("No SRT file part in the request.", "error")
             return redirect(url_for("index"))
         file = request.files["srtfile"]
-        if file.filename == "":
+        if (file.filename == ""):
             flash("No selected file.", "error")
             return redirect(url_for("index"))
-        if not file.filename.lower().endswith(".srt"):
+        if (not file.filename.lower().endswith(".srt")):
             flash("Invalid file type. Please upload an SRT file.", "error")
             return redirect(url_for("index"))
         try:
@@ -2178,12 +3082,12 @@ def run_web_ui():
         ]
         import re
         for pat in patterns:
-            if pat in base.lower():
+            if (pat in base.lower()):
                 newpat = pat.replace(src_iso, tgt_iso)
                 out_base = re.sub(pat, newpat, base, flags=re.IGNORECASE)
                 replaced = True
                 break
-        if not replaced:
+        if (not replaced):
             out_base = f"{base}.{tgt_iso}"
         out_filename = secure_filename(out_base + ext)
         output_path = os.path.join(tempd, out_filename)
@@ -2201,11 +3105,11 @@ def run_web_ui():
     def download_file(folder, filename):
         base_temp = tempfile.gettempdir()
         full_dir = os.path.join(base_temp, folder)
-        if not os.path.normpath(full_dir).startswith(os.path.normpath(base_temp)):
+        if (not os.path.normpath(full_dir).startswith(os.path.normpath(base_temp))):
             append_log("[SECURITY] Invalid directory access attempt.")
             return "Invalid directory", 400
         file_path = os.path.join(full_dir, filename)
-        if not os.path.exists(file_path):
+        if (not os.path.exists(file_path)):
             append_log(f"[ERROR] File not found for download: {file_path}")
             return "File not found or expired", 404
         append_log(f"Serving file: {file_path}")
