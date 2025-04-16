@@ -2688,9 +2688,9 @@ def run_web_ui():
                                     ` : ''}
                                     
                                     <h4>Translation History</h4>
-                                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                                    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
                                         ${progress.processed_lines && progress.processed_lines.length > 0 ? 
-                                            progress.processed_lines.map(line => `
+                                            progress.processed_lines.slice().reverse().map(line => `
                                                 <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ccc;">
                                                     <h5 style="margin-top: 0; margin-bottom: 10px; background: #f0f0f0; padding: 5px;">Line #${line.line_number}</h5>
                                                     
