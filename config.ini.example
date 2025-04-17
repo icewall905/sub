@@ -28,7 +28,7 @@ backup_count = 2
 
 [ollama]
 enabled = true
-server_url = http://10.0.10.23:11434
+server_url = http://localhost:11434
 endpoint = /api/generate
 model = gemma3:12b
 # Performance settings for Ollama

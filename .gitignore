@@ -34,3 +34,5 @@ dist/
 build/
 *.egg-info/
 
+#More stuff
+venv_subtrans

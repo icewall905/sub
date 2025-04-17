@@ -89,66 +89,153 @@ LOG_VIEWER_TEMPLATE = r"""
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Log Viewer - SRT Subtitle Translator</title>
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 1em; }
-        header { background-color: #333; color: white; padding: 1em; }
-        header h1 { margin: 0; }
-        nav { display: flex; margin-top: 0.5em; }
-        nav a { color: #ddd; text-decoration: none; margin-right: 1em; }
-        nav a:hover { color: white; }
+        body { 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #1e1e2e; 
+            color: #cdd6f4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2em auto;
+            background: #282a36;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        h1 { text-align: center; color: #f5f5f5; margin-top: 0; }
         #log-container { 
-            background-color: #282c34; 
-            color: #abb2bf; 
+            background-color: #1a1a24; 
+            color: #cdd6f4; 
             padding: 1em; 
-            border-radius: 4px; 
+            border-radius: 6px; 
             font-family: monospace; 
             height: 70vh; 
             overflow-y: auto;
             white-space: pre-wrap;
             margin-top: 1em;
+            border: 1px solid #444;
         }
-        .error { color: #e06c75; }
-        .warning { color: #e5c07b; }
-        .info { color: #61afef; }
-        .debug { color: #98c379; }
-        .controls { margin-top: 1em; display: flex; align-items: center; }
+        .error { color: #f38ba8; }
+        .warning { color: #f9e2af; }
+        .info { color: #89b4fa; }
+        .debug { color: #a6e3a1; }
+        .controls { 
+            margin-top: 1em; 
+            display: flex; 
+            align-items: center;
+            background: #313244;
+            padding: 1em;
+            border-radius: 6px;
+            border: 1px solid #444;
+        }
         .controls button { 
-            background-color: #4CAF50; 
+            background-color: #74c7ec; 
             border: none; 
-            color: white; 
+            color: #1e1e2e; 
             padding: 0.5em 1em; 
             margin-right: 1em;
             border-radius: 4px;
             cursor: pointer;
+            font-weight: bold;
         }
-        .controls button:hover { background-color: #45a049; }
+        .controls button:hover { background-color: #89dceb; }
         .controls label { margin-right: 0.5em; }
-        footer { margin-top: 2em; text-align: center; color: #666; }
+        .nav-links {
+            text-align: center;
+            margin-bottom: 1.5em;
+        }
+        .nav-links a {
+            display: inline-block;
+            padding: 0.5em 1em;
+            margin: 0 0.5em;
+            color: #89b4fa;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .nav-links a:hover {
+            background-color: #313244;
+            text-decoration: underline;
+        }
+        .nav-links a.active {
+            font-weight: bold;
+            border-bottom: 2px solid #89b4fa;
+        }
+        .settings-panel {
+            margin-top: 2em;
+            padding: 1em;
+            background-color: #313244;
+            border-radius: 6px;
+            border: 1px solid #444;
+        }
+        .settings-panel h3 {
+            margin-top: 0;
+            color: #f5f5f5;
+            border-bottom: 1px solid #444;
+            padding-bottom: 0.5em;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5em;
+        }
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 0.5em;
+        }
+        select, input[type="checkbox"] {
+            background-color: #1e1e2e;
+            color: #cdd6f4;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 0.3em;
+        }
+        select option {
+            background-color: #1e1e2e;
+            color: #cdd6f4;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Live Log Viewer</h1>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/config">Configuration</a>
-            <a href="/logs" class="active">Logs</a>
-        </nav>
-    </header>
-
     <div class="container">
+        <h1>SRT Subtitle Translator</h1>
+        
+        <!-- Navigation Links -->
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/config">Full Configuration</a>
+            <a href="/logs" class="active">Log Viewer</a>
+        </div>
+
         <div class="controls">
             <button id="refresh-btn">Refresh Now</button>
-            <label for="auto-refresh">Auto-refresh:</label>
-            <input type="checkbox" id="auto-refresh" checked>
-            <span id="status" style="margin-left: 1em; color: #666;"></span>
+            <div class="checkbox-container">
+                <input type="checkbox" id="auto-refresh" checked>
+                <label for="auto-refresh">Auto-refresh</label>
+            </div>
+            <span id="status" style="margin-left: 1em; color: #bac2de;"></span>
         </div>
         
         <div id="log-container">Loading logs...</div>
         
-        <footer>
-            <p>SRT Subtitle Translator - Live Log Viewer</p>
-        </footer>
+        <div class="settings-panel">
+            <h3>Log View Settings</h3>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="follow-logs" checked>
+                    <label for="follow-logs">Auto-scroll to newest logs</label>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <label for="log-level" style="margin-right: 8px;">Show log level:</label>
+                    <select id="log-level">
+                        <option value="all">All logs</option>
+                        <option value="info">Info and above</option>
+                        <option value="warning">Warnings and errors</option>
+                        <option value="error">Errors only</option>
+                    </select>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -156,6 +243,8 @@ LOG_VIEWER_TEMPLATE = r"""
         const refreshBtn = document.getElementById('refresh-btn');
         const autoRefreshCheckbox = document.getElementById('auto-refresh');
         const statusElement = document.getElementById('status');
+        const followLogsCheckbox = document.getElementById('follow-logs');
+        const logLevelSelect = document.getElementById('log-level');
         let isScrolledToBottom = true;
         let refreshInterval;
 
@@ -165,6 +254,16 @@ LOG_VIEWER_TEMPLATE = r"""
                 (logContainer.scrollHeight - logContainer.clientHeight) - 
                 logContainer.scrollTop
             ) < 10;
+            // Update follow logs checkbox based on scrolling behavior
+            followLogsCheckbox.checked = isScrolledToBottom;
+        });
+
+        // Update scroll behavior when follow logs checkbox changes
+        followLogsCheckbox.addEventListener('change', () => {
+            isScrolledToBottom = followLogsCheckbox.checked;
+            if (isScrolledToBottom) {
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
         });
 
         function formatLogs(logText) {
@@ -178,6 +277,28 @@ LOG_VIEWER_TEMPLATE = r"""
                 .replace(/\[DEBUG\].*$/gm, match => `<span class="debug">${match}</span>`);
         }
 
+        function filterLogsByLevel(logText) {
+            const level = logLevelSelect.value;
+            if (level === 'all') return logText;
+            
+            const lines = logText.split('\n');
+            let filteredLines = [];
+            
+            for (const line of lines) {
+                if (level === 'error' && line.includes('[ERROR]')) {
+                    filteredLines.push(line);
+                } else if (level === 'warning' && (line.includes('[ERROR]') || line.includes('[WARNING]'))) {
+                    filteredLines.push(line);
+                } else if (level === 'info' && (line.includes('[ERROR]') || line.includes('[WARNING]') || line.includes('[INFO]'))) {
+                    filteredLines.push(line);
+                } else if (level === 'all') {
+                    filteredLines.push(line);
+                }
+            }
+            
+            return filteredLines.join('\n');
+        }
+
         function fetchLogs() {
             statusElement.textContent = "Fetching logs...";
             
@@ -189,7 +310,8 @@ LOG_VIEWER_TEMPLATE = r"""
                     return response.json();
                 })
                 .then(data => {
-                    logContainer.innerHTML = formatLogs(data.logs);
+                    const filteredLogs = filterLogsByLevel(data.logs);
+                    logContainer.innerHTML = formatLogs(filteredLogs);
                     
                     if (isScrolledToBottom) {
                         logContainer.scrollTop = logContainer.scrollHeight;
@@ -202,6 +324,9 @@ LOG_VIEWER_TEMPLATE = r"""
                     statusElement.textContent = `Error: ${error.message}`;
                 });
         }
+
+        function toggleAutoRefresh() {
+            if (autoRefreshCheckbox.checked) {
                 refreshInterval = setInterval(fetchLogs, 3000);
                 statusElement.textContent = "Auto-refresh enabled";
             } else {
@@ -209,6 +334,9 @@ LOG_VIEWER_TEMPLATE = r"""
                 statusElement.textContent = "Auto-refresh disabled";
             }
         }
+
+        // Log level filter change
+        logLevelSelect.addEventListener('change', fetchLogs);
 
         // Initial load
         fetchLogs();
@@ -224,7 +352,7 @@ LOG_VIEWER_TEMPLATE = r"""
 </html>
 """
 
-CONFIG_EDITOR_TEMPLATE = """
+CONFIG_EDITOR_TEMPLATE = r"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -232,121 +360,165 @@ CONFIG_EDITOR_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuration Editor - SRT Subtitle Translator</title>
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 1em; }
-        header { background-color: #333; color: white; padding: 1em; }
-        header h1 { margin: 0; }
-        nav { display: flex; margin-top: 0.5em; }
-        nav a { color: #ddd; text-decoration: none; margin-right: 1em; }
-        nav a:hover { color: white; }
-        
+        body { 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #121212; 
+            color: #e0e0e0; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 2em auto; 
+            background: #1e1e1e;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 { text-align: center; color: #bb86fc; margin-top: 0; }
+        h2 { 
+            color: #bb86fc; 
+            border-bottom: 1px solid #333; 
+            padding-bottom: 0.5em; 
+        }
         .config-container {
-            background-color: white;
-            border-radius: 4px;
+            background: #2c2c2c;
+            border-radius: 6px;
             padding: 1em;
+            border: 1px solid #444;
             margin-top: 1em;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
-        .section {
-            margin-bottom: 2em;
-            padding: 1em;
-            background-color: #f9f9f9;
-            border-left: 4px solid #4CAF50;
-        }
-        
-        .section h2 {
-            margin-top: 0;
-            color: #333;
-            font-size: 1.2em;
-        }
-        
         .form-group {
             margin-bottom: 1em;
         }
-        
-        label {
+        .form-group label {
             display: block;
             margin-bottom: 0.5em;
             font-weight: bold;
         }
-        
-        input[type="text"], input[type="number"], input[type="password"], select {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 0.5em;
-            border: 1px solid #ddd;
+            border: 1px solid #555;
             border-radius: 4px;
             box-sizing: border-box;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
         }
-        
-        input[type="checkbox"] {
-            margin-right: 0.5em;
-        }
-        
         .buttons {
-            margin-top: 1em;
+            margin-top: 1.5em;
             text-align: right;
         }
-        
-        button {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 0.7em 1.5em;
+        .buttons button {
+            padding: 0.6em 1.2em;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 1em;
+            margin-left: 0.5em;
         }
-        
-        button:hover {
-            background-color: #45a049;
+        .cancel {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            color: #333;
         }
-        
-        button.cancel {
-            background-color: #f44336;
-            margin-right: 1em;
+        .cancel:hover {
+            background-color: #e2e6ea;
         }
-        
-        button.cancel:hover {
-            background-color: #e53935;
+        button[type="submit"] {
+            background-color: #5cb85c;
+            border: none;
+            color: white;
         }
-        
+        button[type="submit"]:hover {
+            background-color: #4cae4c;
+        }
         .notification {
             padding: 1em;
-            margin: 1em 0;
+            margin-bottom: 1em;
             border-radius: 4px;
             display: none;
         }
-        
-        .success {
+        .notification.success {
             background-color: #dff0d8;
-            border-left: 4px solid #3c763d;
+            border: 1px solid #d6e9c6;
             color: #3c763d;
         }
-        
-        .error {
+        .notification.error {
             background-color: #f2dede;
-            border-left: 4px solid #a94442;
+            border: 1px solid #ebccd1;
             color: #a94442;
         }
-        
-        footer { margin-top: 2em; text-align: center; color: #666; }
+        .section {
+            background-color: #1e1e1e;
+            padding: 1em;
+            border-radius: 4px;
+            margin-bottom: 1em;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .loading {
+            text-align: center;
+            padding: 2em;
+            color: #666;
+        }
+        .nav-links {
+            text-align: center;
+            margin-bottom: 1.5em;
+        }
+        .nav-links a {
+            display: inline-block;
+            padding: 0.5em 1em;
+            margin: 0 0.5em;
+            color: #bb86fc;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .nav-links a:hover {
+            background-color: #2c2c2c;
+            text-decoration: underline;
+        }
+        .nav-links a.active {
+            font-weight: bold;
+            border-bottom: 2px solid #bb86fc;
+        }
+        .settings-panel {
+            margin-top: 2em;
+            padding: 1em;
+            background-color: #2c2c2c;
+            border-radius: 6px;
+            border: 1px solid #444;
+        }
+        .settings-panel h3 {
+            margin-top: 0;
+            color: #bb86fc;
+            border-bottom: 1px solid #444;
+            padding-bottom: 0.5em;
+        }
+        .search-box {
+            padding: 0.5em;
+            margin-bottom: 1em;
+            width: 100%;
+            border: 1px solid #555;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Configuration Editor</h1>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/config" class="active">Configuration</a>
-            <a href="/logs">Logs</a>
-        </nav>
-    </header>
-
     <div class="container">
+        <h1>SRT Subtitle Translator</h1>
+        
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/config" class="active">Full Configuration</a>
+            <a href="/logs">Log Viewer</a>
+        </div>
+        
         <div id="notification" class="notification"></div>
         
         <div class="config-container">
+            <input type="text" class="search-box" id="search-config" placeholder="Search configuration settings...">
+            
             <form id="config-form">
                 <div id="config-sections">
                     <!-- Config sections will be dynamically generated here -->
@@ -360,13 +532,51 @@ CONFIG_EDITOR_TEMPLATE = """
             </form>
         </div>
         
-        <footer>
-            <p>SRT Subtitle Translator - Configuration Editor</p>
-        </footer>
+        <div class="settings-panel">
+            <h3>Configuration Editor Help</h3>
+            <p>This page allows you to configure all settings for the SRT Subtitle Translator. Changes will be saved to the config.ini file.</p>
+            <ul>
+                <li><strong>API Keys</strong>: To use services like DeepL or OpenAI, enter your API keys in the appropriate sections.</li>
+                <li><strong>Ollama Settings</strong>: Configure GPU usage, thread count, and model parameters for local Ollama translation.</li>
+                <li><strong>Translation Services</strong>: Enable or disable various translation services and set their priority.</li>
+            </ul>
+            <p>After making changes, click <strong>Save Configuration</strong> to apply them. Use <strong>Reset Changes</strong> to revert to the previous state.</p>
+        </div>
     </div>
 
     <script>
         let originalConfig = {};
+        const searchBox = document.getElementById('search-config');
+        
+        // Search functionality
+        searchBox.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const sections = document.querySelectorAll('.section');
+            
+            sections.forEach(section => {
+                let found = false;
+                
+                // Check section title
+                if (section.querySelector('h2').textContent.toLowerCase().includes(searchTerm)) {
+                    found = true;
+                }
+                
+                // Check form groups
+                const formGroups = section.querySelectorAll('.form-group');
+                formGroups.forEach(group => {
+                    const label = group.querySelector('label').textContent.toLowerCase();
+                    if (label.includes(searchTerm)) {
+                        found = true;
+                        group.style.backgroundColor = '#f7f7e1'; // Highlight matching fields
+                    } else {
+                        group.style.backgroundColor = ''; // Reset background
+                    }
+                });
+                
+                // Show/hide section based on search results
+                section.style.display = searchTerm && !found ? 'none' : 'block';
+            });
+        });
         
         // Fetch the current configuration
         function fetchConfig() {
@@ -480,39 +690,34 @@ CONFIG_EDITOR_TEMPLATE = """
                     } else if (key === 'model' && section === 'ollama') {
                         input = document.createElement('select');
                         
-                        // Common Ollama models
-                        const models = ['llama2', 'llama2:13b', 'llama2:70b', 'mistral', 'mixtral', 'codellama', 'codellama:13b', 'codellama:34b', 'phi', 'phi:2.7b', 'gemma3:12b'];
-                        
-                        // Add current value if not in list
-                        if (value && !models.includes(value)) {
-                            models.unshift(value);
-                        }
-                        
-                        for (const model of models) {
-                            const option = document.createElement('option');
-                            option.value = model;
-                            option.textContent = model;
-                            option.selected = model === value;
-                            input.appendChild(option);
-                        }
-                    } else if (key === 'model' && section === 'openai') {
-                        input = document.createElement('select');
-                        
-                        // Common OpenAI models
-                        const models = ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o'];
-                        
-                        // Add current value if not in list
-                        if (value && !models.includes(value)) {
-                            models.unshift(value);
-                        }
-                        
-                        for (const model of models) {
-                            const option = document.createElement('option');
-                            option.value = model;
-                            option.textContent = model;
-                            option.selected = model === value;
-                            input.appendChild(option);
-                        }
+                        // Fetch available models from Ollama if we're on the Home page
+                        fetch('/api/models', { method: 'GET' })
+                            .then(response => response.json())
+                            .then(data => {
+                                const models = data.models || [];
+                                
+                                // Add current value if not in list
+                                if (value && !models.includes(value)) {
+                                    models.unshift(value);
+                                }
+                                
+                                for (const model of models) {
+                                    const option = document.createElement('option');
+                                    option.value = model;
+                                    option.textContent = model;
+                                    option.selected = model === value;
+                                    input.appendChild(option);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching models:', error);
+                                // Still create an option for the current value
+                                const option = document.createElement('option');
+                                option.value = value;
+                                option.textContent = value;
+                                option.selected = true;
+                                input.appendChild(option);
+                            });
                     } else if (key === 'service_priority' && section === 'translation') {
                         input = document.createElement('input');
                         input.type = 'text';
@@ -571,7 +776,7 @@ CONFIG_EDITOR_TEMPLATE = """
                 if (input.type === 'checkbox') {
                     value = input.checked;
                 } else if (input.type === 'number') {
-                    value = parseFloat(input.value);
+                    value = Number(input.value);
                 } else {
                     value = input.value;
                 }
@@ -579,64 +784,69 @@ CONFIG_EDITOR_TEMPLATE = """
                 updatedConfig[section][key] = value;
             }
             
-            // Send the updated config to the server
+            // Send updated config to server
             fetch('/api/config', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ config: updatedConfig })
+                body: JSON.stringify({ config: updatedConfig }),
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    showNotification('success', 'Configuration saved successfully!');
-                    // Update the original config
-                    originalConfig = updatedConfig;
-                } else {
-                    showNotification('error', `Error: ${data.message}`);
-                }
-            })
-            .catch(error => {
-                console.error('Error saving configuration:', error);
-                showNotification('error', `Error saving configuration: ${error.message}`);
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        showNotification('success', 'Configuration saved successfully!');
+                        // Update original config to match new config
+                        originalConfig.config = updatedConfig;
+                    } else {
+                        showNotification('error', `Error saving configuration: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving configuration:', error);
+                    showNotification('error', `Error saving configuration: ${error.message}`);
+                });
         }
         
-        // Reset the form to the original config
-        function resetForm() {
-            renderConfigForm(originalConfig.config);
-            showNotification('success', 'Form reset to last saved configuration');
-        }
-        
-        // Show a notification
+        // Show notification message
         function showNotification(type, message) {
             const notification = document.getElementById('notification');
-            notification.className = `notification ${type}`;
             notification.textContent = message;
+            notification.className = `notification ${type}`;
             notification.style.display = 'block';
             
-            // Hide after 5 seconds
+            // Hide notification after 5 seconds
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 5000);
         }
         
-        // Event listeners
-        document.getElementById('config-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveConfig();
+        // Reset form to original values
+        function resetForm() {
+            if (confirm('Are you sure you want to reset all changes?')) {
+                renderConfigForm(originalConfig.config);
+                showNotification('success', 'Form reset to original values.');
+            }
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fetch configuration
+            fetchConfig();
+            
+            // Set up event listeners
+            document.getElementById('config-form').addEventListener('submit', event => {
+                event.preventDefault();
+                saveConfig();
+            });
+            
+            document.getElementById('reset-btn').addEventListener('click', resetForm);
         });
-        
-        document.getElementById('reset-btn').addEventListener('click', resetForm);
-        
-        // Initial load
-        fetchConfig();
     </script>
 </body>
 </html>
@@ -1026,49 +1236,41 @@ def run_web_ui():
     def call_ollama(server_url: str, endpoint_path: str, model: str, prompt: str, temperature: float = 0.2, cfg=None) -> str:
         url = f"{server_url.rstrip('/')}{endpoint_path}"
         
-        # Load config to get Ollama performance parameters if not provided
-        if cfg is None:
-            # Use default values if cfg is not provided
-            num_gpu = 1
-            num_thread = 4
-            use_mmap = True
-            use_mlock = True
-            append_log(f"[DEBUG] Calling Ollama with default parameters: POST {url} | Model: {model} | Temperature: {temperature}")
-        else:
-            # Use values from cfg if available
-            num_gpu = cfg.getint("ollama", "num_gpu", fallback=1)
-            num_thread = cfg.getint("ollama", "num_thread", fallback=4)
-            use_mmap = cfg.getboolean("ollama", "use_mmap", fallback=True)
-            use_mlock = cfg.getboolean("ollama", "use_mlock", fallback=True)
-            append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model} | Temperature: {temperature} | num_gpu: {num_gpu} | num_thread: {num_thread} | use_mmap: {use_mmap} | use_mlock: {use_mlock}")
-        
-        data = {
-            "model": model, 
-            "prompt": prompt, 
-            "stream": False, 
+        # Create the base request payload
+        payload = {
+            "model": model,
+            "prompt": prompt,
             "temperature": temperature,
-            "options": {
-                "num_gpu": num_gpu,
-                "num_thread": num_thread,
-                "use_mmap": use_mmap,
-                "use_mlock": use_mlock
-            }
+            "stream": False
         }
-
+        
+        # Only add GPU/CPU parameters if they're explicitly defined in the config
+        if cfg is not None and cfg.has_section("ollama"):
+            if cfg.has_option("ollama", "num_gpu"):
+                payload["num_gpu"] = cfg.getint("ollama", "num_gpu")
+            
+            if cfg.has_option("ollama", "num_thread"):
+                payload["num_thread"] = cfg.getint("ollama", "num_thread")
+                
+            if cfg.has_option("ollama", "use_mmap"):
+                payload["use_mmap"] = cfg.getboolean("ollama", "use_mmap")
+                
+            if cfg.has_option("ollama", "use_mlock"):
+                payload["use_mlock"] = cfg.getboolean("ollama", "use_mlock")
+            
+            append_log(f"[DEBUG] Calling Ollama with parameters: POST {url} | Model: {model} | Temperature: {temperature}")
+        else:
+            # When no config is provided, let Ollama use its defaults
+            append_log(f"[DEBUG] Calling Ollama with default parameters: POST {url} | Model: {model} | Temperature: {temperature}")
+        
         try:
-            resp = requests.post(url, json=data, timeout=300)
-            resp.raise_for_status()
-            j = resp.json()
-            return j.get("response", "")
-        except requests.exceptions.Timeout:
-            append_log("[ERROR] Ollama request timed out.")
-            return ""
+            response = requests.post(url, json=payload, timeout=180)
+            response.raise_for_status()
+            response_json = response.json()
+            return response_json.get("response", "")
         except requests.exceptions.RequestException as e:
-            append_log(f"[ERROR] Ollama request failed: {e}")
-            return ""
-        except json.JSONDecodeError as e:
-            append_log(f"[ERROR] Invalid JSON from Ollama: {e}")
-            return ""
+            append_log(f"[ERROR] Ollama API request failed: {str(e)}")
+            return f"Error: {str(e)}"
 
     def call_openai(api_key: str, api_base_url: str, model: str, prompt: str, temperature: float = 0.2) -> str:
         url = f"{api_base_url.rstrip('/')}/chat/completions"
@@ -1676,7 +1878,7 @@ def run_web_ui():
         end_idx = min(len(lines), index + context_after + 1)
 
         chunk_before = lines[start_idx:index]
-        chunk_after = lines[index+1:end_idx]
+        chunk_after = lines[index+1:endidx]
 
         # Create specialized prompts based on critic type
         if (critic_type.lower() == "standard"):
@@ -2063,7 +2265,7 @@ def run_web_ui():
             critic_changes = translation_stats['standard_critic_changes']
             append_log(f"- Lines improved by standard critic: {critic_changes} ({(critic_changes/len(subs))*100:.1f}%)")
         append_log(f"- Total processing time: {processing_time_minutes:.2f} minutes ({processing_time_seconds:.2f} seconds)")
-        append_log(f"- Average time per line: {processing_time_seconds/len(subs)::.2f} seconds")
+        append_log(f"- Average time per line: {processing_time_seconds/len(subs):.2f} seconds")
 
         translation_progress["status"] = "done"
         translation_progress["message"] = "Translation complete."
@@ -2298,7 +2500,7 @@ def run_web_ui():
                 if (stats['total_lines'] > 0):
                     f.write(f"Average time per line: {processing_time / stats['total_lines']:.2f} seconds\n")
                     if (total_source_words > 0):
-                        f.write(f"Average time per word: {processing_time / total_source_words}:.2f seconds\n\n")
+                        f.write(f"Average time per word: {processing_time / total_source_words:.2f} seconds\n\n")
             
             f.write("="*80 + "\n")
             f.write("\nNOTE: Similarity metrics are approximate and based on character-level comparison.\n")
@@ -2308,62 +2510,76 @@ def run_web_ui():
     app.secret_key = os.urandom(24)
 
     # Updated INDEX_PAGE with a large console box
-    INDEX_PAGE = """
+    INDEX_PAGE = r"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <title>SRT Subtitle Translator</title>
         <style>
-            body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+            body { 
+                font-family: sans-serif; 
+                margin: 0; 
+                padding: 0; 
+                background-color: #1e1e2e; 
+                color: #cdd6f4;
+            }
             .container {
                 max-width: 1200px;
                 margin: 2em auto;
-                background: #fff;
+                background: #282a36;
                 padding: 2em;
                 border-radius: 8px;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             }
-            h1 { text-align: center; color: #333; }
+            h1 { text-align: center; color: #f5f5f5; margin-top: 0; }
             label { display: block; margin-bottom: 0.5em; font-weight: bold; }
-            input[type="file"] { border: 1px solid #ccc; padding: 0.5em; width: calc(100% - 1.2em); margin-bottom: 1em; }
+            input[type="file"] { 
+                border: 1px solid #444; 
+                padding: 0.5em; 
+                width: calc(100% - 1.2em); 
+                margin-bottom: 1em; 
+                background-color: #1a1a24;
+                color: #cdd6f4;
+            }
             input[type="submit"] {
-                background-color: #5cb85c;
-                color: white;
+                background-color: #74c7ec; 
+                color: #1e1e2e; 
                 padding: 0.8em 1.5em;
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
                 font-size: 1em;
                 width: 100%;
+                font-weight: bold;
             }
-            input[type="submit"]:hover { background-color: #4cae4c; }
+            input[type="submit"]:hover { background-color: #89dceb; }
             .status {
                 margin-top: 1em;
                 padding: 1em;
-                background-color: #e9ecef;
-                border-left: 5px solid #0275d8;
+                background-color: #313244;
+                border-left: 5px solid #89b4fa;
                 display: none;
             }
             .error {
                 margin-top: 1em;
                 padding: 1em;
-                background-color: #f8d7da;
-                border-left: 5px solid #d9534f;
-                color: #721c24;
+                background-color: #382a37;
+                border-left: 5px solid #f38ba8;
+                color: #f38ba8;
             }
             .progress-box {
                 margin-top: 2em;
-                background: #f7f7fa;
+                background: #313244;
                 border-radius: 6px;
                 padding: 1em;
-                border: 1px solid #d0d0e0;
+                border: 1px solid #444;
                 font-size: 0.95em;
             }
             #console-box {
                 margin-top: 2em;
-                background-color: #282c34;
-                color: #abb2bf;
+                background-color: #1a1a24;
+                color: #cdd6f4;
                 border-radius: 6px;
                 padding: 1em;
                 height: 40vh;
@@ -2371,23 +2587,24 @@ def run_web_ui():
                 white-space: pre-wrap;
                 font-family: monospace;
                 font-size: 0.9em;
+                border: 1px solid #444;
             }
-            .error-line { color: #e06c75; }
-            .warn-line { color: #e5c07b; }
-            .info-line { color: #61afef; }
-            .debug-line { color: #98c379; }
-            .progress-line { color: #c678dd; }
+            .error-line { color: #f38ba8; }
+            .warn-line { color: #f9e2af; }
+            .info-line { color: #89b4fa; }
+            .debug-line { color: #a6e3a1; }
+            .progress-line { color: #cba6f7; }
             .settings-panel {
                 margin-top: 2em;
                 padding: 1em;
-                background-color: #f0f0f0;
+                background-color: #313244;
                 border-radius: 6px;
-                border: 1px solid #ddd;
+                border: 1px solid #444;
             }
             .settings-panel h3 {
                 margin-top: 0;
-                color: #333;
-                border-bottom: 1px solid #ddd;
+                color: #f5f5f5;
+                border-bottom: 1px solid #444;
                 padding-bottom: 0.5em;
             }
             .quick-settings {
@@ -2400,42 +2617,46 @@ def run_web_ui():
                 flex: 1;
                 min-width: 200px;
                 padding: 1em;
-                background: white;
+                background: #1a1a24;
                 border-radius: 4px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                border: 1px solid #444;
             }
             .setting-card h4 {
                 margin-top: 0;
-                color: #444;
+                color: #cdd6f4;
             }
             .setting-card input, .setting-card select {
                 width: 100%;
                 padding: 0.5em;
                 margin-top: 0.3em;
-                border: 1px solid #ddd;
+                border: 1px solid #444;
                 border-radius: 4px;
+                background-color: #282a36;
+                color: #cdd6f4;
             }
             .setting-card label {
                 font-weight: normal;
                 font-size: 0.9em;
-                color: #666;
+                color: #bac2de;
             }
             .setting-card input[type="checkbox"] {
                 width: auto;
                 margin-right: 0.5em;
             }
             .btn-save {
-                background-color: #5bc0de;
-                color: white;
+                background-color: #74c7ec;
+                color: #1e1e2e;
                 border: none;
                 padding: 0.6em 1em;
                 border-radius: 4px;
                 cursor: pointer;
                 font-size: 0.9em;
                 margin-top: 1em;
+                font-weight: bold;
             }
             .btn-save:hover {
-                background-color: #46b8da;
+                background-color: #89dceb;
             }
             .nav-links {
                 text-align: center;
@@ -2445,17 +2666,17 @@ def run_web_ui():
                 display: inline-block;
                 padding: 0.5em 1em;
                 margin: 0 0.5em;
-                color: #0275d8;
+                color: #89b4fa;
                 text-decoration: none;
                 border-radius: 4px;
             }
             .nav-links a:hover {
-                background-color: #f0f0f0;
+                background-color: #313244;
                 text-decoration: underline;
             }
             .nav-links a.active {
                 font-weight: bold;
-                border-bottom: 2px solid #0275d8;
+                border-bottom: 2px solid #89b4fa;
             }
         </style>
     </head>
