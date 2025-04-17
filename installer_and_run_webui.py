@@ -1109,8 +1109,30 @@ def setup_environment_and_run():
         print("[INFO] Not running inside a virtual environment.")
         create_and_populate_venv(VENV_DIR)
         re_run_in_venv(VENV_DIR)
+        sys.exit(0)  # This line should not be reached if re_run_in_venv works correctly
     else:
         print(f"[INFO] Running inside virtual environment: {sys.prefix}")
+        
+        # Check if required packages are installed
+        missing_packages = []
+        for package in REQUIRED_PYTHON_PACKAGES:
+            try:
+                __import__(package.lower())
+                print(f"[INFO] Found required package: {package}")
+            except ImportError:
+                missing_packages.append(package)
+                
+        # Install missing packages if any
+        if missing_packages:
+            print(f"[INFO] Installing missing packages: {', '.join(missing_packages)}")
+            pip_path = os.path.join(sys.prefix, "bin", "pip") if sys.platform != "win32" else os.path.join(sys.prefix, "Scripts", "pip.exe")
+            cmd = [pip_path, "install"] + missing_packages
+            result = run_cmd(cmd)
+            if result != 0:
+                print(f"[ERROR] Failed to install required packages. Exit code: {result}")
+                sys.exit(1)
+            print("[INFO] Successfully installed required packages.")
+        
         run_web_ui()
 
 def is_brew_installed():
@@ -1240,25 +1262,27 @@ def run_web_ui():
         payload = {
             "model": model,
             "prompt": prompt,
-            "temperature": temperature,
-            "stream": False
+            "stream": False,
+            "options": {
+                "temperature": temperature
+            }
         }
         
         # Only add GPU/CPU parameters if they're explicitly defined in the config
         if cfg is not None and cfg.has_section("ollama"):
             if cfg.has_option("ollama", "num_gpu"):
-                payload["num_gpu"] = cfg.getint("ollama", "num_gpu")
+                payload["options"]["num_gpu"] = cfg.getint("ollama", "num_gpu")
             
             if cfg.has_option("ollama", "num_thread"):
-                payload["num_thread"] = cfg.getint("ollama", "num_thread")
+                payload["options"]["num_thread"] = cfg.getint("ollama", "num_thread")
                 
             if cfg.has_option("ollama", "use_mmap"):
-                payload["use_mmap"] = cfg.getboolean("ollama", "use_mmap")
+                payload["options"]["use_mmap"] = cfg.getboolean("ollama", "use_mmap")
                 
             if cfg.has_option("ollama", "use_mlock"):
-                payload["use_mlock"] = cfg.getboolean("ollama", "use_mlock")
+                payload["options"]["use_mlock"] = cfg.getboolean("ollama", "use_mlock")
             
-            append_log(f"[DEBUG] Calling Ollama with parameters: POST {url} | Model: {model} | Temperature: {temperature}")
+            append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model} | Temperature: {temperature}")
         else:
             # When no config is provided, let Ollama use its defaults
             append_log(f"[DEBUG] Calling Ollama with default parameters: POST {url} | Model: {model} | Temperature: {temperature}")
@@ -1878,7 +1902,7 @@ def run_web_ui():
         end_idx = min(len(lines), index + context_after + 1)
 
         chunk_before = lines[start_idx:index]
-        chunk_after = lines[index+1:endidx]
+        chunk_after = lines[index+1:end_idx]
 
         # Create specialized prompts based on critic type
         if (critic_type.lower() == "standard"):
