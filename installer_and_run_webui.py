@@ -24,6 +24,7 @@ import webbrowser
 from flask import Flask, request, render_template_string, redirect, url_for, jsonify
 from werkzeug.utils import secure_filename
 from collections import deque
+import argparse
 
 def call_translation_service_with_retry(translate_func, *args, max_retries=3, base_delay=2, log_func=print, service_name=None, **kwargs):
     """
@@ -1167,6 +1168,8 @@ def run_web_ui():
 
     LOG_BUFFER = []
     MAX_LOG_LINES = 500
+    SUBS_FOLDER = "subs" # Define the folder for saved subtitles
+    os.makedirs(SUBS_FOLDER, exist_ok=True) # Ensure the subs folder exists
 
     # --- Logging Setup ---
     global file_logger
@@ -2724,11 +2727,31 @@ def run_web_ui():
                 <input type="file" id="srtfile" name="srtfile" accept=".srt" required>
                 <input type="submit" value="Upload & Translate">
             </form>
+
+            <hr style="margin:1.5em 0">
+
+            <label for="scan_path">…or translate an entire folder:</label>
+            <input type="text" id="scan_path" name="scan_path"
+                   placeholder="/tv/Kipo and the Age of Wonderbeasts" 
+                   style="border:1px solid #444;padding:.5em;width:calc(100% - 1.2em); background-color: #1a1a24; color: #cdd6f4; margin-bottom: 1em;">
+
+            <input type="button" id="scan_button" value="Scan & Translate Folder"
+                   style="margin-top:1em;background-color:#a6e3a1; color: #1e1e2e; padding: 0.8em 1.5em; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; width: 100%; font-weight: bold;">
+
             <div id="status" class="status">Processing... Please wait. This may take several minutes.</div>
             
             <div id="progress-box" class="progress-box" style="display:none"></div>
             
             <div id="console-box">Logs will appear here when translation starts...</div>
+
+            <!-- Subtitle Archive Section -->
+            <div class="settings-panel" style="margin-top: 2em;">
+                <h3>Subtitle Archive (./subs/)</h3>
+                <div id="subs-archive-list" style="max-height: 300px; overflow-y: auto; background: #1a1a24; padding: 1em; border-radius: 6px; border: 1px solid #444;">
+                    Loading archive...
+                </div>
+                <button class="btn-save" id="refresh-subs-btn" style="margin-top: 1em; background-color: #89b4fa;">Refresh List</button>
+            </div>
             
             <!-- Quick Settings Panel -->
             <div class="settings-panel">
@@ -2872,155 +2895,136 @@ def run_web_ui():
                     fetch('/api/progress')
                         .then(r => r.json())
                         .then(progress => {
-                            if (progress.status === 'idle') {
-                                progressBox.textContent = 'Waiting for translation to start...';
-                            } else if (progress.status === 'translating') {
-                                const percent = Math.round((progress.current_line / progress.total_lines) * 100);
-                                progressBox.innerHTML = `
-                                    <strong>Translating: ${progress.current_line} / ${progress.total_lines} lines (${percent}%)</strong><br>
-                                    <div style="background: #e9ecef; height: 20px; border-radius: 4px; margin: 10px 0;">
-                                        <div style="background: #0275d8; height: 100%; width: ${percent}%; border-radius: 4px;"></div>
-                                    </div>
-                                    ${progress.current.line_number > 0 ? `
-                                        <h4>Current Line (#${progress.current.line_number})</h4>
-                                        <div style="padding: 10px; border-left: 3px solid #0275d8; margin-bottom: 15px;">
-                                            <strong>Original:</strong> ${progress.current.original}<br>
-                                            
-                                            <div style="margin-top: 8px;">
-                                                <strong>Online Translations:</strong><br>
-                                                ${Object.entries(progress.current.suggestions || {}).map(([service, text]) => 
-                                                    `<div style="margin-left: 10px; margin-bottom: 5px;"><em>${service}:</em> ${text}</div>`
-                                                ).join('')}
-                                            </div>
-                                            
-                                            ${progress.current.first_pass ? `
+                            if (progress.mode === "bulk") {
+                                // Handle bulk mode progress
+                                if (progress.status === 'queued') {
+                                    progressBox.innerHTML = `<strong>Bulk translation queued...</strong>`;
+                                } else if (progress.status === 'translating') {
+                                    const percent = progress.total_files > 0 ? Math.round((progress.done_files / progress.total_files) * 100) : 0;
+                                    progressBox.innerHTML = `
+                                        <strong>Bulk Translating: ${progress.done_files} / ${progress.total_files} files (${percent}%)</strong><br>
+                                        Current file: ${progress.current_file || 'Starting...'}<br>
+                                        <div style="background: #45475a; height: 20px; border-radius: 4px; margin: 10px 0;">
+                                            <div style="background: #89b4fa; height: 100%; width: ${percent}%; border-radius: 4px;"></div>
+                                        </div>
+                                    `;
+                                } else if (progress.status === 'done') {
+                                    // Bulk finished - show download link
+                                    progressBox.innerHTML = `
+                                        <strong style="color:#a6e3a1;">✓ Bulk translation complete!</strong><br>
+                                        ${progress.message}<br><br>
+                                        ${progress.zip_path ? 
+                                            `<a href="/download-zip?temp=${encodeURIComponent(progress.zip_path)}"
+                                               style="color:#89b4fa; background-color: #313244; padding: 0.5em 1em; border-radius: 4px; text-decoration: none;">Download all translated subtitles (.zip)</a>` : 
+                                            '<span style="color:#f9e2af;">No files were translated or zipped.</span>'
+                                        }
+                                    `;
+                                }
+                            } else {
+                                // Handle single file mode progress (existing logic)
+                                if (progress.status === 'idle') {
+                                    progressBox.textContent = 'Waiting for translation to start...';
+                                } else if (progress.status === 'translating') {
+                                    const percent = progress.total_lines > 0 ? Math.round((progress.current_line / progress.total_lines) * 100) : 0;
+                                    // ... (rest of the existing single file progress rendering logic) ...
+                                    // Keep the detailed view for single files
+                                    progressBox.innerHTML = `
+                                        <strong>Translating: ${progress.current_line} / ${progress.total_lines} lines (${percent}%)</strong><br>
+                                        <div style="background: #45475a; height: 20px; border-radius: 4px; margin: 10px 0;">
+                                            <div style="background: #89b4fa; height: 100%; width: ${percent}%; border-radius: 4px;"></div>
+                                        </div>
+                                        ${progress.current.line_number > 0 ? `
+                                            <h4>Current Line (#${progress.current.line_number})</h4>
+                                            <div style="padding: 10px; border-left: 3px solid #89b4fa; margin-bottom: 15px; background: #1a1a24; border-radius: 4px;">
+                                                <strong>Original:</strong> ${progress.current.original}<br>
+                                                
                                                 <div style="margin-top: 8px;">
-                                                    <strong>First Pass:</strong> ${progress.current.first_pass}<br>
-                                                </div>
-                                            ` : ''}
-                                            
-                                            ${progress.current.standard_critic ? `
-                                                <div style="margin-top: 8px;">
-                                                    <strong>Standard Critic:</strong> ${progress.current.standard_critic} 
-                                                    ${progress.current.standard_critic_changed ? 
-                                                        '<span style="color: #d9534f;">(Changed)</span>' : 
-                                                        '<span style="color: #5cb85c;">(No Change)</span>'}
-                                                </div>
-                                            ` : ''}
-                                            
-                                            ${progress.current.critics && progress.current.critics.length > 0 ? `
-                                                <div style="margin-top: 8px;">
-                                                    <strong>Specialized Critics:</strong><br>
-                                                    ${progress.current.critics.map(critic => 
-                                                        `<div style="margin-left: 10px; margin-bottom: 5px;">
-                                                            <em>${critic.type}:</em> ${critic.translation} 
-                                                            ${critic.changed ? 
-                                                                '<span style="color: #d9534f;">(Changed)</span>' : 
-                                                                '<span style="color: #5cb85c;">(No Change)</span>'}
-                                                        </div>`
+                                                    <strong>Online Translations:</strong><br>
+                                                    ${Object.entries(progress.current.suggestions || {}).map(([service, text]) => 
+                                                        `<div style="margin-left: 10px; margin-bottom: 5px;"><em>${service}:</em> ${text}</div>`
                                                     ).join('')}
                                                 </div>
-                                            ` : ''}
-                                            
-                                            ${progress.current.final ? `
-                                                <div style="margin-top: 8px;">
-                                                    <strong>Final Translation:</strong> ${progress.current.final}<br>
-                                                </div>
-                                            ` : ''}
-                                            
-                                            ${progress.current.llm_status ? `
-                                                <div style="margin-top: 8px; color: #6c757d;">
-                                                    <strong>Status:</strong> ${progress.current.llm_status}
-                                                </div>
-                                            ` : ''}
-                                        </div>
-                                    ` : ''}
-                                    
-                                    <h4>Translation History</h4>
-                                    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
-                                        ${progress.processed_lines && progress.processed_lines.length > 0 ? 
-                                            progress.processed_lines.slice().reverse().map(line => `
-                                                <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ccc;">
-                                                    <h5 style="margin-top: 0; margin-bottom: 10px; background: #f0f0f0; padding: 5px;">Line #${line.line_number}</h5>
-                                                    
-                                                    <div style="padding-left: 10px; border-left: 3px solid #ddd;">
-                                                        <div style="margin-bottom: 10px;">
-                                                            <strong>Original:</strong> <span style="color: #333;">${line.original}</span>
-                                                        </div>
-                                                        
-                                                        <!-- All online translation service results -->
-                                                        ${Object.keys(line.suggestions || {}).length > 0 ? `
-                                                            <div style="margin-bottom: 10px;">
-                                                                <strong>Online Services:</strong>
-                                                                <ul style="margin-top: 5px; margin-bottom: 5px; padding-left: 20px;">
-                                                                    ${Object.entries(line.suggestions).map(([service, translation]) => 
-                                                                        `<li><strong>${service}:</strong> ${translation}</li>`
-                                                                    ).join('')}
-                                                                </ul>
-                                                            </div>
-                                                        ` : ''}
-                                                        
-                                                        <!-- First pass LLM translation -->
-                                                        ${line.first_pass ? `
-                                                            <div style="margin-bottom: 10px;">
-                                                                <strong>LLM First Pass:</strong> ${line.first_pass}
-                                                            </div>
-                                                        ` : ''}
-                                                        
-                                                        <!-- Standard critic results -->
-                                                        ${line.standard_critic ? `
-                                                            <div style="margin-bottom: 10px;">
-                                                                <strong>Standard Critic:</strong> ${line.standard_critic}
-                                                                ${line.standard_critic_changed ? 
-                                                                    '<span style="color: #d9534f;"> (Changed)</span>' : 
-                                                                    '<span style="color: #5cb85c;"> (No Change)</span>'}
-                                                            </div>
-                                                        ` : ''}
-                                                        
-                                                        <!-- Specialized critics results -->
-                                                        ${line.critics && line.critics.length > 0 ? `
-                                                            <div style="margin-bottom: 10px;">
-                                                                <strong>Specialized Critics:</strong>
-                                                                <ul style="margin-top: 5px; margin-bottom: 5px; padding-left: 20px;">
-                                                                    ${line.critics.map(critic => 
-                                                                        `<li><strong>${critic.type}:</strong> ${critic.translation}
-                                                                            ${critic.changed ? 
-                                                                                '<span style="color: #d9534f;"> (Changed)</span>' : 
-                                                                                '<span style="color: #5cb85c;"> (No Change)</span>'}
-                                                                        </li>`
-                                                                    ).join('')}
-                                                                </ul>
-                                                            </div>
-                                                        ` : ''}
-                                                        
-                                                        <!-- Final translation -->
-                                                        <div style="margin-bottom: 5px; font-weight: bold; background: #f8f9fa; padding: 5px; border-left: 3px solid #28a745;">
-                                                            <strong>Final Translation:</strong> ${line.final}
-                                                        </div>
-                                                        
-                                                        <!-- LLM status message if available -->
-                                                        ${line.llm_status ? `
-                                                            <div style="font-style: italic; color: #6c757d; font-size: 0.9em; margin-top: 5px;">
-                                                                ${line.llm_status}
-                                                            </div>
-                                                        ` : ''}
+                                                
+                                                ${progress.current.first_pass ? `
+                                                    <div style="margin-top: 8px;">
+                                                        <strong>First Pass:</strong> ${progress.current.first_pass}<br>
                                                     </div>
-                                                </div>
-                                            `).join('') : 
-                                            '<div style="color: #666; text-align: center; padding: 10px;">No translated lines yet</div>'
-                                        }
-                                    </div>
-                                `;
-                            } else if (progress.status === 'done') {
-                                progressBox.innerHTML = `
-                                    <strong style="color: #5cb85c;">✓ Translation Complete!</strong><br>
-                                    Total lines: ${progress.total_lines}<br>
-                                    ${progress.message || ''}
-                                `;
+                                                ` : ''}
+                                                
+                                                ${progress.current.standard_critic ? `
+                                                    <div style="margin-top: 8px;">
+                                                        <strong>Standard Critic:</strong> ${progress.current.standard_critic} 
+                                                        ${progress.current.standard_critic_changed ? 
+                                                            '<span style="color: #f38ba8;">(Changed)</span>' : 
+                                                            '<span style="color: #a6e3a1;">(No Change)</span>'}
+                                                    </div>
+                                                ` : ''}
+                                                
+                                                ${progress.current.critics && progress.current.critics.length > 0 ? `
+                                                    <div style="margin-top: 8px;">
+                                                        <strong>Specialized Critics:</strong><br>
+                                                        ${progress.current.critics.map(critic => 
+                                                            `<div style="margin-left: 10px; margin-bottom: 5px;">
+                                                                <em>${critic.type}:</em> ${critic.translation} 
+                                                                ${critic.changed ? 
+                                                                    '<span style="color: #f38ba8;">(Changed)</span>' : 
+                                                                    '<span style="color: #a6e3a1;">(No Change)</span>'}
+                                                            </div>`
+                                                        ).join('')}
+                                                    </div>
+                                                ` : ''}
+                                                
+                                                ${progress.current.final ? `
+                                                    <div style="margin-top: 8px;">
+                                                        <strong>Final Translation:</strong> ${progress.current.final}<br>
+                                                    </div>
+                                                ` : ''}
+                                                
+                                                ${progress.current.llm_status ? `
+                                                    <div style="margin-top: 8px; color: #bac2de;">
+                                                        <strong>Status:</strong> ${progress.current.llm_status}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        ` : ''}
+                                        
+                                        <h4>Translation History (Last 10)</h4>
+                                        <div style="max-height: 300px; overflow-y: auto; border: 1px solid #444; padding: 10px; border-radius: 4px; background: #1a1a24;">
+                                            ${progress.processed_lines && progress.processed_lines.length > 0 ? 
+                                                progress.processed_lines.slice(-10).reverse().map(line => `
+                                                    <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;">
+                                                        <h5 style="margin-top: 0; margin-bottom: 10px; background: #313244; padding: 5px; border-radius: 3px;">Line #${line.line_number}</h5>
+                                                        
+                                                        <div style="padding-left: 10px; border-left: 3px solid #444;">
+                                                            <div style="margin-bottom: 10px;">
+                                                                <strong>Original:</strong> <span style="color: #cdd6f4;">${line.original}</span>
+                                                            </div>
+                                                            
+                                                            <!-- Final translation -->
+                                                            <div style="margin-bottom: 5px; font-weight: bold; background: #313244; padding: 5px; border-left: 3px solid #a6e3a1; border-radius: 3px;">
+                                                                <strong>Final Translation:</strong> ${line.final}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                `).join('') : 
+                                                '<div style="color: #bac2de; text-align: center; padding: 10px;">No translated lines yet</div>'
+                                            }
+                                        </div>
+                                    `;
+                                } else if (progress.status === 'done') {
+                                    // Single file finished
+                                    progressBox.innerHTML = `
+                                        <strong style="color:#a6e3a1;">✓ Translation Complete!</strong><br>
+                                        Total lines: ${progress.total_lines}<br>
+                                        ${progress.message || ''}
+                                    `;
+                                    // Note: Download link is handled by the /upload route redirect for single files
+                                }
                             }
                         })
                         .catch(err => {
                             console.error("Error fetching progress:", err);
+                            progressBox.textContent = 'Error fetching progress. Check console.';
                         });
                 }
                 
@@ -3138,6 +3142,30 @@ def run_web_ui():
                 // Initialize page
                 loadConfigValues();
 
+                // ─── NEW: start bulk job ─────────────────────────────────────────
+                document.getElementById("scan_button").addEventListener("click", () => {
+                    const path = document.getElementById("scan_path").value.trim();
+                    if (!path) { alert("Please type a folder path first."); return; }
+
+                    fetch("/api/start-scan", {
+                        method : "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body   : JSON.stringify({ path })
+                    })
+                    .then(r => r.json())
+                    .then(j => {
+                        if (j.ok) {
+                            status.textContent = "Scanning and translating…";
+                            progressBox.style.display = "block";
+                            consoleBox.innerHTML = "Scanning folder... Logs will appear shortly."; // Initial message
+                        } else {
+                            alert("Error starting scan: " + j.error);
+                        }
+                    })
+                    .catch(e => alert("Error starting scan: " + e));
+                });
+                // ──────────────────────────────────────────────────────────────────
+
                 function pollLogs() {
                     fetch('/api/logs')
                       .then(r => r.json())
@@ -3202,6 +3230,8 @@ def run_web_ui():
         "total_lines": 0,
         "status": "idle",
         "message": "",
+        "mode": "single",   # "single" or "bulk"
+        "zip_path": "",     # set by bulk translator
         "current": {
             "line_number": 0,
             "original": "",
@@ -3303,18 +3333,26 @@ def run_web_ui():
         if (not file.filename.lower().endswith(".srt")):
             flash("Invalid file type. Please upload an SRT file.", "error")
             return redirect(url_for("index"))
-        try:
-            tempd = tempfile.mkdtemp(prefix="srt_translate_")
-            TEMP_DIRS_TO_CLEAN.add(tempd)
-            append_log(f"Temp directory: {tempd}")
-        except Exception as e:
-            append_log(f"[ERROR] {e}")
-            flash("Server error creating temp dir.", "error")
-            return redirect(url_for("index"))
 
-        input_path = os.path.join(tempd, file.filename)
-        file.save(input_path)
-        append_log(f"Received SRT: {file.filename} -> {input_path}")
+        # No longer need a temporary directory for single uploads
+        # try:
+        #     tempd = tempfile.mkdtemp(prefix="srt_translate_")
+        #     TEMP_DIRS_TO_CLEAN.add(tempd)
+        #     append_log(f"Temp directory: {tempd}")
+        # except Exception as e:
+        #     append_log(f"[ERROR] {e}")
+        #     flash("Server error creating temp dir.", "error")
+        #     return redirect(url_for("index"))
+
+        # Save the uploaded file temporarily for processing
+        temp_input_path = os.path.join(tempfile.gettempdir(), secure_filename(f"temp_{file.filename}"))
+        try:
+            file.save(temp_input_path)
+            append_log(f"Received SRT: {file.filename} -> {temp_input_path}")
+        except Exception as e:
+            append_log(f"[ERROR] Failed to save temporary input file: {e}")
+            flash("Server error saving uploaded file.", "error")
+            return redirect(url_for("index"))
 
         cfg = load_config()
         src_lang = cfg.get("general", "source_language", fallback="original").strip('"\' ')
@@ -3338,31 +3376,158 @@ def run_web_ui():
                 break
         if (not replaced):
             out_base = f"{base}.{tgt_iso}"
+        
+        # Ensure the output filename is secure and save to SUBS_FOLDER
         out_filename = secure_filename(out_base + ext)
-        output_path = os.path.join(tempd, out_filename)
+        output_path = os.path.join(SUBS_FOLDER, out_filename) # Save to ./subs/
 
         try:
-            translate_srt(input_path, output_path, cfg)
+            # Reset progress for single file mode
+            translation_progress.clear()
+            translation_progress.update({
+                "current_line": 0,
+                "total_lines": 0,
+                "status": "idle",
+                "message": "",
+                "mode": "single",
+                "zip_path": "",
+                "current": {
+                    "line_number": 0, "original": "", "suggestions": {}, "first_pass": "",
+                    "standard_critic": "", "standard_critic_changed": False, "critics": [],
+                    "final": "", "llm_status": ""
+                },
+                "processed_lines": []
+            })
+            
+            translate_srt(temp_input_path, output_path, cfg)
+            flash(f"Translation complete! Saved as '{out_filename}' in the subs archive.", "success")
         except Exception as e:
             append_log(f"[ERROR] Translation failed: {e}")
             flash(f"Translation failed: {e}", "error")
-            return redirect(url_for("index"))
+        finally:
+            # Clean up the temporary input file
+            if os.path.exists(temp_input_path):
+                try:
+                    os.remove(temp_input_path)
+                    append_log(f"Cleaned up temporary input file: {temp_input_path}")
+                except Exception as e_clean:
+                    append_log(f"[WARNING] Failed to clean up temp input file {temp_input_path}: {e_clean}")
 
-        return redirect(url_for("download_file", folder=os.path.basename(tempd), filename=out_filename))
+        # Redirect back to the index page instead of download
+        return redirect(url_for("index"))
 
-    @app.route("/download/<path:folder>/<path:filename>")
-    def download_file(folder, filename):
-        base_temp = tempfile.gettempdir()
-        full_dir = os.path.join(base_temp, folder)
-        if (not os.path.normpath(full_dir).startswith(os.path.normpath(base_temp))):
-            append_log("[SECURITY] Invalid directory access attempt.")
-            return "Invalid directory", 400
-        file_path = os.path.join(full_dir, filename)
-        if (not os.path.exists(file_path)):
-            append_log(f"[ERROR] File not found for download: {file_path}")
-            return "File not found or expired", 404
-        append_log(f"Serving file: {file_path}")
-        return send_from_directory(full_dir, filename, as_attachment=True)
+    # Remove the old download route that used temporary folders
+    # @app.route("/download/<path:folder>/<path:filename>")
+    # def download_file(folder, filename):
+    #     ... (old code removed) ...
+
+    # Add a new route to download files specifically from the SUBS_FOLDER
+    @app.route("/download_sub/<path:filename>")
+    def download_sub_file(filename):
+        safe_filename = secure_filename(filename)
+        if safe_filename != filename: # Basic check against directory traversal attempts
+             append_log(f"[SECURITY] Invalid filename requested for download: {filename}")
+             return "Invalid filename", 400
+             
+        file_path = os.path.join(SUBS_FOLDER, safe_filename)
+        
+        if not os.path.isfile(file_path):
+            append_log(f"[ERROR] File not found in subs archive: {file_path}")
+            return "File not found in archive", 404
+            
+        append_log(f"Serving file from subs archive: {file_path}")
+        try:
+            return send_from_directory(
+                SUBS_FOLDER, 
+                safe_filename, 
+                as_attachment=True
+            )
+        except Exception as e:
+            append_log(f"[ERROR] Failed to send file from subs archive {file_path}: {e}")
+            return "Error serving file", 500
+
+    # Add a route to list files in the SUBS_FOLDER
+    @app.route("/api/list_subs")
+    def api_list_subs():
+        try:
+            files = [f for f in os.listdir(SUBS_FOLDER) if f.lower().endswith('.srt') and os.path.isfile(os.path.join(SUBS_FOLDER, f))]
+            files.sort(key=lambda f: os.path.getmtime(os.path.join(SUBS_FOLDER, f)), reverse=True) # Sort by modification time, newest first
+            return jsonify({"files": files})
+        except Exception as e:
+            append_log(f"[ERROR] Failed to list subs folder: {e}")
+            return jsonify({"files": [], "error": str(e)}), 500
+            
+    @app.route("/api/start-scan", methods=["POST"])
+    def api_start_scan():
+        data = request.get_json(silent=True) or {}
+        root = data.get("path", "").strip()
+        if not root or not os.path.isdir(root):
+            append_log(f"[ERROR] /api/start-scan: Invalid or missing folder path: {root}")
+            return jsonify({"ok": False, "error": "Folder not found or path is invalid"}), 400
+
+        cfg = load_config()
+
+        # Optional: Whitelist check
+        allowed_bases = cfg.get("bulk_scan", "allowed_base", fallback="").split(',')
+        allowed_bases = [os.path.abspath(b.strip()) for b in allowed_bases if b.strip()]
+        if allowed_bases: # Only check if allowed_base is configured
+            try:
+                abs_root = os.path.abspath(root)
+                base_ok = any(os.path.commonpath([abs_root, b]) == b for b in allowed_bases)
+                if not base_ok:
+                    append_log(f"[ERROR] /api/start-scan: Path '{root}' is outside allowed base paths: {allowed_bases}")
+                    return jsonify({"ok": False, "error": "Folder is outside the allowed base paths configured in config.ini"}), 403
+            except ValueError as e:
+                # Handle cases where paths might be on different drives (Windows)
+                append_log(f"[ERROR] /api/start-scan: Error checking common path for '{root}': {e}")
+                return jsonify({"ok": False, "error": "Error validating folder path against allowed bases."}), 400
+
+        # Reset global progress dict for bulk mode
+        translation_progress.clear()
+        translation_progress.update({
+            "mode"        : "bulk",
+            "status"      : "queued",
+            "message"     : "",
+            "current_file": "",
+            "done_files"  : 0,
+            "total_files" : 0,
+            "zip_path"    : ""
+        })
+        append_log(f"[INFO] /api/start-scan: Starting bulk scan for folder: {root}")
+
+        # Background thread so the HTTP response returns instantly
+        threading.Thread(
+            target=scan_and_translate_directory,
+            args=(root, cfg, translation_progress),
+            daemon=True
+        ).start()
+
+        return jsonify({"ok": True})
+
+    @app.route("/download-zip")
+    def download_zip():
+        temp_path = request.args.get("temp", "")
+        # Security check: Ensure the path is within an expected temp directory structure if possible
+        # This is a basic check; more robust validation might be needed depending on security requirements.
+        if not temp_path or not temp_path.startswith(tempfile.gettempdir()) or '..' in temp_path:
+            append_log(f"[ERROR] /download-zip: Invalid or potentially unsafe temp path requested: {temp_path}")
+            return "Invalid or potentially unsafe file path", 400
+            
+        if not os.path.isfile(temp_path):
+            append_log(f"[ERROR] /download-zip: Zip file not found or expired: {temp_path}")
+            return "File expired or missing", 404
+            
+        append_log(f"[INFO] /download-zip: Serving zip file: {temp_path}")
+        try:
+            return send_from_directory(
+                directory=os.path.dirname(temp_path),
+                path=os.path.basename(temp_path), # Use 'path' argument for Flask >= 2.0
+                as_attachment=True,
+                download_name="translated_subtitles.zip" # Suggest a filename to the user
+            )
+        except Exception as e:
+            append_log(f"[ERROR] /download-zip: Failed to send file {temp_path}: {e}")
+            return "Error serving file", 500
 
     host = cfg_for_logger.get("general", "host", fallback="127.0.0.1")
     port = cfg_for_logger.getint("general", "port", fallback=5000)
@@ -3380,8 +3545,134 @@ def run_web_ui():
     finally:
         cleanup_temp_dirs()
 
+import re
+
+def extract_item_name(filename: str) -> str:
+    _SERIES_RE = re.compile(r"^(?P<title>.+?)\\.S\\d{2}E\\d{2}", re.I)
+    _MOVIE_RE  = re.compile(r"^(?P<title>.+?)\\.(19|20)\\d{2}")
+    base = os.path.splitext(filename)[0]
+    m = _SERIES_RE.match(base) or _MOVIE_RE.match(base)
+    return (m.group("title") if m else base).replace('.', ' ').strip()
+
+def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None):
+    """
+    Walk *root_path* recursively, translate each *.{src}.srt* that does not
+    already have a *.{tgt}.srt* sibling. Updates *progress_dict* so the
+    UI can poll live status.
+    """
+    import os
+    import zipfile, tempfile, shutil
+
+    # If called from CLI, load config and create a dummy progress dict
+    if cfg is None:
+        cfg = load_config()
+    if progress_dict is None:
+        progress_dict = {}
+
+    src_iso = get_iso_code(cfg.get("general", "source_language", fallback="en"))
+    tgt_iso = get_iso_code(cfg.get("general", "target_language", fallback="da"))
+
+    # We’ll collect output files here so the user can download one zip at the end
+    work_dir  = tempfile.mkdtemp(prefix="bulk_subs_")
+    TEMP_DIRS_TO_CLEAN.add(work_dir) # Ensure cleanup
+    out_files = []
+
+    # First pass – just count jobs for nice 0‑% progress
+    srt_jobs = []
+    for dirpath, _, filenames in os.walk(root_path):
+        for fn in filenames:
+            if fn.lower().endswith(".srt") and f".{src_iso}." in fn.lower():
+                in_full  = os.path.join(dirpath, fn)
+                # Create output filename in the temporary work directory to avoid overwriting originals
+                # Use a structure within the work_dir that mirrors the original relative path
+                rel_path = os.path.relpath(dirpath, root_path)
+                out_dir_in_work = os.path.join(work_dir, rel_path)
+                os.makedirs(out_dir_in_work, exist_ok=True)
+                out_fn = fn.lower().replace(f".{src_iso}.", f".{tgt_iso}.")
+                out_full_in_work = os.path.join(out_dir_in_work, out_fn)
+
+                # Check if the *original* target file exists in the source directory
+                original_out_full = os.path.join(dirpath, out_fn)
+
+                if not os.path.exists(original_out_full):
+                    srt_jobs.append((in_full, out_full_in_work)) # Translate *to* the work dir
+                else:
+                    # If called from CLI, print skip message
+                    if 'print' in globals():
+                         print(f"[SKIP] {os.path.relpath(original_out_full, root_path)} already exists")
+
+    # Update progress dict for UI
+    progress_dict.update({
+        "mode"        : "bulk",
+        "status"      : "translating",
+        "current_file": "",
+        "done_files"  : 0,
+        "total_files" : len(srt_jobs),
+        "zip_path"    : ""
+    })
+
+    for idx, (src, dest_in_work) in enumerate(srt_jobs, 1):
+        rel_src_path = os.path.relpath(src, root_path)
+        progress_dict["current_file"] = rel_src_path
+        # If called from CLI, print progress
+        if 'print' in globals():
+            item_name = extract_item_name(os.path.basename(src))
+            print(f"[{item_name}] Translating {os.path.basename(src)} ({idx}/{len(srt_jobs)})…")
+
+        try:
+            # Translate the source file directly into the temporary destination path
+            translate_srt(src, dest_in_work, cfg)
+            out_files.append(dest_in_work) # Add the successfully translated file in work_dir
+        except Exception as e:
+            log_msg = f"[BULK ERROR] {rel_src_path}: {e}"
+            append_log(log_msg) # Use append_log for consistency
+            if 'print' in globals():
+                print(log_msg)
+        progress_dict["done_files"] = idx
+
+    # Package results if any files were translated
+    zip_name = ""
+    if out_files:
+        zip_basename = "translated_subs.zip"
+        zip_name = os.path.join(work_dir, zip_basename)
+        with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED) as z:
+            for fp in out_files:
+                # Arcname should be relative to the *work_dir* base, preserving structure
+                arcname = os.path.relpath(fp, work_dir)
+                z.write(fp, arcname=arcname)
+        append_log(f"[BULK] Created zip file: {zip_name}")
+    else:
+        append_log("[BULK] No files needed translation or translation failed for all files.")
+
+    skipped_count = len(srt_jobs) - len(out_files)
+    message = f"Finished {len(out_files)} files."
+    if skipped_count > 0:
+        message += f" Skipped {skipped_count} files (already exist or failed)."
+
+    progress_dict.update({
+        "status"   : "done",
+        "zip_path" : zip_name, # Path to the zip file within the temp dir
+        "message"  : message
+    })
+    append_log(f"[BULK] {message}")
+    # If called from CLI, print final message
+    if 'print' in globals():
+        print(f"[BULK] {message}")
+        if zip_name:
+            print(f"[BULK] Results packaged in: {zip_name}")
+
 def main():
-    setup_environment_and_run()
+    parser = argparse.ArgumentParser(
+        description="Translate individual SRTs **or** whole folders")
+    parser.add_argument(
+        "--scan", "-s",
+        help="Root folder to search for SRT files (recurses ‘Season x’, etc.)")
+    args, unknown = parser.parse_known_args()
+    
+    if args.scan:
+        scan_and_translate_directory(args.scan)
+    else:
+        setup_environment_and_run()
 
 if __name__ == "__main__":
     main()
