@@ -3847,13 +3847,25 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
                         srt_jobs.append((src_path, dest_in_work))
                         break
 
-    # Update progress dict for UI
+    # Initialize bulk translation progress structure
     progress_dict.update({
-        "mode"        : "bulk",
-        "status"      : "translating",
-        "current_file": "",
-        "done_files"  : 0,
-        "total_files" : len(srt_jobs)
+        "mode"           : "bulk",
+        "status"         : "translating",
+        "current_file"   : "",
+        "done_files"     : 0,
+        "total_files"    : len(srt_jobs),
+        "processed_lines": [], # Add this for bulk mode to match single file mode
+        "current"        : {   # Initialize current field with empty values
+            "line_number": 0,
+            "original": "",
+            "suggestions": {},
+            "first_pass": "",
+            "standard_critic": "",
+            "standard_critic_changed": False,
+            "critics": [],
+            "final": "",
+            "llm_status": ""
+        }
     })
 
     for idx, (src, dest_in_work) in enumerate(srt_jobs, 1):
