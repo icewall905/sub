@@ -10,6 +10,7 @@ use_mymemory = true
 host = 127.0.0.1
 port = 5000
 temperature = 0.2
+debug_mode = false # Set to true for verbose logging, including full LLM prompts
 
 [translation]
 # Configure the service priority (comma-separated list)
@@ -50,6 +51,11 @@ api_url = https://api-free.deepl.com/v2/translate
 
 [libretranslate]
 api_url = https://libretranslate.de/translate
+
+[tmdb]
+# Get a free API key from https://www.themoviedb.org/settings/api
+enabled = false
+api_key = YOUR_TMDB_API_KEY_V3
 
 [agent_critic]
 enabled = false

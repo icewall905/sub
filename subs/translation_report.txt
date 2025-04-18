@@ -1,0 +1,3545 @@
+================================================================================
+SUBTITLE TRANSLATION REPORT
+Generated: 2025-04-18 16:07:54
+--------------------------------------------------------------------------------
+Source language: en
+Target language: da
+================================================================================
+
+TRANSLATION DETAILS
+--------------------------------------------------------------------------------
+Line 1:
+  Original: "- #BRACKET_OPEN#snoring#BRACKET_CLOSE# - #BRACKET_OPEN#crickets chirping#BRACKET_CLOSE#"
+  Google: "-#bracket_open#snorken#bracket_close# -#bracket_open#crickets chirping#bracket_close#"
+  DeepL: "- #BRACKET_OPEN#snorken#BRACKET_CLOSE# - #BRACKET_OPEN#kvidren fra fårekyllinger#BRACKET_CLOSE#"
+  MyMemory: "- #bracket_open #snorken #BRACKET_CLOSE#- #BRACKET_OPEN #crickets chirping #bracket_close#"
+  Ollama: "- #BRACKET_OPEN#snorken#BRACKET_CLOSE# - #BRACKET_OPEN#cirkelåben#BRACKET_CLOSE#"
+  First pass: "- [snorken] - [cirkende lyde]"
+  Critic: "- [snorken] - [cirkelyde]" (CHANGED)
+  Final: "- [snorken] - [cirkelyde]"
+------------------------------------------------------------
+Line 2:
+  Original: "#BRACKET_OPEN#squeals#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#squeals#BRACKET_CLOSE#."
+  Google: "#Bracket_open#skrig#bracket_close#"
+  MyMemory: "#bracket_open #squeals #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#skrig#BRACKET_CLOSE#"
+  First pass: "[squeals]"
+  Final: "[squeals]"
+------------------------------------------------------------
+Line 3:
+  Original: "- #BRACKET_OPEN#grunts#BRACKET_CLOSE# - #BRACKET_OPEN#Mandu squeals#BRACKET_CLOSE#"
+  Google: "-#bracket_open#grynt#bracket_close# -#bracket_open#mandu skrig#bracket_close#"
+  DeepL: "- #BRACKET_OPEN#grynter#BRACKET_CLOSE# - #BRACKET_OPEN#Mandu hviner#BRACKET_CLOSE#."
+  MyMemory: "- #bracket_open #grynt #bracket_close # - #BRACKET_OPEN #Mandu skriger #bracket_close #"
+  Ollama: "- #BRACKET_OPEN#grynt#BRACKET_CLOSE# - #BRACKET_OPEN#Mandu hyler#BRACKET_CLOSE#"
+  First pass: "- [grynter] - [Mandu hviner]."
+  Final: "- [grynter] - [Mandu hviner]."
+------------------------------------------------------------
+Line 4:
+  Original: "#BRACKET_OPEN#snorts, purrs#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#snuser, spinder#BRACKET_CLOSE#."
+  MyMemory: "#BRACKET_OPEN #SNORTS, purrs #bracket_close #"
+  Google: "#Bracket_open#snorts, purrs#bracket_close#"
+  Ollama: "#BRACKET_OPEN#snøften, spinden#BRACKET_CLOSE#"
+  First pass: "[snøfter, spinder]"
+  Final: "[snøfter, spinder]"
+------------------------------------------------------------
+Line 5:
+  Original: "#BRACKET_OPEN#Greta#BRACKET_CLOSE# In here!"
+  DeepL: "#BRACKET_OPEN#Greta#BRACKET_CLOSE# Herinde!"
+  MyMemory: "#BRACKET_OPEN #Greta #bracket_close # Herinde!"
+  Google: "#Bracket_open#greta#bracket_close#herinde!"
+  Ollama: "#BRACKET_OPEN#Greta#BRACKET_CLOSE# Herinde!"
+  First pass: "[Greta] Inde!"
+  Final: "[Greta] Inde!"
+------------------------------------------------------------
+Line 6:
+  Original: "#BRACKET_OPEN#panting#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#spjæt#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #panting #BRACKET_CLOSE #"
+  Google: "#Bracket_open#panting#bracket_close#"
+  Ollama: "#BRACKET_OPEN#stønnende#BRACKET_CLOSE#"
+  First pass: "[forpustet]."
+  Critic: "[forpustet]" (CHANGED)
+  Final: "[forpustet]"
+------------------------------------------------------------
+Line 7:
+  Original: "Is the Mega Jaguar still following us?"
+  DeepL: "Følger Mega Jaguar os stadig?"
+  MyMemory: "Følger Mega Jaguar os stadig?"
+  Google: "Følger Mega Jaguar stadig os?"
+  Ollama: "Følger Mega Jaguar os stadig?"
+  First pass: "Følger Mega Jaguar os stadig?"
+  Final: "Følger Mega Jaguar os stadig?"
+------------------------------------------------------------
+Line 8:
+  Original: "Uh, the Earth isn't shaking, so I don't think so."
+  DeepL: "Jorden ryster ikke, så det tror jeg ikke."
+  MyMemory: "Øh, Jorden ryster ikke, så det tror jeg ikke."
+  Google: "Uh, jorden ryster ikke, så jeg tror ikke det."
+  Ollama: "Øh, jorden ryster ikke, så det tror jeg ikke."
+  First pass: "Jorden ryster ikke, så det tror jeg ikke."
+  Final: "Jorden ryster ikke, så det tror jeg ikke."
+------------------------------------------------------------
+Line 9:
+  Original: "Did you see the look on Kipo's face when we cured those mutes?"
+  DeepL: "Så du Kipos ansigtsudtryk, da vi kurerede de stumme?"
+  MyMemory: "Så du Kipos ansigtsudtryk, da vi helbredte de dæmpninger?"
+  Google: "Så du udseendet på Kipos ansigt, da vi helbredte disse mutes?"
+  Ollama: "Så du Kipos ansigtsudtryk, da vi helbredte de stumme?"
+  First pass: "Så du Kipos ansigtsudtryk, da vi kurerede de stumme?"
+  Critic: "Så du Kipos ansigtsudtryk, da vi helbredte de stumme?" (CHANGED)
+  Final: "Så du Kipos ansigtsudtryk, da vi helbredte de stumme?"
+------------------------------------------------------------
+Line 10:
+  Original: "Didn't sit right with me."
+  DeepL: "Det virkede ikke rigtigt på mig."
+  MyMemory: "Havde det ikke godt med mig."
+  Google: "Sad ikke rigtigt med mig."
+  Ollama: "Det føltes ikke rigtigt."
+  First pass: "Det føltes ikke rigtigt for mig."
+  Final: "Det føltes ikke rigtigt for mig."
+------------------------------------------------------------
+Line 11:
+  Original: "And why didn't the cure work on her?"
+  DeepL: "Og hvorfor virkede kuren ikke på hende?"
+  MyMemory: "Og hvorfor virkede kuren ikke på hende?"
+  Google: "Og hvorfor virkede kuren ikke på hende?"
+  Ollama: "Og hvorfor virkede kuren ikke på hende?"
+  First pass: "Og hvorfor virkede kuren ikke på hende?"
+  Final: "Og hvorfor virkede kuren ikke på hende?"
+------------------------------------------------------------
+Line 12:
+  Original: "The cure didn't affect her?"
+  DeepL: "Påvirkede kuren hende ikke?"
+  Google: "Hærdningen påvirkede ikke hende?"
+  MyMemory: "Påvirkede kuren hende ikke?"
+  Ollama: "Påvirkede kuren hende ikke?"
+  First pass: "Påvirkede kuren hende ikke?"
+  Final: "Påvirkede kuren hende ikke?"
+------------------------------------------------------------
+Line 13:
+  Original: "Emilia used Kipo's DNA to make the cure. She's immune!"
+  DeepL: "Emilia brugte Kipos dna til at lave kuren. Hun er immun!"
+  MyMemory: "Emilia brugte Kipos DNA til at lave kuren. Hun er immun!"
+  Google: "Emilia brugte Kipos DNA til at gøre kuren. Hun er immun!"
+  Ollama: "Emilia brugte Kipos DNA til at lave kuren. Hun er immun!"
+  First pass: "Emilia brugte Kipos DNA til at lave kuren. Hun er immun!"
+  Final: "Emilia brugte Kipos DNA til at lave kuren. Hun er immun!"
+------------------------------------------------------------
+Line 14:
+  Original: "That Jaguar will destroy us before she lets us cure the surface!"
+  DeepL: "Jaguaren vil ødelægge os, før hun lader os helbrede overfladen!"
+  MyMemory: "Den Jaguar vil ødelægge os, før hun lader os helbrede overfladen!"
+  Google: "At Jaguar vil ødelægge os, før hun lader os helbrede overfladen!"
+  Ollama: "Jaguaren vil udslette os, før hun lader os helbrede overfladen!"
+  First pass: "Jaguaren vil ødelægge os, før hun lader os helbrede overfladen!"
+  Final: "Jaguaren vil ødelægge os, før hun lader os helbrede overfladen!"
+------------------------------------------------------------
+Line 15:
+  Original: "You all saw her try to eat me!"
+  DeepL: "I så alle sammen, at hun prøvede at spise mig!"
+  MyMemory: "I så alle sammen, at hun forsøgte at æde mig!"
+  Google: "I så alle hende prøve at spise mig!"
+  Ollama: "I så alle sammen, at hun prøvede at spise mig!"
+  First pass: "I så alle sammen, at hun prøvede at spise mig!"
+  Final: "I så alle sammen, at hun prøvede at spise mig!"
+------------------------------------------------------------
+Line 16:
+  Original: "Kipo doesn't eat people. We're gonna be fine!"
+  DeepL: "Kipo spiser ikke mennesker. Vi skal nok klare os!"
+  MyMemory: "Kipo spiser ikke mennesker. Vi skal nok klare den!"
+  Google: "Kipo spiser ikke mennesker. Vi har det godt!"
+  Ollama: "Kipo spiser ikke mennesker. Vi skal nok klare os!"
+  First pass: "Kipo spiser ikke mennesker. Vi klarer det fint!"
+  Final: "Kipo spiser ikke mennesker. Vi klarer det fint!"
+------------------------------------------------------------
+Line 17:
+  Original: "Besides, Dr. Emilia always has a plan."
+  DeepL: "Desuden har dr. Emilia altid en plan."
+  MyMemory: "Desuden har Dr. Emilia altid en plan."
+  Google: "Desuden har Dr. Emilia altid en plan."
+  Ollama: "Desuden har dr. Emilia altid en plan."
+  First pass: "Desuden har dr. Emilia altid en plan."
+  Final: "Desuden har dr. Emilia altid en plan."
+------------------------------------------------------------
+Line 18:
+  Original: "- #BRACKET_OPEN#Dr. Emilia grunts#BRACKET_CLOSE# - #BRACKET_OPEN#bang#BRACKET_CLOSE#"
+  DeepL: "- #BRACKET_OPEN#Dr. Emilia grynter#BRACKET_CLOSE# - #BRACKET_OPEN#bang#BRACKET_CLOSE#"
+  MyMemory: "- #bracket_open #Dr. Emilia grynter #bracket_close # - #bracket_open #bang #bracket_close #"
+  Google: "- #bracket_open #dr. Emilia Grunts#Bracket_Close# -#Bracket_Open#Bang#Bracket_Close#"
+  Ollama: "- #BRACKET_OPEN#Dr. Emilia gryntede#BRACKET_CLOSE# - #BRACKET_OPEN#bang#BRACKET_CLOSE#"
+  First pass: "- [Dr. Emilia grynter] - [bang]"
+  Final: "- [Dr. Emilia grynter] - [bang]"
+------------------------------------------------------------
+Line 19:
+  Original: "#BRACKET_OPEN#panting#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#spjæt#BRACKET_CLOSE#."
+  Google: "#Bracket_open#panting#bracket_close#"
+  MyMemory: "#bracket_open #panting #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#forpustet#BRACKET_CLOSE#"
+  First pass: "[forpustet]."
+  Final: "[forpustet]."
+------------------------------------------------------------
+Line 20:
+  Original: "Everyone to the boat. Now."
+  DeepL: "Alle ud til båden. Og nu."
+  MyMemory: "Alle til båden. Nu."
+  Google: "Alle til båden. Nu."
+  Ollama: "Alle mand til båden. Nu!"
+  First pass: "Alle ud til båden. Nu."
+  Final: "Alle ud til båden. Nu."
+------------------------------------------------------------
+Line 21:
+  Original: "#BRACKET_OPEN#groans#BRACKET_CLOSE# Sorry. Sorry."
+  DeepL: "#BRACKET_OPEN#griner#BRACKET_CLOSE# Undskyld. Jeg er ked af det."
+  MyMemory: "#BRACKET_OPEN #STØNNER #bracket_close# Beklager. Beklager."
+  Google: "#Bracket_open#stønn#bracket_close#undskyld. Beklager."
+  Ollama: "#BRACKET_OPEN#støn#BRACKET_CLOSE# Undskyld. Undskyld."
+  First pass: "[stønner] Undskyld. Undskyld."
+  Final: "[stønner] Undskyld. Undskyld."
+------------------------------------------------------------
+Line 22:
+  Original: "Well, the good news is, if Emilia's that upset, it means Kipo won."
+  DeepL: "Den gode nyhed er, at hvis Emilia er så ked af det, betyder det, at Kipo vandt."
+  MyMemory: "Den gode nyhed er, at hvis Emilia er så ked af det, betyder det, at Kipo vandt."
+  Google: "Nå, den gode nyhed er, hvis Emilia er den oprørte, betyder det, at Kipo vandt."
+  Ollama: "Den gode nyhed er, at hvis Emilia er så ked af det, betyder det, at Kipo vandt."
+  First pass: "Den gode nyhed er, at hvis Emilia er så ked af det, betyder det, at Kipo vandt."
+  Final: "Den gode nyhed er, at hvis Emilia er så ked af det, betyder det, at Kipo vandt."
+------------------------------------------------------------
+Line 23:
+  Original: "Right?"
+  DeepL: "Ikke sandt?"
+  Google: "Højre?"
+  MyMemory: "Eller hvad? "
+  Ollama: "Ikke sandt?"
+  First pass: "Ikke sandt?"
+  Final: "Ikke sandt?"
+------------------------------------------------------------
+Line 24:
+  Original: "#BRACKET_OPEN#theme music playing#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#temamusik spiller#BRACKET_CLOSE#."
+  Google: "#Bracket_open#temamusik spiller#bracket_close#"
+  MyMemory: "#BRACKET_OPEN #TEMA musik afspilning #bracket_close #"
+  Ollama: "#BRACKET_OPEN#temamusik spiller#BRACKET_CLOSE#"
+  First pass: "[temamusik spiller]."
+  Final: "[temamusik spiller]."
+------------------------------------------------------------
+Line 25:
+  Original: "Oh, Brad. You're too short to ride... anything!"
+  Google: "Åh, Brad. Du er for kort til at ride ... noget!"
+  DeepL: "Åh, Brad. Du er for lille til at ride... på noget som helst!"
+  MyMemory: "Åh, Brad. Du er for kort til at køre... hvad som helst!"
+  Ollama: "Åh, Brad. Du er for lille til at køre... noget!"
+  First pass: "Åh, Brad. Du er for lille til at køre. .. på noget som helst!"
+  Critic: "Åh, Brad. Du er for lille til at køre. .. noget som helst!" (CHANGED)
+  Final: "Åh, Brad. Du er for lille til at køre. .. noget som helst!"
+------------------------------------------------------------
+Line 26:
+  Original: "#BRACKET_OPEN#screams, sobbing#BRACKET_CLOSE#"
+  Google: "#Bracket_open#skrig, grædende#bracket_close#"
+  DeepL: "#BRACKET_OPEN#skrig, hulken#BRACKET_CLOSE#."
+  MyMemory: "#BRACKET_OPEN #SKRIGER, hulker #bracket_close #"
+  Ollama: "#BRACKET_OPEN#skrig, hulk#BRACKET_CLOSE#"
+  First pass: "[skrig, hulken]"
+  Critic: "[skrig, hulkende]" (CHANGED)
+  Final: "[skrig, hulkende]"
+------------------------------------------------------------
+Line 27:
+  Original: "It's all right, brother."
+  Google: "Det er i orden, bror."
+  DeepL: "Det er okay, bror."
+  MyMemory: "Det er i orden, bror."
+  Ollama: "Det er okay, bror."
+  First pass: "Det er okay, bror."
+  Final: "Det er okay, bror."
+------------------------------------------------------------
+Line 28:
+  Original: "You'll feel better once you get your turtleneck back on."
+  DeepL: "Du vil få det bedre, når du får din rullekrave på igen."
+  Google: "Du føler dig bedre, når du får din skildpadde igen."
+  MyMemory: "Du får det bedre, når du får din rullekrave på igen."
+  Ollama: "Du får det bedre, når du får din rullekrave på igen."
+  First pass: "Du vil få det bedre, når du får din rullekrave på igen."
+  Final: "Du vil få det bedre, når du får din rullekrave på igen."
+------------------------------------------------------------
+Line 29:
+  Original: "#BRACKET_OPEN#yelling#BRACKET_CLOSE# No, no, no."
+  Google: "#Bracket_open#råben#bracket_close#nej, nej, nej."
+  DeepL: "#BRACKET_OPEN#råber#BRACKET_CLOSE# Nej, nej, nej."
+  MyMemory: "#BRACKET_OPEN #råb #bracket_close # Nej, nej, nej."
+  Ollama: "#BRACKET_OPEN#råber#BRACKET_CLOSE# Nej, nej, nej."
+  First pass: "[råber] Nej, nej, nej."
+  Final: "[råber] Nej, nej, nej."
+------------------------------------------------------------
+Line 30:
+  Original: "No! Carton, stop! You know those are empty calories!"
+  Google: "Ingen! Karton, stop! Du ved, at det er tomme kalorier!"
+  DeepL: "Nej, nej, nej! Karton, stop! Du ved, at det er tomme kalorier!"
+  MyMemory: "Nej! Karton, stop! Du ved, at det er tomme kalorier!"
+  Ollama: "Nej! Karton, stop! Du ved godt, det er tomme kalorier!"
+  First pass: "Nej, nej, nej! Karton, stop! Du ved, det er tomme kalorier!"
+  Final: "Nej, nej, nej! Karton, stop! Du ved, det er tomme kalorier!"
+------------------------------------------------------------
+Line 31:
+  Original: "#BRACKET_OPEN#snorting#BRACKET_CLOSE#"
+  Google: "#Bracket_open#snorting#bracket_close#"
+  DeepL: "#BRACKET_OPEN#snorting#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #snorting #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#snorting#BRACKET_CLOSE#"
+  First pass: "[snorting]."
+  Final: "[snorting]."
+------------------------------------------------------------
+Line 32:
+  Original: "I told them they'd be safe here."
+  Google: "Jeg fortalte dem, at de ville være sikre her."
+  DeepL: "Jeg sagde til dem, at de ville være i sikkerhed her."
+  MyMemory: "Jeg fortalte dem, at de ville være i sikkerhed her."
+  Ollama: "Jeg sagde til dem, at de ville være i sikkerhed her."
+  First pass: "Jeg sagde til dem, at de ville være i sikkerhed her."
+  Final: "Jeg sagde til dem, at de ville være i sikkerhed her."
+------------------------------------------------------------
+Line 33:
+  Original: "It's not your fault, Kipo."
+  Google: "Det er ikke din skyld, Kipo."
+  DeepL: "Det er ikke din skyld, Kipo."
+  MyMemory: "Det er ikke din skyld."
+  Ollama: "Det er ikke din skyld, Kipo."
+  First pass: "Det er ikke din skyld, Kipo."
+  Final: "Det er ikke din skyld, Kipo."
+------------------------------------------------------------
+Line 34:
+  Original: "Yeah, we'll find a way to fix this."
+  Google: "Ja, vi finder en måde at løse dette på."
+  DeepL: "Ja, vi finder en måde at ordne det på."
+  MyMemory: "Ja, vi finder en måde at løse det på."
+  Ollama: "Ja, vi finder ud af det."
+  First pass: "Ja, vi finder en måde at ordne det på."
+  Final: "Ja, vi finder en måde at ordne det på."
+------------------------------------------------------------
+Line 35:
+  Original: "- Kipo! - Are you okay?"
+  Google: "- Kipo! - Er du okay?"
+  DeepL: "- Kipo! - Er du okay?"
+  MyMemory: "- Kipo! - Er du okay?"
+  Ollama: "- Kipo! - Er du okay?"
+  First pass: "- Kipo! - Er du okay?"
+  Final: "- Kipo! - Er du okay?"
+------------------------------------------------------------
+Line 36:
+  Original: "We saw Dr. Emilia heading back to the boat, and..."
+  Google: "Vi så Dr. Emilia på vej tilbage til båden, og ..."
+  DeepL: "Vi så Dr. Emilia på vej tilbage til båden, og..."
+  MyMemory: "Vi så Dr. Emilia på vej tilbage til båden, og..."
+  Ollama: "Vi så Dr. Emilia gå tilbage til båden, og..."
+  First pass: "Vi så Dr. Emilia på vej tilbage til båden, og. .."
+  Final: "Vi så Dr. Emilia på vej tilbage til båden, og. .."
+------------------------------------------------------------
+Line 37:
+  Original: "Song."
+  DeepL: "Sang."
+  Google: "Sang."
+  MyMemory: "Sang"
+  Ollama: "Sang."
+  First pass: "Sang."
+  Final: "Sang."
+------------------------------------------------------------
+Line 38:
+  Original: "She cut through the wall, and they started curing everyone."
+  Google: "Hun skar gennem væggen, og de begyndte at helbrede alle."
+  DeepL: "Hun skar gennem væggen, og de begyndte at helbrede alle."
+  MyMemory: "Hun skar gennem væggen, og de begyndte at helbrede alle."
+  Ollama: "Hun skar igennem væggen, og de begyndte at helbrede alle."
+  First pass: "Hun skar gennem væggen, og de begyndte at helbrede alle."
+  Final: "Hun skar gennem væggen, og de begyndte at helbrede alle."
+------------------------------------------------------------
+Line 39:
+  Original: "It didn't work on me, but it was our people, Dad."
+  Google: "Det virkede ikke på mig, men det var vores folk, far."
+  DeepL: "Det virkede ikke på mig, men det var vores folk, far."
+  MyMemory: "Det virkede ikke på mig, men det var vores folk, far."
+  Ollama: "Det virkede ikke på mig, men det var vores folk, far."
+  First pass: "Det virkede ikke på mig, men det var vores folk, far."
+  Final: "Det virkede ikke på mig, men det var vores folk, far."
+------------------------------------------------------------
+Line 40:
+  Original: "They did this."
+  Google: "De gjorde dette."
+  DeepL: "De gjorde det her."
+  MyMemory: "De gjorde det."
+  Ollama: "De gjorde det her."
+  First pass: "De gjorde det her."
+  Final: "De gjorde det her."
+------------------------------------------------------------
+Line 41:
+  Original: "Oh, Kipo. Come here."
+  Google: "Åh, Kipo. Kom her."
+  DeepL: "Åh, Kipo. Kom lige her."
+  MyMemory: "Åh, Kipo. Kom her."
+  Ollama: "Åh, Kipo. Kom lige her."
+  First pass: "Åh, Kipo. Kom lige her."
+  Critic: "Åh, Kipo. Kom herhen." (CHANGED)
+  Final: "Åh, Kipo. Kom herhen."
+------------------------------------------------------------
+Line 42:
+  Original: "Well, we've got everything we need to make the vaccine."
+  Google: "Vi har alt, hvad vi har brug for for at lave vaccinen."
+  DeepL: "Vi har alt, hvad vi skal bruge for at lave vaccinen."
+  MyMemory: "Vi har alt, hvad vi har brug for til at lave vaccinen."
+  Ollama: "Vi har alt, hvad vi skal bruge til at lave vaccinen."
+  First pass: "Vi har alt, hvad vi skal bruge for at lave vaccinen."
+  Final: "Vi har alt, hvad vi skal bruge for at lave vaccinen."
+------------------------------------------------------------
+Line 43:
+  Original: "It'll take some time, but we'll get started right away,"
+  Google: "Det tager lidt tid, men vi kommer i gang med det samme,"
+  DeepL: "Det vil tage lidt tid, men vi går i gang med det samme,"
+  MyMemory: "Det vil tage noget tid, men vi kommer i gang med det samme,"
+  Ollama: "Det tager lidt tid, men vi går straks i gang."
+  First pass: "Det vil tage lidt tid, men vi går i gang med det samme,"
+  Critic: "Det vil tage lidt tid, men vi går straks i gang." (CHANGED)
+  Final: "Det vil tage lidt tid, men vi går straks i gang."
+------------------------------------------------------------
+Line 44:
+  Original: "and then they'll never be able to do anything like this again."
+  Google: "Og så vil de aldrig være i stand til at gøre noget lignende igen."
+  DeepL: "Og så vil de aldrig kunne gøre noget lignende igen."
+  MyMemory: "og så vil de aldrig være i stand til at gøre noget lignende igen."
+  Ollama: "Og så kan de aldrig gøre noget lignende igen."
+  First pass: "Og så vil de aldrig kunne gøre noget lignende igen."
+  Final: "Og så vil de aldrig kunne gøre noget lignende igen."
+------------------------------------------------------------
+Line 45:
+  Original: "That's great! Isn't it great, Kipo?"
+  Google: "Det er fantastisk! Er det ikke godt, Kipo?"
+  DeepL: "Det er fantastisk! Er det ikke skønt, Kipo?"
+  MyMemory: "Det er fantastisk! Er det ikke fantastisk, Kipo?"
+  Ollama: "Det er fantastisk! Er det ikke skønt, Kipo?"
+  First pass: "Det er fantastisk! Er det ikke skønt, Kipo?"
+  Critic: "Det er fantastisk! Er det ikke dejligt, Kipo?" (CHANGED)
+  Final: "Det er fantastisk! Er det ikke dejligt, Kipo?"
+------------------------------------------------------------
+Line 46:
+  Original: "But how many will they cure while we wait?"
+  Google: "Men hvor mange vil de helbrede, mens vi venter?"
+  DeepL: "Men hvor mange vil de helbrede, mens vi venter?"
+  MyMemory: "Men hvor mange vil de helbrede, mens vi venter?"
+  Ollama: "Men hvor mange vil de helbrede, mens vi venter?"
+  First pass: "Men hvor mange vil de helbrede, mens vi venter?"
+  Critic: "Men hvor mange vil de nå at helbrede, mens vi venter?" (CHANGED)
+  Final: "Men hvor mange vil de nå at helbrede, mens vi venter?"
+------------------------------------------------------------
+Line 47:
+  Original: "They're gonna keep attacking."
+  Google: "De vil fortsætte med at angribe."
+  DeepL: "De vil blive ved med at angribe."
+  MyMemory: "De bliver ved med at angribe."
+  Ollama: "De bliver ved med at angribe."
+  First pass: "De vil blive ved med at angribe."
+  Final: "De vil blive ved med at angribe."
+------------------------------------------------------------
+Line 48:
+  Original: "I have to fight back."
+  Google: "Jeg er nødt til at kæmpe tilbage."
+  DeepL: "Jeg er nødt til at kæmpe imod."
+  MyMemory: "Jeg er nødt til at kæmpe imod."
+  Ollama: "Jeg er nødt til at kæmpe imod."
+  First pass: "Jeg er nødt til at kæmpe imod."
+  Final: "Jeg er nødt til at kæmpe imod."
+------------------------------------------------------------
+Line 49:
+  Original: "I have to sink their boat."
+  Google: "Jeg er nødt til at synke deres båd."
+  DeepL: "Jeg er nødt til at sænke deres båd."
+  MyMemory: "Jeg er nødt til at sænke deres båd."
+  Ollama: "Jeg er nødt til at sænke deres båd."
+  First pass: "Jeg er nødt til at sænke deres båd."
+  Final: "Jeg er nødt til at sænke deres båd."
+------------------------------------------------------------
+Line 50:
+  Original: "#BRACKET_OPEN#roars#BRACKET_CLOSE#"
+  Google: "#Bracket_open#brøler#bracket_close#"
+  DeepL: "#BRACKET_OPEN#brøler#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #brøler #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#brøl#BRACKET_CLOSE#"
+  First pass: "[brøler]."
+  Critic: "[brøler]" (CHANGED)
+  Final: "[brøler]"
+------------------------------------------------------------
+Line 51:
+  Original: "- Kipo! - We can't let her do this."
+  Google: "- Kipo! - Vi kan ikke lade hende gøre dette."
+  DeepL: "- Kipo! - Vi kan ikke lade hende gøre det her."
+  MyMemory: "- Kipo! - Vi kan ikke lade hende gøre det her."
+  Ollama: "- Kipo! - Vi må ikke lade hende gøre det her."
+  First pass: "- Kipo! - Vi kan ikke lade hende gøre det."
+  Final: "- Kipo! - Vi kan ikke lade hende gøre det."
+------------------------------------------------------------
+Line 52:
+  Original: "If she does, it'll ruin her!"
+  Google: "Hvis hun gør det, vil det ødelægge hende!"
+  DeepL: "Hvis hun gør det, vil det ødelægge hende!"
+  MyMemory: "Hvis hun gør det, vil det ødelægge hende!"
+  Ollama: "Hvis hun gør det, er hun færdig!"
+  First pass: "Hvis hun gør det, vil det ødelægge hende!"
+  Final: "Hvis hun gør det, vil det ødelægge hende!"
+------------------------------------------------------------
+Line 53:
+  Original: "We'll stop her. You finish the vaccine."
+  Google: "Vi stopper hende. Du er færdig med vaccinen."
+  DeepL: "Vi stopper hende. Du gør vaccinen færdig."
+  MyMemory: "Vi stopper hende. Du er færdig med vaccinen."
+  Ollama: "Vi stopper hende. Du færdiggør vaccinen."
+  First pass: "Vi stopper hende. Du færdiggør vaccinen."
+  Final: "Vi stopper hende. Du færdiggør vaccinen."
+------------------------------------------------------------
+Line 54:
+  Original: "We need it now more than ever."
+  Google: "Vi har brug for det nu mere end nogensinde."
+  DeepL: "Vi har brug for det nu mere end nogensinde."
+  MyMemory: "Vi har brug for det nu mere end nogensinde."
+  Ollama: "Vi har brug for det mere end nogensinde før."
+  First pass: "Vi har brug for det nu mere end nogensinde."
+  Final: "Vi har brug for det nu mere end nogensinde."
+------------------------------------------------------------
+Line 55:
+  Original: "- Okay. Just bring our girl back. - We will."
+  Google: "- Okay. Bare tag vores pige tilbage. - Det vil vi."
+  DeepL: "- Ja, okay. Bare få vores pige tilbage. - Det gør vi."
+  MyMemory: "- Okay. Bare bring vores pige tilbage. - Det gør vi."
+  Ollama: "- Okay. Hent vores pige tilbage. - Det skal vi."
+  First pass: "- Okay, ja. Bare bring vores pige tilbage. - Det vil vi."
+  Final: "- Okay, ja. Bare bring vores pige tilbage. - Det vil vi."
+------------------------------------------------------------
+Line 56:
+  Original: "How exactly are we gonna stop a Mega Kipo?"
+  Google: "Hvor nøjagtigt skal vi stoppe en mega kipo?"
+  DeepL: "Hvordan skal vi stoppe en Mega Kipo?"
+  MyMemory: "Hvordan stopper vi helt præcist en Mega Kipo?"
+  Ollama: "Hvordan skal vi lige stoppe en Mega Kipo?"
+  First pass: "Hvordan skal vi stoppe en Mega Kipo?"
+  Final: "Hvordan skal vi stoppe en Mega Kipo?"
+------------------------------------------------------------
+Line 57:
+  Original: "I have an idea."
+  Google: "Jeg har en idé."
+  DeepL: "Jeg har en idé."
+  MyMemory: "Jeg har en idé."
+  Ollama: "Jeg har en idé."
+  First pass: "Jeg har en idé."
+  Final: "Jeg har en idé."
+------------------------------------------------------------
+Line 58:
+  Original: "- #BRACKET_OPEN#squealing#BRACKET_CLOSE# - #BRACKET_OPEN#barking#BRACKET_CLOSE#"
+  Google: "-#bracket_open#skrigende#bracket_close# -#bracket_open#barking#bracket_close#"
+  DeepL: "- #BRACKET_OPEN#skrigende#BRACKET_CLOSE# - #BRACKET_OPEN#barkende#BRACKET_CLOSE#"
+  MyMemory: "- #bracket_open #SQUEALING #bracket_close# - #bracket_open #BARKING #BRACKET_CLOSE#"
+  Ollama: "- #BRACKET_OPEN#skrigende#BRACKET_CLOSE# - #BRACKET_OPEN#gøende#BRACKET_CLOSE#"
+  First pass: "- [skrigende] - [gøende]"
+  Critic: "- [hylende] - [gøende]" (CHANGED)
+  Final: "- [hylende] - [gøende]"
+------------------------------------------------------------
+Line 59:
+  Original: "We totally forgot to tell you—"
+  Google: "Vi glemte helt at fortælle dig -"
+  DeepL: "Vi glemte helt at fortælle dig..."
+  MyMemory: "Vi glemte helt at fortælle dig-"
+  Ollama: "Vi glemte fuldstændig at fortælle dig –"
+  First pass: "Vi glemte helt at fortælle dig. .."
+  Critic: "Vi glemte fuldstændig at fortælle dig. .." (CHANGED)
+  Final: "Vi glemte fuldstændig at fortælle dig. .."
+------------------------------------------------------------
+Line 60:
+  Original: "Wolf is kind of the boss of these dogs now."
+  Google: "Wolf er slags chef for disse hunde nu."
+  DeepL: "Wolf er på en måde hundenes chef nu."
+  MyMemory: "Wolf er på en måde chefen for disse hunde nu."
+  Ollama: "Wolf er ligesom chef for de her hunde nu."
+  First pass: "Wolf er på en måde hundenes chef nu."
+  Critic: "Wolf er på en måde blevet leder af de her hunde nu." (CHANGED)
+  Final: "Wolf er på en måde blevet leder af de her hunde nu."
+------------------------------------------------------------
+Line 61:
+  Original: "#BRACKET_OPEN#barking#BRACKET_CLOSE#"
+  Google: "#Bracket_open#barking#bracket_close#"
+  DeepL: "#BRACKET_OPEN#barking#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #barking #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#gøen#BRACKET_CLOSE#"
+  First pass: "[barking]."
+  Final: "[barking]."
+------------------------------------------------------------
+Line 62:
+  Original: "Kipo, you've gotta stop."
+  Google: "Kipo, du skal stoppe."
+  DeepL: "Kipo, du er nødt til at stoppe."
+  MyMemory: "Kipo, du er nødt til at stoppe."
+  Ollama: "Kipo, du er nødt til at stoppe."
+  First pass: "Kipo, du er nødt til at stoppe."
+  Final: "Kipo, du er nødt til at stoppe."
+------------------------------------------------------------
+Line 63:
+  Original: "Just hear us out!"
+  Google: "Bare hør os ud!"
+  DeepL: "Bare lyt til os!"
+  MyMemory: "Bare hør på os!"
+  Ollama: "Bare hør os ud!"
+  First pass: "Bare lyt til os!"
+  Critic: "Bare hør os!" (CHANGED)
+  Final: "Bare hør os!"
+------------------------------------------------------------
+Line 64:
+  Original: "#BRACKET_OPEN#growling#BRACKET_CLOSE#"
+  Google: "#Bracket_open#knurrende#bracket_close#"
+  MyMemory: "#bracket_open #knurrende #BRACKET_CLOSE #"
+  DeepL: "#BRACKET_OPEN#growling#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#knurrende#BRACKET_CLOSE#"
+  First pass: "[growling]."
+  Final: "[growling]."
+------------------------------------------------------------
+Line 65:
+  Original: "What are you guys doing?"
+  DeepL: "Hvad er det, I laver?"
+  Google: "Hvad laver I fyre?"
+  MyMemory: "Hvad laver du?"
+  Ollama: "Hvad laver I?"
+  First pass: "Hvad er det, I laver?"
+  Critic: "Hvad laver I?" (CHANGED)
+  Final: "Hvad laver I?"
+------------------------------------------------------------
+Line 66:
+  Original: "Stopping you from making a huge mistake."
+  DeepL: "Det forhindrer dig i at begå en stor fejl."
+  MyMemory: "Forhindrer dig i at begå en kæmpe fejl."
+  Google: "Forhindrer dig i at begå en enorm fejltagelse."
+  Ollama: "Det forhindrer dig i at begå en stor fejl."
+  First pass: "Det forhindrer dig i at begå en stor fejl."
+  Final: "Det forhindrer dig i at begå en stor fejl."
+------------------------------------------------------------
+Line 67:
+  Original: "- Hm, you don't wanna do this. - I don't."
+  DeepL: "- Hm, du har ikke lyst til at gøre det her. - Nej, det vil jeg ikke."
+  MyMemory: "- Hm, du vil ikke gøre det her. - Det gør jeg ikke."
+  Google: "- Hm, du vil ikke gøre dette. - Det gør jeg ikke."
+  Ollama: "- Hm, du vil ikke gøre det her. - Det gør jeg ikke."
+  First pass: "- Hm, du vil ikke gøre det her. - Nej, det vil jeg ikke."
+  Final: "- Hm, du vil ikke gøre det her. - Nej, det vil jeg ikke."
+------------------------------------------------------------
+Line 68:
+  Original: "But Emilia's cure, her army, everything is on that boat."
+  DeepL: "Men Emilias kur, hendes hær, alt er på den båd."
+  Google: "Men Emilias kur, hendes hær, alt er på den båd."
+  MyMemory: "Men Emilias kur, hendes hær, alt er på den båd."
+  Ollama: "Men Emilias kur, hendes hær, alt er ombord på den båd."
+  First pass: "Men Emilias kur, hendes hær, alt er på den båd."
+  Final: "Men Emilias kur, hendes hær, alt er på den båd."
+------------------------------------------------------------
+Line 69:
+  Original: "They're not giving me any other choice."
+  DeepL: "De giver mig ikke noget andet valg."
+  MyMemory: "De giver mig ikke noget andet valg."
+  Google: "De giver mig ikke noget andet valg."
+  Ollama: "De efterlader mig ingen anden mulighed."
+  First pass: "De giver mig ikke noget andet valg."
+  Final: "De giver mig ikke noget andet valg."
+------------------------------------------------------------
+Line 70:
+  Original: "Before you do that, uh, uh, Dave needs to tell you something."
+  DeepL: "Før du gør det, skal Dave fortælle dig noget."
+  MyMemory: "Før du gør det, øh, øh, Dave har brug for at fortælle dig noget."
+  Google: "Før du gør det, er det, åh, Dave skal fortælle dig noget."
+  Ollama: "Før du gør det, skal Dave lige fortælle dig noget."
+  First pass: "Før du gør det, skal Dave fortælle dig noget."
+  Final: "Før du gør det, skal Dave fortælle dig noget."
+------------------------------------------------------------
+Line 71:
+  Original: "I do?"
+  Google: "Det gør jeg?"
+  DeepL: "Gør jeg?"
+  MyMemory: "Nogle af"
+  Ollama: "Gør jeg?"
+  First pass: "Gør jeg?"
+  Final: "Gør jeg?"
+------------------------------------------------------------
+Line 72:
+  Original: "Oh, yep, I do! #BRACKET_OPEN#chuckles#BRACKET_CLOSE#"
+  Google: "Åh, ja, det gør jeg! #Bracket_open#chuckles#bracket_close#"
+  DeepL: "Åh, ja, det gør jeg! #BRACKET_OPEN#griner#BRACKET_CLOSE#"
+  MyMemory: "Ja, det gør jeg! #bracket_open #chuckles #BRACKET_CLOSE #"
+  Ollama: "Åh, ja, det gør jeg! #BRACKET_OPEN#griner#BRACKET_CLOSE#"
+  First pass: "Åh, ja, det gør jeg! [griner]"
+  Critic: "Åh, ja, det gør jeg! [fniser]" (CHANGED)
+  Final: "Åh, ja, det gør jeg! [fniser]"
+------------------------------------------------------------
+Line 73:
+  Original: "You know this isn't the first war between humans and mutes."
+  DeepL: "Du ved, at det ikke er den første krig mellem mennesker og stumme."
+  MyMemory: "Du ved, at dette ikke er den første krig mellem mennesker og dæmpere."
+  Google: "Du ved, at dette ikke er den første krig mellem mennesker og mutes."
+  Ollama: "Du ved, det er ikke første gang, der er krig mellem mennesker og stumme."
+  First pass: "Du ved, at det ikke er den første krig mellem mennesker og stumme."
+  Final: "Du ved, at det ikke er den første krig mellem mennesker og stumme."
+------------------------------------------------------------
+Line 74:
+  Original: "I've got a story that will give you a full 360"
+  DeepL: "Jeg har en historie, der vil give dig en fuld 360"
+  MyMemory: "Jeg har en historie, der vil give dig hele 360"
+  Google: "Jeg har en historie, der giver dig hele 360"
+  Ollama: "Jeg har en historie, der vil vende op og ned på dig."
+  First pass: "Jeg har en historie, der vil give dig en fuld 360"
+  Critic: "Jeg har en historie, der vil give dig et fuldt overblik." (CHANGED)
+  Final: "Jeg har en historie, der vil give dig et fuldt overblik."
+------------------------------------------------------------
+Line 75:
+  Original: "on this whole sink-the-ship business."
+  DeepL: "på hele denne synke-skibet-affære."
+  MyMemory: "på hele denne sink-the-ship forretning."
+  Google: "på hele denne synke-skibsvirksomhed."
+  Ollama: "på den her historie med at sænke skibet."
+  First pass: "På hele denne synke-skibet-affære."
+  Critic: "På hele den her 'sænk skibet'-ting." (CHANGED)
+  Final: "På hele den her 'sænk skibet'-ting."
+------------------------------------------------------------
+Line 76:
+  Original: "360? So I'll be exactly where I am right now?"
+  DeepL: "360? Så jeg vil være præcis, hvor jeg er lige nu?"
+  MyMemory: "360? Så jeg vil være præcis, hvor jeg er lige nu?"
+  Google: "360? Så jeg vil være præcis, hvor jeg er lige nu?"
+  Ollama: "360? Så vil jeg altså være præcis, hvor jeg er nu?"
+  First pass: "360? Så jeg vil være præcis, hvor jeg er lige nu?"
+  Critic: "360? Så vil jeg være præcis, hvor jeg er lige nu?" (CHANGED)
+  Final: "360? Så vil jeg være præcis, hvor jeg er lige nu?"
+------------------------------------------------------------
+Line 77:
+  Original: "Probably! I don't know circle math! Whatever!"
+  DeepL: "Sikkert! Jeg har ikke forstand på cirkelmatematik! Det er lige meget!"
+  MyMemory: "Sandsynligvis! Jeg kender ikke cirkelmatematik! Uanset hvad!"
+  Google: "Sandsynligvis! Jeg kender ikke cirkelmatematik! Uanset hvad!"
+  Ollama: "Sikkert! Jeg er ikke god til cirkelregning! Pyha!"
+  First pass: "Sikkert! Jeg er ikke god til cirkelregning! Pyttelse!"
+  Critic: "Sikkert! Jeg er ikke god til cirkelregning! Ligegyldigt!" (CHANGED)
+  Final: "Sikkert! Jeg er ikke god til cirkelregning! Ligegyldigt!"
+------------------------------------------------------------
+Line 78:
+  Original: "Just buckle up, 'cause this doozy starts 200 years ago."
+  DeepL: "Spænd sikkerhedsselen, for denne historie starter for 200 år siden."
+  MyMemory: "Bare spænd selen, for denne doozy starter for 200 år siden."
+  Google: "Bare spænd op, fordi denne Doozy starter for 200 år siden."
+  Ollama: "Spænd sikkerhedsselen, for den her historie starter for 200 år siden."
+  First pass: "Spænd sikkerhedsselen, for denne historie starter for 200 år siden."
+  Critic: "Spænd sikkerhedsselen, for den her historie starter for 200 år siden." (CHANGED)
+  Final: "Spænd sikkerhedsselen, for den her historie starter for 200 år siden."
+------------------------------------------------------------
+Line 79:
+  Original: "It was a hot summer in the city."
+  DeepL: "Det var en varm sommer i byen."
+  Google: "Det var en varm sommer i byen."
+  MyMemory: "Det var en varm sommer i byen."
+  Ollama: "Det var en varm sommer i byen."
+  First pass: "Det var en varm sommer i byen."
+  Final: "Det var en varm sommer i byen."
+------------------------------------------------------------
+Line 80:
+  Original: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# And humans still were getting used to the fact"
+  DeepL: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Og mennesker var stadig ved at vænne sig til det faktum"
+  MyMemory: "#bracket_open #Dave #BRACKET_CLOSE#Og mennesker var stadig VED at vænne sig til det faktum"
+  Google: "#Bracket_open#dave#bracket_close#og mennesker blev stadig vant til det faktum"
+  Ollama: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Og mennesker var stadig ved at vænne sig til det faktum."
+  First pass: "[Dave] Og mennesker var stadig ved at vænne sig til det faktum"
+  Critic: "[Dave] Og mennesker var stadig ved at vænne sig til det." (CHANGED)
+  Final: "[Dave] Og mennesker var stadig ved at vænne sig til det."
+------------------------------------------------------------
+Line 81:
+  Original: "that mutes were suddenly walking and talking."
+  DeepL: "at stumme pludselig gik og talte."
+  Google: "Det mutes pludselig gik og talte."
+  MyMemory: "at stumme pludselig gik og snakkede."
+  Ollama: "at stumme pludselig begyndte at gå og tale."
+  First pass: "At stumme pludselig gik og talte."
+  Critic: "At stumme pludselig begyndte at gå og tale." (CHANGED)
+  Final: "At stumme pludselig begyndte at gå og tale."
+------------------------------------------------------------
+Line 82:
+  Original: "#BRACKET_OPEN#crowd screaming at a distance#BRACKET_CLOSE#"
+  Google: "#Bracket_open#publikum skrigende på afstand#bracket_close#"
+  DeepL: "#BRACKET_OPEN#skrigende folkemængde på afstand#BRACKET_CLOSE#."
+  MyMemory: "#BRACKET_OPEN #mængde, der skriger på afstand #bracket_close #"
+  Ollama: "#BRACKET_OPEN#råbende folkemængde i det fjerne#BRACKET_CLOSE#"
+  First pass: "[skrigende folkemængde på afstand]"
+  Final: "[skrigende folkemængde på afstand]"
+------------------------------------------------------------
+Line 83:
+  Original: "#BRACKET_OPEN#screaming#BRACKET_CLOSE#"
+  Google: "#Bracket_open#skrigende#bracket_close#"
+  DeepL: "#BRACKET_OPEN#skrigeri#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #skrigende #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#skrigende#BRACKET_CLOSE#"
+  First pass: "[skrig]."
+  Critic: "[skrig]" (CHANGED)
+  Final: "[skrig]"
+------------------------------------------------------------
+Line 84:
+  Original: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# I guess it was kind of an all-out war,"
+  Google: "#Bracket_open#dave#bracket_close#Jeg gætte, det var en slags helt krig,"
+  MyMemory: "#bracket_open #Dave #BRACKET_CLOSE#Jeg tror, det var en slags total krig,"
+  DeepL: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Jeg tror, det var en slags total krig,"
+  Ollama: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Jeg tror, det var en slags total krig."
+  First pass: "[Dave] Jeg tror, det var en slags udbrud af krig,"
+  Critic: "[Dave] Jeg tror, det var en regulær krig." (CHANGED)
+  Final: "[Dave] Jeg tror, det var en regulær krig."
+------------------------------------------------------------
+Line 85:
+  Original: "but I had bigger things on my mind."
+  Google: "Men jeg havde større ting i tankerne."
+  DeepL: "Men jeg havde større ting i tankerne."
+  MyMemory: "men jeg havde større ting i tankerne."
+  Ollama: "Men jeg havde større ting i tankerne."
+  First pass: "Men jeg havde større ting i tankerne."
+  Final: "Men jeg havde større ting i tankerne."
+------------------------------------------------------------
+Line 86:
+  Original: "#BRACKET_OPEN#music playing#BRACKET_CLOSE#"
+  Google: "#Bracket_open#musik, der spiller#bracket_close#"
+  MyMemory: "#bracket_open #musikafspilning #BRACKET_CLOSE #"
+  DeepL: "#BRACKET_OPEN#musikken spiller#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#musik afspilles#BRACKET_CLOSE#"
+  First pass: "[musikken spiller]"
+  Final: "[musikken spiller]"
+------------------------------------------------------------
+Line 87:
+  Original: "♪ You... ♪"
+  DeepL: "♪ Du... ♪"
+  Google: "♪ Du ... ♪"
+  MyMemory: "du"
+  Ollama: "♪ Du... ♪"
+  First pass: "♪ Du. .. ♪"
+  Final: "♪ Du. .. ♪"
+------------------------------------------------------------
+Line 88:
+  Original: "♪ Are the reason why ♪"
+  DeepL: "♪ Er grunden til ♪"
+  MyMemory: "♪ Er grunden til, at ♪"
+  Google: "♪ er grunden til, at ♪"
+  Ollama: "♪ Er grunden til ♪"
+  First pass: "♪ Er grunden til ♪"
+  Final: "♪ Er grunden til ♪"
+------------------------------------------------------------
+Line 89:
+  Original: "Ah!"
+  DeepL: "Ah!"
+  Google: "Ah!"
+  MyMemory: "Ah"
+  Ollama: "Ah!"
+  First pass: "Ah!"
+  Final: "Ah!"
+------------------------------------------------------------
+Line 90:
+  Original: "Oh, yeah!"
+  Google: "Åh, ja!"
+  DeepL: "Åh, ja!"
+  MyMemory: "Åh, ja!"
+  Ollama: "Åh, ja!"
+  First pass: "Åh, ja!"
+  Final: "Åh, ja!"
+------------------------------------------------------------
+Line 91:
+  Original: "That's the good stuff right there."
+  DeepL: "Det er de gode ting lige der."
+  MyMemory: "Det er de gode ting lige der."
+  Google: "Det er de gode ting lige der."
+  Ollama: "Det er det gode stads."
+  First pass: "Det er det gode stads lige der."
+  Final: "Det er det gode stads lige der."
+------------------------------------------------------------
+Line 92:
+  Original: "#BRACKET_OPEN#man#BRACKET_CLOSE# Hey, bug!"
+  MyMemory: "#BRACKET_OPEN #MAN #bracket_close# Hej, bug!"
+  DeepL: "#BRACKET_OPEN#man#BRACKET_CLOSE# Hey, bug!"
+  Google: "#Bracket_open#mand#bracket_close#hey, bug!"
+  Ollama: "#BRACKET_OPEN#mand#BRACKET_CLOSE# Hej, bug!"
+  First pass: "[man] Hey, lus!"
+  Final: "[man] Hey, lus!"
+------------------------------------------------------------
+Line 93:
+  Original: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Until one day the fight found me."
+  DeepL: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Indtil en dag, hvor kampen fandt mig."
+  MyMemory: "#BRACKET_OPEN #Dave #bracket_close # Indtil kampen en dag fandt mig."
+  Google: "#Bracket_open#dave#bracket_close#indtil kampen en dag fandt kampen mig."
+  Ollama: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Indtil en dag fandt kampen mig."
+  First pass: "[Dave] Indtil en dag, hvor kampen fandt mig."
+  Critic: "[Dave] Indtil en dag fandt kampen mig." (CHANGED)
+  Final: "[Dave] Indtil en dag fandt kampen mig."
+------------------------------------------------------------
+Line 94:
+  Original: "Give me that fan!"
+  DeepL: "Giv mig den ventilator!"
+  Google: "Giv mig den fan!"
+  MyMemory: "Giv mig den fan!"
+  Ollama: "Giv mig den ventilator!"
+  First pass: "Giv mig den ventilator!"
+  Final: "Giv mig den ventilator!"
+------------------------------------------------------------
+Line 95:
+  Original: "No!"
+  DeepL: "Nej!"
+  Google: "Ingen!"
+  MyMemory: "Nej! "
+  Ollama: "Nej!"
+  First pass: "Nej!"
+  Final: "Nej!"
+------------------------------------------------------------
+Line 96:
+  Original: "#BRACKET_OPEN#grunts#BRACKET_CLOSE#"
+  Google: "#Bracket_open#grynt#bracket_close#"
+  DeepL: "#BRACKET_OPEN#grynt#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #grynt #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#grynt#BRACKET_CLOSE#"
+  First pass: "[grynt]"
+  Critic: "[gryntelyde]" (CHANGED)
+  Final: "[gryntelyde]"
+------------------------------------------------------------
+Line 97:
+  Original: "I did all the hard work of finding it a second ago."
+  Google: "Jeg gjorde alt det hårde arbejde med at finde det for et sekund siden."
+  DeepL: "Jeg gjorde alt det hårde arbejde med at finde den for et øjeblik siden."
+  MyMemory: "Jeg gjorde alt det hårde arbejde med at finde det for et sekund siden."
+  Ollama: "Jeg fandt det lige, det var hårdt arbejde."
+  First pass: "Jeg gjorde alt det hårde arbejde med at finde den for et øjeblik siden."
+  Final: "Jeg gjorde alt det hårde arbejde med at finde den for et øjeblik siden."
+------------------------------------------------------------
+Line 98:
+  Original: "- It's mine. - #BRACKET_OPEN#panting#BRACKET_CLOSE# Not anymore!"
+  Google: "- Det er min. -#bracket_open#panting#bracket_close#ikke længere!"
+  DeepL: "- Den er min. - #BRACKET_OPEN#panting#BRACKET_CLOSE# Ikke længere!"
+  MyMemory: "- Det er min. - #bracket_open#panting #BRACKET_CLOSE # Ikke længere!"
+  Ollama: "- Det er min. - #BRACKET_OPEN#pustende#BRACKET_CLOSE# Ikke længere!"
+  First pass: "- Den er min. - [panting] Ikke mere!"
+  Critic: "- Den er min. - [pustende] Ikke længere!" (CHANGED)
+  Final: "- Den er min. - [pustende] Ikke længere!"
+------------------------------------------------------------
+Line 99:
+  Original: "It's my fan now! #BRACKET_OPEN#grunts#BRACKET_CLOSE#"
+  Google: "Det er min fan nu! #Bracket_open#grynt#bracket_close#"
+  DeepL: "Det er min fan nu! #BRACKET_OPEN#grynt#BRACKET_CLOSE#"
+  MyMemory: "Det er min fan nu! #bracket_open #grynt #BRACKET_CLOSE #"
+  Ollama: "Det er min fan nu! #BRACKET_OPEN#grynt#BRACKET_CLOSE#"
+  First pass: "Det er min vifte nu! [grynt]"
+  Critic: "Det er min vifte nu! [gryntelyde]" (CHANGED)
+  Final: "Det er min vifte nu! [gryntelyde]"
+------------------------------------------------------------
+Line 100:
+  Original: "#BRACKET_OPEN#groans#BRACKET_CLOSE# Ohh!"
+  Google: "#Bracket_open#stønn#bracket_close#ohh!"
+  DeepL: "#BRACKET_OPEN#stønner#BRACKET_CLOSE# Ohh!"
+  MyMemory: "#bracket_open #stønner #BRACKET_CLOSE #ÅHH!"
+  Ollama: "#BRACKET_OPEN#støn#BRACKET_CLOSE# Åh!"
+  First pass: "[stønner] Ohh!"
+  Final: "[stønner] Ohh!"
+------------------------------------------------------------
+Line 101:
+  Original: "Stupid bug man! This city is ours! #BRACKET_OPEN#laughing#BRACKET_CLOSE#"
+  Google: "Dum Bug Man! Denne by er vores! #Bracket_open#griner#bracket_close#"
+  DeepL: "Dumme insektmand! Denne by er vores! #BRACKET_OPEN#latter#BRACKET_CLOSE#"
+  MyMemory: "Dumme insektmand! Denne by er vores! #bracket_open #latter #BRACKET_CLOSE #"
+  Ollama: "Dumme insektmand! Denne by er vores! #BRACKET_OPEN#griner#BRACKET_CLOSE#"
+  First pass: "Dumme insektmand! Denne by er vores! [latter]"
+  Final: "Dumme insektmand! Denne by er vores! [latter]"
+------------------------------------------------------------
+Line 102:
+  Original: "#BRACKET_OPEN#gasps#BRACKET_CLOSE#"
+  Google: "#Bracket_open#gisps#bracket_close#"
+  DeepL: "#BRACKET_OPEN#gasps#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #gisp #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#udånder#BRACKET_CLOSE#"
+  First pass: "[gasps]."
+  Final: "[gasps]."
+------------------------------------------------------------
+Line 103:
+  Original: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# My most prized possession,"
+  Google: "#Bracket_open#dave#bracket_close#min mest værdsatte besiddelse,"
+  DeepL: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Min mest værdifulde ejendel,"
+  MyMemory: "#BRACKET_OPEN #DAVE #bracket_close#Min mest værdsatte ejendom,"
+  Ollama: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Min mest værdsatte besiddelse,"
+  First pass: "[Dave] Min mest værdifulde ejendel,"
+  Final: "[Dave] Min mest værdifulde ejendel,"
+------------------------------------------------------------
+Line 104:
+  Original: "ripped away by an adult in a robot t-shirt."
+  Google: "Rippet væk af en voksen i en robot-t-shirt."
+  DeepL: "flået væk af en voksen i en robot-t-shirt."
+  MyMemory: "revet væk af en voksen i en robot t-shirt."
+  Ollama: "flået væk af en voksen i en robot-t-shirt."
+  First pass: "Flået væk af en voksen i en robot-t-shirt."
+  Final: "Flået væk af en voksen i en robot-t-shirt."
+------------------------------------------------------------
+Line 105:
+  Original: "But, being Dave, I wasn't gonna give up."
+  Google: "Men da jeg var Dave, ville jeg ikke give op."
+  DeepL: "Men som den Dave jeg er, ville jeg ikke give op."
+  MyMemory: "Men da jeg var Dave, ville jeg ikke give op."
+  Ollama: "Men som den jeg er, Dave, ville jeg ikke give op."
+  First pass: "Men som den Dave jeg er, ville jeg ikke give op."
+  Critic: "Men som Dave, ville jeg ikke give op." (CHANGED)
+  Final: "Men som Dave, ville jeg ikke give op."
+------------------------------------------------------------
+Line 106:
+  Original: "- #BRACKET_OPEN#animal squealing#BRACKET_CLOSE# - #BRACKET_OPEN#humans gasp#BRACKET_CLOSE#"
+  Google: "-#bracket_open#dyre skrigende#bracket_close# -#bracket_open#mennesker gisp#bracket_close#"
+  DeepL: "- #BRACKET_OPEN#dyr skriger#BRACKET_CLOSE# - #BRACKET_OPEN#mennesker gisper#BRACKET_CLOSE#"
+  MyMemory: "- #bracket_open #dyrhyl #BRACKET_CLOSE#- #bracket_open #mennesker gisp #bracket_close#"
+  Ollama: "- #BRACKET_OPEN#dyrehvinen#BRACKET_CLOSE# - #BRACKET_OPEN#mennesker gisper#BRACKET_CLOSE#"
+  First pass: "- [dyrelyd] - [mennesker gisper]"
+  Final: "- [dyrelyd] - [mennesker gisper]"
+------------------------------------------------------------
+Line 107:
+  Original: "#BRACKET_OPEN#gasps#BRACKET_CLOSE#"
+  Google: "#Bracket_open#gisps#bracket_close#"
+  DeepL: "#BRACKET_OPEN#gasps#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #gisp #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#udånder#BRACKET_CLOSE#"
+  First pass: "[gasps]."
+  Final: "[gasps]."
+------------------------------------------------------------
+Line 108:
+  Original: "So I led a bunch of Mega Beavers into the city."
+  Google: "Så jeg førte en flok Mega Beavers ind i byen."
+  DeepL: "Så jeg førte en flok megabævere ind i byen."
+  MyMemory: "Så jeg førte en flok Mega Beavers ind i byen."
+  Ollama: "Så jeg førte en flok kæmpe bævere ind i byen."
+  First pass: "Så jeg førte en flok megabævere ind i byen."
+  Final: "Så jeg førte en flok megabævere ind i byen."
+------------------------------------------------------------
+Line 109:
+  Original: "#BRACKET_OPEN#laughing#BRACKET_CLOSE#"
+  Google: "#Bracket_open#griner#bracket_close#"
+  DeepL: "#BRACKET_OPEN#latter#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #latter #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#griner#BRACKET_CLOSE#"
+  First pass: "[latter]"
+  Final: "[latter]"
+------------------------------------------------------------
+Line 110:
+  Original: "#BRACKET_OPEN#screams#BRACKET_CLOSE#"
+  Google: "#Bracket_open#skrig#bracket_close#"
+  DeepL: "#BRACKET_OPEN#skriger#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #skriger #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#skrig#BRACKET_CLOSE#"
+  First pass: "[skriger]"
+  Final: "[skriger]"
+------------------------------------------------------------
+Line 111:
+  Original: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Those big boys toppled buildings like they were twigs in a dam."
+  Google: "#Bracket_open#dave#bracket_close#Disse store drenge væltede bygninger, som om de var kviste i en dæmning."
+  DeepL: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# De store drenge væltede bygninger, som var de kviste i en dæmning."
+  MyMemory: "#bracket_open #Dave #BRACKET_CLOSE# De store drenge væltede bygninger, som om de var kviste i en dæmning."
+  Ollama: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# De store drenge væltede bygninger, som var de kviste i en dæmning."
+  First pass: "[Dave] De store drenge væltede bygninger, som var de kviste i en dæmning."
+  Critic: "[Dave] De store drenge væltede bygninger, som var det kviste i en dæmning." (CHANGED)
+  Final: "[Dave] De store drenge væltede bygninger, som var det kviste i en dæmning."
+------------------------------------------------------------
+Line 112:
+  Original: "Yo, Daves, look what I got!"
+  Google: "Yo, Daves, se hvad jeg fik!"
+  DeepL: "Yo, Daves, se hvad jeg har!"
+  MyMemory: "Daves, se, hvad jeg har!"
+  Ollama: "Yo, Daves, se lige hvad jeg har fået!"
+  First pass: "Yo, Daves, se hvad jeg har!"
+  Final: "Yo, Daves, se hvad jeg har!"
+------------------------------------------------------------
+Line 113:
+  Original: "- #BRACKET_OPEN#all together#BRACKET_CLOSE# Dave! Dave, Dave! - #BRACKET_OPEN#Dave#BRACKET_CLOSE# You're really far away!"
+  Google: "-#bracket_open#alle sammen#bracket_close#dave! Dave, Dave! -#bracket_open#dave#bracket_close#du er virkelig langt væk!"
+  DeepL: "- #BRACKET_OPEN#alle sammen#BRACKET_CLOSE# Dave! Dave, Dave! - #BRACKET_OPEN#Dave#BRACKET_CLOSE# Du er virkelig langt væk!"
+  MyMemory: "- #bracket_open# alle sammen #bracket_close# Dave! Dave, Dave! - #BRACKET_OPEN#Dave #bracket_close # Du er virkelig langt væk!"
+  Ollama: "- #BRACKET_OPEN#alle sammen#BRACKET_CLOSE# Dave! Dave, Dave! - #BRACKET_OPEN#Dave#BRACKET_CLOSE# Du er virkelig langt væk!"
+  First pass: "- [alle sammen] Dave! Dave, Dave! - [Dave] Du er virkelig langt væk!"
+  Final: "- [alle sammen] Dave! Dave, Dave! - [Dave] Du er virkelig langt væk!"
+------------------------------------------------------------
+Line 114:
+  Original: "Nice!"
+  Google: "Pæn!"
+  DeepL: "Flot!"
+  MyMemory: "Fint! Du har delt dit valg på Facebook!"
+  Ollama: "Flot!"
+  First pass: "Flot!"
+  Final: "Flot!"
+------------------------------------------------------------
+Line 115:
+  Original: "And that's how I got my fan back."
+  Google: "Og sådan fik jeg min fan tilbage."
+  DeepL: "Og det var sådan, jeg fik min fan tilbage."
+  MyMemory: "Og det var sådan, jeg fik min fan tilbage."
+  Ollama: "Og sådan fik jeg min fan tilbage."
+  First pass: "Og det var sådan, jeg fik min fan tilbage."
+  Final: "Og det var sådan, jeg fik min fan tilbage."
+------------------------------------------------------------
+Line 116:
+  Original: "Wait, wait, wait. There are more Daves?"
+  Google: "Vent, vent, vent. Er der flere Daves?"
+  DeepL: "Vent, vent, vent. Er der flere David'er?"
+  MyMemory: "Vent, vent, vent. Er der flere Daves?"
+  Ollama: "Vent, vent, vent. Er der flere David'er?"
+  First pass: "Vent, vent, vent. Er der flere David'er?"
+  Final: "Vent, vent, vent. Er der flere David'er?"
+------------------------------------------------------------
+Line 117:
+  Original: "Oh, there were a ton of Daves."
+  Google: "Åh, der var masser af Daves."
+  DeepL: "Åh, der var masser af Daves."
+  MyMemory: "Åh, der var masser af Daves."
+  Ollama: "Åh, der var virkelig mange ved navn Dave."
+  First pass: "Åh, der var masser af Daves."
+  Critic: "Åh, der var tonsvis af Daves." (CHANGED)
+  Final: "Åh, der var tonsvis af Daves."
+------------------------------------------------------------
+Line 118:
+  Original: "There was Dave, Dave, David, I did not like that guy,"
+  Google: "Der var Dave, Dave, David, jeg kunne ikke lide den fyr,"
+  DeepL: "Der var Dave, Dave, David, jeg kunne ikke lide den fyr,"
+  MyMemory: "Der var Dave, Dave, David, jeg kunne ikke lide den fyr,"
+  Ollama: "Der var Dave, Dave, David, jeg brød mig ikke rigtigt om ham."
+  First pass: "Der var Dave, Dave, David, jeg kunne ikke lide ham,"
+  Critic: "Der var Dave, Dave, David, jeg kunne ikke lide den fyr." (CHANGED)
+  Final: "Der var Dave, Dave, David, jeg kunne ikke lide den fyr."
+------------------------------------------------------------
+Line 119:
+  Original: "and of course, Doctor Dave."
+  Google: "Og selvfølgelig doktor Dave."
+  DeepL: "og selvfølgelig doktor Dave."
+  MyMemory: "og selvfølgelig, Doctor Dave."
+  Ollama: "Og selvfølgelig doktor Dave."
+  First pass: "Og selvfølgelig doktor Dave."
+  Final: "Og selvfølgelig doktor Dave."
+------------------------------------------------------------
+Line 120:
+  Original: "Man, I miss those dudes."
+  Google: "Mand, jeg savner disse dudes."
+  DeepL: "Jeg savner de fyre."
+  MyMemory: "Mand, jeg savner de fyre."
+  Ollama: "Jeg savner de fyre."
+  First pass: "Jeg savner de fyre."
+  Final: "Jeg savner de fyre."
+------------------------------------------------------------
+Line 121:
+  Original: "So, do you get what I was tryin' to say?"
+  Google: "Så får du det, jeg prøvede at sige?"
+  DeepL: "Forstår du, hvad jeg prøver at sige?"
+  MyMemory: "Forstår du, hvad jeg prøvede at sige?"
+  Ollama: "Forstår du, hvad jeg prøvede at sige?"
+  First pass: "Forstår du, hvad jeg prøver at sige?"
+  Final: "Forstår du, hvad jeg prøver at sige?"
+------------------------------------------------------------
+Line 122:
+  Original: "Uh, that humans have always been selfish and mean,"
+  Google: "Øh, at mennesker altid har været egoistiske og slemme,"
+  MyMemory: "Øh, at mennesker altid har været egoistiske og onde,"
+  DeepL: "Øh, at mennesker altid har været egoistiske og onde,"
+  Ollama: "Øh, at mennesker altid har været egoistiske og onde."
+  First pass: "Øh, at mennesker altid har været egoistiske og onde,"
+  Final: "Øh, at mennesker altid har været egoistiske og onde,"
+------------------------------------------------------------
+Line 123:
+  Original: "and the only way to stop them is with a Mega Mute."
+  Google: "Og den eneste måde at stoppe dem på er med en mega stum."
+  DeepL: "og den eneste måde at stoppe dem på er med en Mega Mute."
+  MyMemory: "og den eneste måde at stoppe dem på er med en Mega Mute."
+  Ollama: "og den eneste måde at stoppe dem på er med en Mega Mute."
+  First pass: "Og den eneste måde at stoppe dem på er med en Mega Mute."
+  Final: "Og den eneste måde at stoppe dem på er med en Mega Mute."
+------------------------------------------------------------
+Line 124:
+  Original: "No! But I see how you got there."
+  Google: "Ingen! Men jeg kan se, hvordan du kom dertil."
+  DeepL: "Nej! Men jeg kan godt se, hvordan du kom dertil."
+  MyMemory: "Nej! Men jeg kan se, hvordan du er havnet der."
+  Ollama: "Nej! Men jeg kan godt se, hvordan du er kommet dertil."
+  First pass: "Nej! Men jeg kan godt se, hvordan du kom dertil."
+  Final: "Nej! Men jeg kan godt se, hvordan du kom dertil."
+------------------------------------------------------------
+Line 125:
+  Original: "Let me tell you what happened next."
+  Google: "Lad mig fortælle dig, hvad der skete derefter."
+  DeepL: "Lad mig fortælle dig, hvad der så skete."
+  MyMemory: "Lad mig fortælle dig, hvad der skete derefter."
+  Ollama: "Lad mig fortælle dig, hvad der skete derefter."
+  First pass: "Lad mig fortælle dig, hvad der så skete."
+  Final: "Lad mig fortælle dig, hvad der så skete."
+------------------------------------------------------------
+Line 126:
+  Original: "Wait... where are Benson and Wolf?"
+  Google: "Vent ... hvor er Benson og Wolf?"
+  DeepL: "Vent ... hvor er Benson og Wolf?"
+  MyMemory: "Vent... hvor er Benson og Wolf?"
+  Ollama: "Vent... hvor er Benson og Wolf?"
+  First pass: "Vent. .. hvor er Benson og Wolf?"
+  Final: "Vent. .. hvor er Benson og Wolf?"
+------------------------------------------------------------
+Line 127:
+  Original: "Okay, look, Dave's story was just a way to buy us some time."
+  DeepL: "Daves historie var bare en måde at købe os lidt tid på."
+  Google: "Okay, se, Daves historie var bare en måde at købe os nogen tid på."
+  MyMemory: "Okay, se, Daves historie var bare en måde at købe os lidt tid på."
+  Ollama: "Okay, se, Daves historie var bare en måde at vinde tid på."
+  First pass: "Daves historie var bare en måde at vinde tid på."
+  Critic: "Daves historie var bare en måde at købe tid på." (CHANGED)
+  Final: "Daves historie var bare en måde at købe tid på."
+------------------------------------------------------------
+Line 128:
+  Original: "Well, it started that way, but I actually might have a point."
+  DeepL: "Det begyndte sådan, men jeg har måske en pointe."
+  MyMemory: "Nå, det startede på den måde, men jeg kan faktisk have en pointe."
+  Google: "Det startede på den måde, men jeg har faktisk måske et punkt."
+  Ollama: "Det startede sådan, men jeg har faktisk en pointe."
+  First pass: "Det begyndte sådan, men jeg har måske en pointe."
+  Critic: "Det begyndte sådan, men jeg har måske ret." (CHANGED)
+  Final: "Det begyndte sådan, men jeg har måske ret."
+------------------------------------------------------------
+Line 129:
+  Original: "I brought you here for a reason, Kipo. Just follow me."
+  DeepL: "Jeg bragte dig hertil af en grund, Kipo. Bare følg mig."
+  MyMemory: "Jeg tog dig med hertil af en grund, Kipo. Bare følg mig."
+  Google: "Jeg bragte dig hit af en grund, Kipo. Bare følg mig."
+  Ollama: "Jeg bragte dig hertil af en grund, Kipo. Bare følg mig."
+  First pass: "Jeg bragte dig hertil af en grund, Kipo. Følg bare med."
+  Final: "Jeg bragte dig hertil af en grund, Kipo. Følg bare med."
+------------------------------------------------------------
+Line 130:
+  Original: "Wow. Wh-who listens to me? Nobody, right?"
+  DeepL: "Hold da op. Hvem lytter til mig? Ingen, vel?"
+  MyMemory: "Wow. Hvem-hvem lytter til mig? Ingen, vel?"
+  Google: "Wow. Wh-Who lytter til mig? Ingen, ikke?"
+  Ollama: "Hold da op. Hvem lytter til mig? Ingen, vel?"
+  First pass: "Hold da op. Hvem lytter til mig? Ingen, vel?"
+  Critic: "Wow. Hvem lytter til mig? Ingen, vel?" (CHANGED)
+  Final: "Wow. Hvem lytter til mig? Ingen, vel?"
+------------------------------------------------------------
+Line 131:
+  Original: "My old burrow?"
+  DeepL: "Min gamle hule?"
+  Google: "Min gamle hul?"
+  MyMemory: "Min gamle hule?"
+  Ollama: "Min gamle hule?"
+  First pass: "Min gamle hule?"
+  Final: "Min gamle hule?"
+------------------------------------------------------------
+Line 132:
+  Original: "Hey, Dr. Emilia, we got the engines started."
+  DeepL: "Dr. Emilia, vi har startet motorerne."
+  MyMemory: "Hej, Dr. Emilia, vi fik startet motorerne."
+  Google: "Hej, Dr. Emilia, vi fik motorerne i gang."
+  Ollama: "Dr. Emilia, vi har fået motorerne startet."
+  First pass: "Dr. Emilia, vi har startet motorerne."
+  Final: "Dr. Emilia, vi har startet motorerne."
+------------------------------------------------------------
+Line 133:
+  Original: "Hopefully Kipo can't find us if we're on the move."
+  DeepL: "Forhåbentlig kan Kipo ikke finde os, hvis vi er på farten."
+  Google: "Forhåbentlig kan Kipo ikke finde os, hvis vi er på farten."
+  MyMemory: "Forhåbentlig kan Kipo ikke finde os, hvis vi er på farten."
+  Ollama: "Forhåbentlig kan Kipo ikke finde os, hvis vi er på farten."
+  First pass: "Forhåbentlig kan Kipo ikke finde os, hvis vi er på farten."
+  Final: "Forhåbentlig kan Kipo ikke finde os, hvis vi er på farten."
+------------------------------------------------------------
+Line 134:
+  Original: "I've been working my whole life to undo the Great Mutant Outbreak"
+  DeepL: "Jeg har arbejdet hele mit liv på at ophæve det store mutantudbrud."
+  MyMemory: "Jeg har arbejdet hele mit liv på at rette op på Great Mutant Outbreak"
+  Google: "Jeg har arbejdet hele mit liv for at fortryde det store mutante udbrud"
+  Ollama: "Jeg har arbejdet hele mit liv på at afværge det store mutantudbrud."
+  First pass: "Jeg har arbejdet hele mit liv på at ophæve det store mutantudbrud."
+  Critic: "Jeg har arbejdet hele mit liv på at omgøre det store mutantudbrud." (CHANGED)
+  Final: "Jeg har arbejdet hele mit liv på at omgøre det store mutantudbrud."
+------------------------------------------------------------
+Line 135:
+  Original: "and erase the monsters who stole our world."
+  DeepL: "og udslette de monstre, der stjal vores verden."
+  MyMemory: "og slette de monstre, der stjal vores verden."
+  Google: "og slette de monstre, der stjal vores verden."
+  Ollama: "og udslette de monstre, der stjal vores verden."
+  First pass: "Og udslette de monstre, der stjal vores verden."
+  Final: "Og udslette de monstre, der stjal vores verden."
+------------------------------------------------------------
+Line 136:
+  Original: "And now it's all going to be undone by some wide-eyed 13-year-old girl?"
+  MyMemory: "Og nu vil det hele blive ødelagt af en 13-årig pige med store øjne?"
+  DeepL: "Og nu skal det hele ødelægges af en storøjet 13-årig pige?"
+  Google: "Og nu vil det hele blive fortrydt af en vidøjet 13-årig pige?"
+  Ollama: "Og nu skal det hele ødelægges af en storøjet 13-årig pige?"
+  First pass: "Og nu skal det hele ødelægges af en storøjet 13-årig pige?"
+  Final: "Og nu skal det hele ødelægges af en storøjet 13-årig pige?"
+------------------------------------------------------------
+Line 137:
+  Original: "- #BRACKET_OPEN#glass shatters#BRACKET_CLOSE# - #BRACKET_OPEN#gasps#BRACKET_CLOSE#"
+  MyMemory: "- #BRACKET_OPEN #glas splintrer #bracket_close # - #BRACKET_OPEN #gasps #bracket_close #"
+  Google: "-#bracket_open#glasskatter#bracket_close# -#bracket_open#gisps#bracket_close#"
+  DeepL: "- #BRACKET_OPEN#glas splintres#BRACKET_CLOSE# - #BRACKET_OPEN#gasser#BRACKET_CLOSE#."
+  Ollama: "- #BRACKET_OPEN#glas splintres#BRACKET_CLOSE# - #BRACKET_OPEN#gisp#BRACKET_CLOSE#"
+  First pass: "- [glas splintres] - [gasp]."
+  Critic: "- [glas knuses] - [gisp]." (CHANGED)
+  Final: "- [glas knuses] - [gisp]."
+------------------------------------------------------------
+Line 138:
+  Original: "They're not monsters all the time."
+  DeepL: "De er ikke monstre hele tiden."
+  MyMemory: "De er ikke monstre hele tiden."
+  Google: "De er ikke monstre hele tiden."
+  Ollama: "De er ikke monstre hele tiden."
+  First pass: "De er ikke monstre hele tiden."
+  Final: "De er ikke monstre hele tiden."
+------------------------------------------------------------
+Line 139:
+  Original: "- What did you say? - Uh, nothing."
+  DeepL: "- Hvad var det, du sagde? - Øh, ingenting."
+  MyMemory: "- Hvad sagde du? - Ingenting."
+  Google: "- Hvad sagde du? - Øh, intet."
+  Ollama: "- Hvad sagde du? - Øh, ingenting."
+  First pass: "- Hvad sagde du? - Øh, ingenting."
+  Final: "- Hvad sagde du? - Øh, ingenting."
+------------------------------------------------------------
+Line 140:
+  Original: "I just meant I talked to some of them—"
+  MyMemory: "Jeg mente bare, at jeg talte med nogle af dem-"
+  DeepL: "Jeg mente bare, at jeg talte med nogle af dem..."
+  Google: "Jeg mente bare, at jeg talte med nogle af dem -"
+  Ollama: "Jeg mente bare, at jeg talte med nogle af dem –"
+  First pass: "Jeg mente bare, at jeg talte med nogle af dem. .."
+  Critic: "Jeg mente bare, at jeg har talt med nogle af dem." (CHANGED)
+  Final: "Jeg mente bare, at jeg har talt med nogle af dem."
+------------------------------------------------------------
+Line 141:
+  Original: "Through the bars of a cage that they kept you in!"
+  DeepL: "Gennem tremmerne i et bur, som de holdt dig fanget i!"
+  MyMemory: "Gennem stængerne i et bur, som de holdt dig i!"
+  Google: "Gennem stængerne på et bur, som de holdt dig inde!"
+  Ollama: "Gennem tremmerne i et bur, som de holdt dig fanget i!"
+  First pass: "Gennem tremmerne i et bur, som de holdt dig fanget i!"
+  Final: "Gennem tremmerne i et bur, som de holdt dig fanget i!"
+------------------------------------------------------------
+Line 142:
+  Original: "We are humanity's last hope."
+  DeepL: "Vi er menneskehedens sidste håb."
+  MyMemory: "Vi er menneskehedens sidste håb."
+  Google: "Vi er menneskehedens sidste håb."
+  Ollama: "Vi er menneskehedens sidste håb."
+  First pass: "Vi er menneskehedens sidste håb."
+  Final: "Vi er menneskehedens sidste håb."
+------------------------------------------------------------
+Line 143:
+  Original: "Don't forget what side you're on, Zane."
+  DeepL: "Glem ikke, hvilken side du er på, Zane."
+  MyMemory: "Glem ikke, hvilken side du er på, Zane."
+  Google: "Glem ikke hvilken side du er på, Zane."
+  Ollama: "Glem ikke, hvilken side du står på, Zane."
+  First pass: "Glem ikke, hvilken side du er på, Zane."
+  Final: "Glem ikke, hvilken side du er på, Zane."
+------------------------------------------------------------
+Line 144:
+  Original: "Why'd you bring me here?"
+  DeepL: "Hvorfor tog du mig med hertil?"
+  MyMemory: "Hvorfortog du mig med hertil?"
+  Google: "Hvorfor bragte du mig hit?"
+  Ollama: "Hvorfor tog du mig med herhen?"
+  First pass: "Hvorfor har du taget mig med hertil?"
+  Final: "Hvorfor har du taget mig med hertil?"
+------------------------------------------------------------
+Line 145:
+  Original: "Come on, Kipo, we're gonna be late for school!"
+  MyMemory: "Kom nu, Kipo, vi kommer for sent i skole!"
+  Google: "Kom nu, Kipo, vi kommer sent til skolen!"
+  DeepL: "Kom nu, Kipo, vi kommer for sent i skole!"
+  Ollama: "Kom nu, Kipo, vi kommer for sent i skole!"
+  First pass: "Kom nu, Kipo, vi kommer for sent i skole!"
+  Final: "Kom nu, Kipo, vi kommer for sent i skole!"
+------------------------------------------------------------
+Line 146:
+  Original: "There's nothing here. What are you talking about?"
+  Google: "Der er intet her. Hvad taler du om?"
+  DeepL: "Der er ikke noget her. Hvad taler du om?"
+  MyMemory: "Der er ikke noget her. Hvad taler du om?"
+  Ollama: "Der er ikke noget her. Hvad taler du om?"
+  First pass: "Der er ikke noget her. Hvad snakker du om?"
+  Critic: "Der er ikke noget her. Hvad taler du om?" (CHANGED)
+  Final: "Der er ikke noget her. Hvad taler du om?"
+------------------------------------------------------------
+Line 147:
+  Original: "Advanced geometry."
+  Google: "Avanceret geometri."
+  DeepL: "Avanceret geometri."
+  MyMemory: "Avanceret geometri."
+  Ollama: "Avanceret geometri."
+  First pass: "Avanceret geometri."
+  Final: "Avanceret geometri."
+------------------------------------------------------------
+Line 148:
+  Original: "Mister Filburn is gonna be mad if we miss the bell."
+  Google: "Mister Filburn bliver gal, hvis vi savner klokken."
+  DeepL: "Hr. Filburn bliver vred, hvis vi ikke når klokken."
+  MyMemory: "Hr. Filburn bliver vred, hvis vi går glip af klokken."
+  Ollama: "Hr. Filburn bliver tosset, hvis vi ikke når klokken."
+  First pass: "Hr. Filburn bliver vred, hvis vi ikke når klokken."
+  Critic: "Hr. Filburn bliver vred, hvis vi ikke når at høre klokken." (CHANGED)
+  Final: "Hr. Filburn bliver vred, hvis vi ikke når at høre klokken."
+------------------------------------------------------------
+Line 149:
+  Original: "Okay, class, today we're learning about math, which has numbers in it."
+  Google: "Okay, klasse, i dag lærer vi om matematik, der har tal i det."
+  DeepL: "Okay, klasse, i dag skal vi lære om matematik, som indeholder tal."
+  MyMemory: "Okay, klasse, i dag lærer vi om matematik, som har tal i sig."
+  Ollama: "Okay, klasse, i dag skal vi lære om matematik, som indeholder tal."
+  First pass: "Okay, klasse, i dag skal vi lære om matematik, som indeholder tal."
+  Final: "Okay, klasse, i dag skal vi lære om matematik, som indeholder tal."
+------------------------------------------------------------
+Line 150:
+  Original: "And... Ring! Ring!"
+  DeepL: "Og... Ring! Ring!"
+  Google: "Og ... ring! Ring!"
+  MyMemory: "Og... Ring! Ring!"
+  Ollama: "Og... Ring! Ring!"
+  First pass: "Og. .. Ring! Ring!"
+  Final: "Og. .. Ring! Ring!"
+------------------------------------------------------------
+Line 151:
+  Original: "School's done. Here's some diplomas."
+  Google: "Skolen er færdig. Her er nogle eksamensbeviser."
+  DeepL: "Skolen er færdig. Her er nogle eksamensbeviser."
+  MyMemory: "Skolen er færdig. Her er nogle eksamensbeviser."
+  Ollama: "Skolen er slut. Her er nogle eksamensbeviser."
+  First pass: "Skolen er færdig. Her er nogle eksamensbeviser."
+  Final: "Skolen er færdig. Her er nogle eksamensbeviser."
+------------------------------------------------------------
+Line 152:
+  Original: "Wow! All that learning made me hungry."
+  Google: "Wow! Al den læring gjorde mig sulten."
+  DeepL: "Hold da op! Al den læring gjorde mig sulten."
+  MyMemory: "Wow! Al den læring gjorde mig sulten."
+  Ollama: "Hold da op! Al den læring gjorde mig sulten."
+  First pass: "Hold da op! Al den læring gjorde mig sulten."
+  Critic: "Wow! Al den læring gjorde mig sulten." (CHANGED)
+  Final: "Wow! Al den læring gjorde mig sulten."
+------------------------------------------------------------
+Line 153:
+  Original: "Let's go to Mrs. Graham's bakery. Oh, look, we're here."
+  Google: "Lad os gå til fru Grahams bageri. Åh, se, vi er her."
+  DeepL: "Lad os tage hen til mrs. Grahams bageri. Se, vi er her."
+  MyMemory: "Lad os tage hen til fru Grahams bageri. Åh, se, vi er her."
+  Ollama: "Lad os gå til fru Grahams bageri. Åh, se, vi er her."
+  First pass: "Lad os tage hen til mrs. Grahams bageri. Se, vi er her."
+  Final: "Lad os tage hen til mrs. Grahams bageri. Se, vi er her."
+------------------------------------------------------------
+Line 154:
+  Original: "Guys, we don't have time for—"
+  Google: "Fyre, vi har ikke tid til—"
+  DeepL: "Gutter, vi har ikke tid til..."
+  MyMemory: "Venner, vi har ikke tid til-"
+  Ollama: "Fyre, vi har ikke tid til—"
+  First pass: "Gutter, vi har ikke tid til. .."
+  Critic: "Hey, vi har ikke tid til. .." (CHANGED)
+  Final: "Hey, vi har ikke tid til. .."
+------------------------------------------------------------
+Line 155:
+  Original: "Everyone has time for their favorite cake."
+  Google: "Alle har tid til deres yndlingskage."
+  DeepL: "Alle har tid til deres yndlingskage."
+  MyMemory: "Alle har tid til deres yndlingskage."
+  Ollama: "Alle har tid til deres yndlingskage."
+  First pass: "Alle har tid til deres yndlingskage."
+  Final: "Alle har tid til deres yndlingskage."
+------------------------------------------------------------
+Line 156:
+  Original: "Chocolate and peanut butter frosting, and chocolate chunks."
+  Google: "Chokolade- og jordnøddesmørfrosting og chokoladebunker."
+  DeepL: "Chokolade- og peanutbutterfrosting og chokoladestykker."
+  MyMemory: "Chokolade- og jordnøddesmørsfrosting og chokoladestykker."
+  Ollama: "Chokolade- og peanutbutterfrosting og chokoladestykker."
+  First pass: "Chokolade- og peanutbutterfrosting og chokoladestykker."
+  Final: "Chokolade- og peanutbutterfrosting og chokoladestykker."
+------------------------------------------------------------
+Line 157:
+  Original: "- Ho-ho-ho-ho! - All right, all right, stop."
+  Google: "-ho-ho-ho-ho! - Okay, okay, stop."
+  MyMemory: "- Ho-ho-ho-ho! - Okay, okay, stop."
+  DeepL: "- Ho-ho-ho-ho! - Okay, okay, stop."
+  Ollama: "- Ho-ho-ho-ho! - Okay, okay, stop."
+  First pass: "- Ho-ho-ho-ho! - Okay, okay, stop."
+  Final: "- Ho-ho-ho-ho! - Okay, okay, stop."
+------------------------------------------------------------
+Line 158:
+  Original: "#BRACKET_OPEN#Wolf#BRACKET_CLOSE# But you've been gushing about your people since the day we met."
+  Google: "#Bracket_open#ulv#bracket_close#men du har gushing om dine mennesker siden den dag, vi mødte."
+  MyMemory: "#bracket_open #Wolf #BRACKET_CLOSE #Men du har strømmet om dine folk, siden den dag vi mødtes."
+  DeepL: "#BRACKET_OPEN#Wolf#BRACKET_CLOSE# Men du har talt varmt om dit folk, siden vi mødtes."
+  Ollama: "#BRACKET_OPEN#Ulven#BRACKET_CLOSE# Men du har jo talt i superlativer om dit folk, siden vi mødtes."
+  First pass: "[Wolf] Men du har talt varmt om dit folk, siden vi mødtes."
+  Final: "[Wolf] Men du har talt varmt om dit folk, siden vi mødtes."
+------------------------------------------------------------
+Line 159:
+  Original: "We're just trying to remind you that you love them."
+  Google: "Vi prøver bare at minde dig om, at du elsker dem."
+  DeepL: "Vi prøver bare at minde dig om, at du elsker dem."
+  MyMemory: "Vi prøver bare at minde dig om, at du elsker dem."
+  Ollama: "Vi prøver bare at minde dig om, at du holder af dem."
+  First pass: "Vi prøver bare at minde dig om, at du elsker dem."
+  Final: "Vi prøver bare at minde dig om, at du elsker dem."
+------------------------------------------------------------
+Line 160:
+  Original: "But they're not my people anymore."
+  Google: "Men de er ikke mine folk mere."
+  MyMemory: "Men de er ikke mit folk længere."
+  DeepL: "Men de er ikke længere mit folk."
+  Ollama: "Men de er ikke længere mit folk."
+  First pass: "Men de er ikke længere mit folk."
+  Critic: "Men de er ikke længere mit folk længere." (CHANGED)
+  Final: "Men de er ikke længere mit folk længere."
+------------------------------------------------------------
+Line 161:
+  Original: "They're an army, an army that's erasing my friends."
+  Google: "De er en hær, en hær, der sletter mine venner."
+  DeepL: "De er en hær, en hær, der udrydder mine venner."
+  MyMemory: "De er en hær, en hær, der sletter mine venner."
+  Ollama: "De er en hær, en hær, der udrydder mine venner."
+  First pass: "De er en hær, en hær, der udsletter mine venner."
+  Final: "De er en hær, en hær, der udsletter mine venner."
+------------------------------------------------------------
+Line 162:
+  Original: "But you're still Kipo!"
+  Google: "Men du er stadig kipo!"
+  DeepL: "Men du er stadig Kipo!"
+  MyMemory: "Men du er stadig Kipo!"
+  Ollama: "Men du er stadig Kipo!"
+  First pass: "Men du er stadig Kipo!"
+  Final: "Men du er stadig Kipo!"
+------------------------------------------------------------
+Line 163:
+  Original: "The surface was a war zone before you got here,"
+  Google: "Overfladen var en krigszone, før du kom her,"
+  DeepL: "Overfladen var en krigszone, før du kom hertil,"
+  MyMemory: "Overfladen var en krigszone, før du kom hertil,"
+  Ollama: "Overfladen var en krigszone, før du kom hertil."
+  First pass: "Overfladen var en krigszone, før du kom hertil,"
+  Critic: "Overfladen var en krigszone, før du kom hertil." (CHANGED)
+  Final: "Overfladen var en krigszone, før du kom hertil."
+------------------------------------------------------------
+Line 164:
+  Original: "and you've almost brought that to an end because you always see the best in people."
+  MyMemory: "og du har næsten bragt det til en ende, fordi du altid ser det bedste i mennesker."
+  Google: "Og du har næsten bragt det til en ende, fordi du altid ser det bedste hos mennesker."
+  DeepL: "Og du har næsten sat en stopper for det, fordi du altid ser det bedste i folk."
+  Ollama: "Og du har næsten bragt det til en ende, fordi du altid ser det bedste i folk."
+  First pass: "Og du har næsten sat en stopper for det, fordi du altid ser det bedste i folk."
+  Final: "Og du har næsten sat en stopper for det, fordi du altid ser det bedste i folk."
+------------------------------------------------------------
+Line 165:
+  Original: "If you do this, you're gonna lose that."
+  MyMemory: "Hvis du gør dette, mister du det."
+  DeepL: "Hvis du gør det, mister du det."
+  Google: "Hvis du gør dette, mister du det."
+  Ollama: "Hvis du gør det her, mister du det dér."
+  First pass: "Hvis du gør det, mister du det."
+  Final: "Hvis du gør det, mister du det."
+------------------------------------------------------------
+Line 166:
+  Original: "- We're all gonna lose that. - We'll lose a lot more if I don't."
+  DeepL: "- Det kommer vi alle til at miste. - Vi mister meget mere, hvis jeg ikke gør det."
+  Google: "- Vi mister alle det. - Vi mister meget mere, hvis jeg ikke gør det."
+  MyMemory: "- Det taber vi alle sammen. - Vi mister meget mere, hvis jeg ikke gør det."
+  Ollama: "- Det mister vi alle. - Vi mister meget mere, hvis jeg ikke gør det."
+  First pass: "- Det kommer vi alle til at miste. - Vi mister meget mere, hvis jeg ikke gør det."
+  Final: "- Det kommer vi alle til at miste. - Vi mister meget mere, hvis jeg ikke gør det."
+------------------------------------------------------------
+Line 167:
+  Original: "Anyway, could you please let me finish my story?"
+  MyMemory: "Anyway, vil du være venlig at lade mig færdiggøre min historie?"
+  Google: "Kan du alligevel lade mig afslutte min historie?"
+  DeepL: "Nå, men vil du ikke nok lade mig afslutte min historie?"
+  Ollama: "Nå, vil du ikke nok lade mig slutte min historie?"
+  First pass: "Nå, men vil du ikke nok lade mig afslutte min historie?"
+  Final: "Nå, men vil du ikke nok lade mig afslutte min historie?"
+------------------------------------------------------------
+Line 168:
+  Original: "#BRACKET_OPEN#Benson#BRACKET_CLOSE# Forget it, Dave. Plan didn't work."
+  DeepL: "#BRACKET_OPEN#Benson#BRACKET_CLOSE# Glem det, Dave. Planen virkede ikke."
+  MyMemory: "#BRACKET_OPEN #BENSON #bracket_close #GLEM det, Dave. Planen virkede ikke."
+  Google: "#Bracket_open#benson#bracket_close#glem det, dave. Planen virkede ikke."
+  Ollama: "#BRACKET_OPEN#Benson#BRACKET_CLOSE# Glem det, Dave. Planen virkede ikke."
+  First pass: "[Benson] Glem det, Dave. Planen virkede ikke."
+  Final: "[Benson] Glem det, Dave. Planen virkede ikke."
+------------------------------------------------------------
+Line 169:
+  Original: "Maybe yours didn't, but I'm onto something!"
+  DeepL: "Måske gjorde din det ikke, men jeg er på sporet af noget!"
+  MyMemory: "Måske gjorde din ikke, men jeg er på sporet af noget!"
+  Google: "Måske gjorde din ikke, men jeg er på noget!"
+  Ollama: "Måske var din ikke, men jeg er på sporet af noget!"
+  First pass: "Måske lykkedes din plan ikke, men jeg er på sporet af noget!"
+  Critic: "Måske mislykkedes din plan, men jeg er på sporet af noget!" (CHANGED)
+  Final: "Måske mislykkedes din plan, men jeg er på sporet af noget!"
+------------------------------------------------------------
+Line 170:
+  Original: "And by the end, you're gonna be all like, "Dave, you're a genius."
+  DeepL: "Og til sidst vil du sige: "Dave, du er et geni."
+  MyMemory: "Og til sidst vil du sige: "Dave, du er et geni."
+  Google: "Og i slutningen vil du være alt sammen, "Dave, du er et geni."
+  Ollama: "Og til sidst står du og siger: "Dave, du er et geni."
+  First pass: "Og til sidst vil du sige:"
+  Critic: "Og til sidst vil du sige: "Dave, du er et geni. "" (CHANGED)
+  Final: "Og til sidst vil du sige: "Dave, du er et geni. ""
+------------------------------------------------------------
+Line 171:
+  Original: "You did it again!""
+  DeepL: "Du gjorde det igen!""
+  MyMemory: "Du gjorde det igen!""
+  Google: "Du gjorde det igen! ""
+  Ollama: "Du gjorde det igen!"
+  First pass: "Du gjorde det igen!"
+  Final: "Du gjorde det igen!"
+------------------------------------------------------------
+Line 172:
+  Original: "- #BRACKET_OPEN#yells#BRACKET_CLOSE# - Okay."
+  DeepL: "- #BRACKET_OPEN#råber#BRACKET_CLOSE# - Okay."
+  MyMemory: "- #BRACKET_OPEN #råber#bracket_close # - Okay."
+  Google: "-#bracket_open#råber#bracket_close# - okay."
+  Ollama: "- #BRACKET_OPEN#råber#BRACKET_CLOSE# - Okay."
+  First pass: "- [råber] - Okay."
+  Final: "- [råber] - Okay."
+------------------------------------------------------------
+Line 173:
+  Original: "So, there I was..."
+  DeepL: "Så der stod jeg..."
+  MyMemory: "Så der var jeg..."
+  Google: "Så der var jeg ..."
+  Ollama: "Så der stod jeg..."
+  First pass: "Så der stod jeg. .."
+  Critic: "Så stod jeg der. .." (CHANGED)
+  Final: "Så stod jeg der. .."
+------------------------------------------------------------
+Line 174:
+  Original: "- #BRACKET_OPEN#sighs#BRACKET_CLOSE# Make it quick. - Where was I?"
+  DeepL: "- #BRACKET_OPEN#sighs#BRACKET_CLOSE# Gør det hurtigt. - Hvor var jeg?"
+  MyMemory: "- #bracket_open #SUKKERS #bracket_close# Gør det hurtigt. - Hvor var jeg?"
+  Google: "-#bracket_open#sukk#bracket_close#gør det hurtigt. - Hvor var jeg?"
+  Ollama: "- #BRACKET_OPEN#sukker#BRACKET_CLOSE# Gør det hurtigt. - Hvor var jeg?"
+  First pass: "- [sighs] Vær hurtig. - Hvor var jeg?"
+  Final: "- [sighs] Vær hurtig. - Hvor var jeg?"
+------------------------------------------------------------
+Line 175:
+  Original: "Super-hot, Daves rule, Mega Beavers..."
+  DeepL: "Super-hot, Daves rule, Mega Beavers..."
+  MyMemory: "Super-hot, Daves regel, Mega Beavers..."
+  Google: "Super-hot, Daves Regel, Mega Beavers ..."
+  Ollama: "Super-hot, Daves regel, Mega Beavers..."
+  First pass: "Super-hot, Daves rule, Mega Beavers. .."
+  Final: "Super-hot, Daves rule, Mega Beavers. .."
+------------------------------------------------------------
+Line 176:
+  Original: "Oh, yeah!"
+  Google: "Åh, ja!"
+  DeepL: "Åh, ja!"
+  MyMemory: "Åh, ja!"
+  Ollama: "Åh, ja!"
+  First pass: "Åh, ja!"
+  Final: "Åh, ja!"
+------------------------------------------------------------
+Line 177:
+  Original: "It had been 40 years since I found my fan, and I was basically a hero to the Daves."
+  DeepL: "Det var 40 år siden, jeg fandt min fan, og jeg var nærmest en helt for familien Dave."
+  MyMemory: "Det var 40 år siden, jeg fandt min fan, og jeg var dybest set en helt for familien Daves."
+  Google: "Det var 40 år siden jeg fandt min fan, og jeg var dybest set en helt for Daves."
+  Ollama: "Det var 40 år siden, jeg fandt min fan, og jeg var nærmest en helt for Daves."
+  First pass: "Det var 40 år siden, jeg fandt min vifte, og jeg var nærmest en helt for Daves."
+  Final: "Det var 40 år siden, jeg fandt min vifte, og jeg var nærmest en helt for Daves."
+------------------------------------------------------------
+Line 178:
+  Original: "You're the best, Dave!"
+  DeepL: "Du er den bedste, Dave!"
+  MyMemory: "du er den bedste!"
+  Google: "Du er den bedste, Dave!"
+  Ollama: "Du er den bedste, Dave!"
+  First pass: "Du er den bedste, Dave!"
+  Final: "Du er den bedste, Dave!"
+------------------------------------------------------------
+Line 179:
+  Original: "Thank you, David! That means a lot."
+  DeepL: "Tak, David! Det betyder meget for mig."
+  MyMemory: "Tak, David! Det betyder meget."
+  Google: "Tak, David! Det betyder meget."
+  Ollama: "Tak, David! Det betyder meget for mig."
+  First pass: "Tak, David! Det betyder meget for mig."
+  Final: "Tak, David! Det betyder meget for mig."
+------------------------------------------------------------
+Line 180:
+  Original: "- Can you believe that guy? - #BRACKET_OPEN#man#BRACKET_CLOSE# Now!"
+  DeepL: "- Kan du tro den fyr? - #BRACKET_OPEN#man#BRACKET_CLOSE# Nu!"
+  Google: "- Kan du tro den fyr? -#bracket_open#mand#bracket_close#nu!"
+  MyMemory: "- Kan du fatte den fyr? - #bracket_open #man #bracket_close # Nu!"
+  Ollama: "- Kan du tro den fyr? - #BRACKET_OPEN#mand#BRACKET_CLOSE# Nu!"
+  First pass: "- Kan du tro den fyr? - [man] Nu!"
+  Final: "- Kan du tro den fyr? - [man] Nu!"
+------------------------------------------------------------
+Line 181:
+  Original: "#BRACKET_OPEN#yelling#BRACKET_CLOSE# Robots!"
+  DeepL: "#BRACKET_OPEN#yelling#BRACKET_CLOSE# Robotter!"
+  MyMemory: "#bracket_open #råb #BRACKET_CLOSE #ROBOTTER!"
+  Google: "#Bracket_open#råben#bracket_close#robotter!"
+  Ollama: "#BRACKET_OPEN#råben#BRACKET_CLOSE# Robotter!"
+  First pass: "[yelling] Robotter!"
+  Critic: "[råbende] Robotter!" (CHANGED)
+  Final: "[råbende] Robotter!"
+------------------------------------------------------------
+Line 182:
+  Original: "I knew this day would come!"
+  DeepL: "Jeg vidste, at denne dag ville komme!"
+  MyMemory: "Jeg vidste, at denne dag ville komme!"
+  Google: "Jeg vidste, at denne dag ville komme!"
+  Ollama: "Jeg vidste det!"
+  First pass: "Jeg vidste, at denne dag ville komme!"
+  Final: "Jeg vidste, at denne dag ville komme!"
+------------------------------------------------------------
+Line 183:
+  Original: "I'll protect you, my Daves."
+  DeepL: "Jeg vil beskytte jer, mine Daves."
+  Google: "Jeg beskytter dig, min Daves."
+  MyMemory: "Jeg beskytter jer, mine Daves."
+  Ollama: "Jeg vil beskytte jer, mine Daves."
+  First pass: "Jeg vil beskytte jer, mine Daves."
+  Final: "Jeg vil beskytte jer, mine Daves."
+------------------------------------------------------------
+Line 184:
+  Original: "Get out of here, robots! Shoo!"
+  DeepL: "Forsvind herfra, robotter! Væk!"
+  MyMemory: "Forsvind herfra, robotter! Shoo!"
+  Google: "Gå ud herfra, robotter! Shoo!"
+  Ollama: "Forsvind herfra, robotter! Væk!"
+  First pass: "Forsvind herfra, robotter! Skram af!"
+  Final: "Forsvind herfra, robotter! Skram af!"
+------------------------------------------------------------
+Line 185:
+  Original: "Shh, shh! #BRACKET_OPEN#growling#BRACKET_CLOSE#"
+  DeepL: "Shh, shh! #BRACKET_OPEN#grådighed#BRACKET_CLOSE#"
+  MyMemory: "Shh, shh! #bracket_open #browling #bracket_close #"
+  Google: "Shh, shh! #Bracket_open#knurrende#bracket_close#"
+  Ollama: "Shh, shh! #BRACKET_OPEN#knurren#BRACKET_CLOSE#"
+  First pass: "Shh, shh! [knurren]"
+  Final: "Shh, shh! [knurren]"
+------------------------------------------------------------
+Line 186:
+  Original: "We demand... the fan!"
+  DeepL: "Vi kræver ... blæseren!"
+  MyMemory: "Vi kræver... ventilatoren!"
+  Google: "Vi kræver ... fanen!"
+  Ollama: "Vi kræver ... blæseren!"
+  First pass: "Vi kræver. .. blæseren!"
+  Final: "Vi kræver. .. blæseren!"
+------------------------------------------------------------
+Line 187:
+  Original: "Never! This fan belongs to the Daves,"
+  DeepL: "Aldrig! Denne ventilator tilhører Daves,"
+  Google: "Aldrig! Denne fan tilhører Daves,"
+  MyMemory: "Aldrig! Denne ventilator tilhører familien Daves,"
+  Ollama: "Aldrig! Denne ventilator tilhører familien Daves."
+  First pass: "Aldrig! Denne ventilator tilhører Daves,"
+  Critic: "Aldrig! Denne ventilator tilhører Daves." (CHANGED)
+  Final: "Aldrig! Denne ventilator tilhører Daves."
+------------------------------------------------------------
+Line 188:
+  Original: "so get your cold, rusty fingers away from me."
+  DeepL: "Så få dine kolde, rustne fingre væk fra mig."
+  MyMemory: "så få dine kolde, rustne fingre væk fra mig."
+  Google: "Så få dine kolde, rustne fingre væk fra mig."
+  Ollama: "Så hold dine kolde, rustne fingre fra mig."
+  First pass: "Så hold dine kolde, rustne fingre væk fra mig."
+  Final: "Så hold dine kolde, rustne fingre væk fra mig."
+------------------------------------------------------------
+Line 189:
+  Original: "#BRACKET_OPEN#all gasp#BRACKET_CLOSE# You're no robot, you're that dweeb."
+  Google: "#Bracket_open#alle gisp#bracket_close#du er ingen robot, du er den dweeb."
+  DeepL: "#BRACKET_OPEN#alle gisper#BRACKET_CLOSE# Du er ikke en robot, du er den nørd."
+  MyMemory: "#bracket_open #all GASP #bracket_close # Du er ingen robot, du er den dweeb."
+  Ollama: "#BRACKET_OPEN#alle gisper#BRACKET_CLOSE# Du er ikke en robot, du er den nørd."
+  First pass: "[alle gisper] Du er ikke en robot, du er den nørd."
+  Critic: "[alle gisper] Du er ikke en robot, du er den tosse." (CHANGED)
+  Final: "[alle gisper] Du er ikke en robot, du er den tosse."
+------------------------------------------------------------
+Line 190:
+  Original: "Nay, I am the grandson of that dweeb."
+  DeepL: "Nej, jeg er barnebarn af den idiot."
+  MyMemory: "Nej, jeg er barnebarn af den dweeb."
+  Google: "Nej, jeg er barnebarn af den dweeb."
+  Ollama: "Nej, jeg er barnebarn af den tosse."
+  First pass: "Nej, jeg er barnebarn af den tosse."
+  Final: "Nej, jeg er barnebarn af den tosse."
+------------------------------------------------------------
+Line 191:
+  Original: "You stole the great fan our people were promised, bug man."
+  MyMemory: "Du stjal den store fan, vores folk blev lovet, insektmand."
+  DeepL: "Du stjal den store vifte, som vores folk blev lovet."
+  Google: "Du stjal den store fan, som vores folk blev lovet, bug mand."
+  Ollama: "Du stjal den store vifte, som vores folk blev lovet, bille."
+  First pass: "Du stjal den store vifte, som vores folk blev lovet, insektsmand."
+  Critic: "Du stjal den store vifte, som vores folk blev lovet, insektmand." (CHANGED)
+  Final: "Du stjal den store vifte, som vores folk blev lovet, insektmand."
+------------------------------------------------------------
+Line 192:
+  Original: "And now, generations later, we have come for our breezy revenge."
+  MyMemory: "Og nu, generationer senere, er vi kommet for at få vores luftige hævn."
+  DeepL: "Og nu, generationer senere, er vi kommet for at få vores luftige hævn."
+  Google: "Og nu, generationer senere, er vi kommet for vores blæsende hævn."
+  Ollama: "Og nu, generationer senere, er vi kommet for at få vores velfortjente hævn."
+  First pass: "Og nu, generationer senere, er vi kommet for at få vores luftige hævn."
+  Critic: "Og nu, generationer senere, er vi kommet for at få vores kølige hævn." (CHANGED)
+  Final: "Og nu, generationer senere, er vi kommet for at få vores kølige hævn."
+------------------------------------------------------------
+Line 193:
+  Original: "Fanatics, attack!"
+  DeepL: "Fanatikere, angrib!"
+  MyMemory: "Fanatikere, angrib!"
+  Google: "Fanatikere, angreb!"
+  Ollama: "Fanatikere, angrib!"
+  First pass: "Fanatikere, angrib!"
+  Final: "Fanatikere, angrib!"
+------------------------------------------------------------
+Line 194:
+  Original: "#BRACKET_OPEN#all yelling#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#alle råber#BRACKET_CLOSE#."
+  MyMemory: "#BRACKET_OPEN #alle råber #bracket_close #"
+  Google: "#Bracket_open#alle råben#bracket_close#"
+  Ollama: "#BRACKET_OPEN#alle råber#BRACKET_CLOSE#"
+  First pass: "[alle råber]"
+  Final: "[alle råber]"
+------------------------------------------------------------
+Line 195:
+  Original: "#BRACKET_OPEN#upbeat music playing#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#upbeat musik spiller#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #optimeret musikafspilning #BRACKET_CLOSE #"
+  Google: "#Bracket_open#optimistisk musik, der spiller#bracket_close#"
+  Ollama: "#BRACKET_OPEN#opstemt musik spiller#BRACKET_CLOSE#"
+  First pass: "[upbeat musik spiller]"
+  Final: "[upbeat musik spiller]"
+------------------------------------------------------------
+Line 196:
+  Original: "#BRACKET_OPEN#squealing#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#squealing#BRACKET_CLOSE#."
+  Google: "#Bracket_open#skrigende#bracket_close#"
+  MyMemory: "#bracket_open #squealing #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#hylende#BRACKET_CLOSE#"
+  First pass: "[squealing]."
+  Critic: "[squealing]" (CHANGED)
+  Final: "[squealing]"
+------------------------------------------------------------
+Line 197:
+  Original: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Of course, I fought bravely."
+  DeepL: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Selvfølgelig kæmpede jeg bravt."
+  MyMemory: "#BRACKET_OPEN #DAVE #bracket_close# Jeg kæmpede selvfølgelig tappert."
+  Google: "#Bracket_open#dave#bracket_close#selvfølgelig kæmpede jeg modigt."
+  Ollama: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Selvfølgelig kæmpede jeg bravt."
+  First pass: "[Dave] Selvfølgelig kæmpede jeg tappert."
+  Final: "[Dave] Selvfølgelig kæmpede jeg tappert."
+------------------------------------------------------------
+Line 198:
+  Original: "#BRACKET_OPEN#yelling#BRACKET_CLOSE# Run away, run away!"
+  DeepL: "#BRACKET_OPEN#yelling#BRACKET_CLOSE# Løb væk, løb væk!"
+  MyMemory: "#BRACKET_OPEN #råb #bracket_close # Løb væk, løb væk!"
+  Google: "#Bracket_open#råben#bracket_close#løb væk, løb væk!"
+  Ollama: "#BRACKET_OPEN#råben#BRACKET_CLOSE# Løb væk, løb væk!"
+  First pass: "[yelling] Løb væk, løb væk!"
+  Final: "[yelling] Løb væk, løb væk!"
+------------------------------------------------------------
+Line 199:
+  Original: "#BRACKET_OPEN#panting#BRACKET_CLOSE# I'll never let them have you."
+  DeepL: "#BRACKET_OPEN#panting#BRACKET_CLOSE# Jeg vil aldrig lade dem få dig."
+  MyMemory: "#BRACKET_OPEN #panting #bracket_close #Jeg vil aldrig lade dem få dig."
+  Google: "#Bracket_open#panting#bracket_close#Jeg vil aldrig lade dem have dig."
+  Ollama: "#BRACKET_OPEN#forpustet#BRACKET_CLOSE# Jeg vil aldrig lade dem få dig."
+  First pass: "[panting] Jeg vil aldrig lade dem få dig."
+  Critic: "[pustende] Jeg vil aldrig lade dem få dig." (CHANGED)
+  Final: "[pustende] Jeg vil aldrig lade dem få dig."
+------------------------------------------------------------
+Line 200:
+  Original: "#BRACKET_OPEN#music continues#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#musikken fortsætter#BRACKET_CLOSE#."
+  Google: "#Bracket_open#musik fortsætter#bracket_close#"
+  MyMemory: "#BRACKET_OPEN #musik fortsætter #bracket_close #"
+  Ollama: "#BRACKET_OPEN#musikken fortsætter#BRACKET_CLOSE#"
+  First pass: "[musikken fortsætter]"
+  Final: "[musikken fortsætter]"
+------------------------------------------------------------
+Line 201:
+  Original: "#BRACKET_OPEN#crying#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#græder#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #gråd #BRACKET_CLOSE #"
+  Google: "#Bracket_open#gråd#bracket_close#"
+  Ollama: "#BRACKET_OPEN#græder#BRACKET_CLOSE#"
+  First pass: "[græder]"
+  Final: "[græder]"
+------------------------------------------------------------
+Line 202:
+  Original: "#BRACKET_OPEN#laughs#BRACKET_CLOSE#"
+  Google: "#Bracket_open#griner#bracket_close#"
+  DeepL: "#BRACKET_OPEN#latter#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #griner #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#griner#BRACKET_CLOSE#"
+  First pass: "[latter]."
+  Final: "[latter]."
+------------------------------------------------------------
+Line 203:
+  Original: "And that's how I lost my fan."
+  DeepL: "Og det var sådan, jeg mistede min fan."
+  MyMemory: "Og sådan mistede jeg min fan."
+  Google: "Og sådan mistede jeg min fan."
+  Ollama: "Og det var sådan, jeg mistede min fan."
+  First pass: "Og det var sådan, jeg mistede min vifte."
+  Final: "Og det var sådan, jeg mistede min vifte."
+------------------------------------------------------------
+Line 204:
+  Original: "So, the lesson is...?"
+  DeepL: "Så lektien er...?"
+  MyMemory: "Så, lektionen er...?"
+  Google: "Så lektionen er ...?"
+  Ollama: "Så, hvad er lektien?"
+  First pass: "Så lektien er. .. ?"
+  Critic: "Så hvad er lektien. .. ?" (CHANGED)
+  Final: "Så hvad er lektien. .. ?"
+------------------------------------------------------------
+Line 205:
+  Original: "The first time. I'm not done yet."
+  DeepL: "Den første gang. Jeg er ikke færdig endnu."
+  MyMemory: "Første gang. Jeg er ikke færdig endnu."
+  Google: "Første gang. Jeg er ikke færdig endnu."
+  Ollama: "Den første gang. Jeg er ikke færdig endnu."
+  First pass: "Den første gang. Jeg er ikke færdig endnu."
+  Final: "Den første gang. Jeg er ikke færdig endnu."
+------------------------------------------------------------
+Line 206:
+  Original: "Thus the Great Dave Wars began."
+  DeepL: "Således begyndte de store Dave-krige."
+  MyMemory: "Således begyndte de store Dave-krige."
+  Google: "Således begyndte de store Dave Wars."
+  Ollama: "Således begyndte de store Dave-krige."
+  First pass: "Således begyndte de store Dave-krige."
+  Final: "Således begyndte de store Dave-krige."
+------------------------------------------------------------
+Line 207:
+  Original: "Naturally, I became the commander of the Dave Army."
+  DeepL: "Naturligvis blev jeg øverstbefalende for Dave Army."
+  Google: "Naturligvis blev jeg kommandant for Dave Army."
+  MyMemory: "Naturligvis blev jeg øverstbefalende for Dave-hæren."
+  Ollama: "Naturligvis blev jeg øverstbefalende for Dave-hæren."
+  First pass: "Naturligvis blev jeg øverstbefalende for Dave-hæren."
+  Final: "Naturligvis blev jeg øverstbefalende for Dave-hæren."
+------------------------------------------------------------
+Line 208:
+  Original: "#BRACKET_OPEN#groans#BRACKET_CLOSE#"
+  Google: "#Bracket_open#stønn#bracket_close#"
+  DeepL: "#BRACKET_OPEN#stønner#BRACKET_CLOSE#."
+  MyMemory: "#bracket_open #stønner #BRACKET_CLOSE #"
+  Ollama: "#BRACKET_OPEN#støn#BRACKET_CLOSE#"
+  First pass: "[stønner]"
+  Final: "[stønner]"
+------------------------------------------------------------
+Line 209:
+  Original: "For fan! Move, move, move!"
+  DeepL: "For fan! Flyt jer, flyt jer, flyt jer!"
+  MyMemory: "Til ventilator! Flyt, flyt, flyt!"
+  Google: "For fan! Flyt, flyt, flyt!"
+  Ollama: "For fan! Flyt jer, flyt jer, flyt jer!"
+  First pass: "For fan! Flyt jer, flyt jer, flyt jer!"
+  Final: "For fan! Flyt jer, flyt jer, flyt jer!"
+------------------------------------------------------------
+Line 210:
+  Original: "Every single day, it was the same fight."
+  DeepL: "Hver eneste dag var det den samme kamp."
+  Google: "Hver eneste dag var det den samme kamp."
+  MyMemory: "Hver eneste dag var det den samme kamp."
+  Ollama: "Hver eneste dag var det den samme kamp."
+  First pass: "Hver eneste dag var det den samme kamp."
+  Final: "Hver eneste dag var det den samme kamp."
+------------------------------------------------------------
+Line 211:
+  Original: "We'd win the fan, then they would win the fan,"
+  DeepL: "Vi ville vinde fanen, og så ville de vinde fanen,"
+  Google: "Vi ville vinde fanen, så vandt de fanen,"
+  Ollama: "Vi ville vinde fanen, og så ville de vinde den."
+  First pass: "Vi ville vinde fanen, og så ville de vinde fanen,"
+  Critic: "Vi ville vinde fanen, og så ville de vinde den," (CHANGED)
+  Final: "Vi ville vinde fanen, og så ville de vinde den,"
+------------------------------------------------------------
+Line 212:
+  Original: "over and over for 200 years."
+  DeepL: "igen og igen i 200 år."
+  Google: "igen og igen i 200 år."
+  Ollama: "igen og igen i 200 år."
+  First pass: "Igen og igen i 200 år."
+  Final: "Igen og igen i 200 år."
+------------------------------------------------------------
+Line 213:
+  Original: "And you're probably thinking, "No big deal. Daves are immortal.""
+  DeepL: "Og du tænker sikkert: "Det er ikke noget særligt. Daves er udødelige.""
+  Google: "Og du tænker sandsynligvis, "Ingen big deal. Daves er udødelige.""
+  Ollama: "Og du tænker nok: "Det er ikke noget at bekymre sig om. Daves er udødelige."
+  First pass: "Og du tænker sikkert: "Det er ikke noget særligt. Daves er udødelige. ""
+  Critic: "Og du tænker sikkert: "Det er ikke noget stort. Daves er udødelige. "" (CHANGED)
+  Final: "Og du tænker sikkert: "Det er ikke noget stort. Daves er udødelige. ""
+------------------------------------------------------------
+Line 214:
+  Original: "But the fanatics figured out our one weakness."
+  DeepL: "Men fanatikerne fandt ud af, at vi havde en svaghed."
+  Google: "Men fanatikere regnede ud af vores ene svaghed."
+  Ollama: "Men fanatikerne fandt ud af vores eneste svaghed."
+  First pass: "Men fanatikerne fandt ud af, at vi havde en svaghed."
+  Final: "Men fanatikerne fandt ud af, at vi havde en svaghed."
+------------------------------------------------------------
+Line 215:
+  Original: "#BRACKET_OPEN#gasping#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#gasning#BRACKET_CLOSE#."
+  Google: "#Bracket_open#gisping#bracket_close#"
+  Ollama: "#BRACKET_OPEN#forpustet#BRACKET_CLOSE#"
+  First pass: "[gasning]."
+  Critic: "[gispende]" (CHANGED)
+  Final: "[gispende]"
+------------------------------------------------------------
+Line 216:
+  Original: "#BRACKET_OPEN#yelps#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#yelps#BRACKET_CLOSE#."
+  Google: "#Bracket_open#yelps#bracket_close#"
+  Ollama: "#BRACKET_OPEN#hyl#BRACKET_CLOSE#"
+  First pass: "[yelps]."
+  Final: "[yelps]."
+------------------------------------------------------------
+Line 217:
+  Original: "And over time, there were fewer and fewer Daves."
+  DeepL: "Og med tiden blev der færre og færre Daves."
+  Google: "Og med tiden var der færre og færre Daves."
+  Ollama: "Og med tiden blev der færre og færre Daves."
+  First pass: "Og med tiden blev der færre og færre Daves."
+  Final: "Og med tiden blev der færre og færre Daves."
+------------------------------------------------------------
+Line 218:
+  Original: "Until I, Dave, was the only Dave left."
+  DeepL: "Indtil jeg, Dave, var den eneste Dave tilbage."
+  Google: "Indtil jeg, Dave, var den eneste Dave tilbage."
+  Ollama: "Indtil jeg, Dave, var den eneste Dave tilbage."
+  First pass: "Indtil jeg, Dave, var den eneste Dave tilbage."
+  Final: "Indtil jeg, Dave, var den eneste Dave tilbage."
+------------------------------------------------------------
+Line 219:
+  Original: "You can die? How?"
+  DeepL: "Kan du dø? Hvordan det?"
+  Google: "Kan du dø? Hvordan?"
+  Ollama: "Kan du dø? Hvordan?"
+  First pass: "Kan du dø? Hvordan det?"
+  Final: "Kan du dø? Hvordan det?"
+------------------------------------------------------------
+Line 220:
+  Original: "Oh, it's so dumb. All you have to do is..."
+  DeepL: "Åh, det er så dumt. Alt, hvad du skal gøre, er..."
+  Google: "Åh, det er så dumt. Alt hvad du skal gøre er ..."
+  Ollama: "Åh, det er så dumt. Det eneste, du skal gøre, er..."
+  First pass: "Åh, det er så dumt. Alt, du skal gøre, er. .."
+  Final: "Åh, det er så dumt. Alt, du skal gøre, er. .."
+------------------------------------------------------------
+Line 221:
+  Original: "Wait a minute! No way!"
+  Google: "Vent et øjeblik! På ingen måde!"
+  DeepL: "Vent et øjeblik! Det kan ikke passe!"
+  Ollama: "Vent et øjeblik! Det kan ikke passe!"
+  First pass: "Vent et øjeblik! Det kan ikke passe!"
+  Critic: "Vent et øjeblik! Det kan ikke være rigtigt!" (CHANGED)
+  Final: "Vent et øjeblik! Det kan ikke være rigtigt!"
+------------------------------------------------------------
+Line 222:
+  Original: "I am not falling for that again!"
+  DeepL: "Det falder jeg ikke for igen!"
+  Google: "Jeg falder ikke for det igen!"
+  Ollama: "Jeg falder ikke for det igen!"
+  First pass: "Det falder jeg ikke for igen!"
+  Final: "Det falder jeg ikke for igen!"
+------------------------------------------------------------
+Line 223:
+  Original: "So, humans are the reason you're the only Dave."
+  DeepL: "Så mennesker er grunden til, at du er den eneste Dave."
+  Google: "Så mennesker er grunden til, at du er den eneste Dave."
+  Ollama: "Så mennesker er grunden til, at du er den eneste Dave."
+  First pass: "Så mennesker er grunden til, at du er den eneste Dave."
+  Final: "Så mennesker er grunden til, at du er den eneste Dave."
+------------------------------------------------------------
+Line 224:
+  Original: "I think you all are focusing on the wrong parts of the story,"
+  DeepL: "Jeg tror, at I alle fokuserer på de forkerte dele af historien,"
+  Google: "Jeg tror, ​​I alle fokuserer på de forkerte dele af historien,"
+  Ollama: "Jeg tror, I alle fokuserer på de forkerte dele af historien."
+  First pass: "Jeg tror, at I alle fokuserer på de forkerte dele af historien,"
+  Final: "Jeg tror, at I alle fokuserer på de forkerte dele af historien,"
+------------------------------------------------------------
+Line 225:
+  Original: "which makes sense because I haven't gotten to the part you should focus on."
+  DeepL: "hvilket giver mening, fordi jeg ikke er nået til den del, du skal fokusere på."
+  Google: "Hvilket giver mening, fordi jeg ikke er kommet til den del, du skal fokusere på."
+  Ollama: "hvilket giver mening, fordi jeg ikke er nået til den del, du bør fokusere på."
+  First pass: "Hvilket giver mening, fordi jeg ikke er nået til den del, I skal fokusere på."
+  Critic: "Hvilket giver mening, fordi jeg ikke er nået til den del, *du* skal fokusere på." (CHANGED)
+  Final: "Hvilket giver mening, fordi jeg ikke er nået til den del, *du* skal fokusere på."
+------------------------------------------------------------
+Line 226:
+  Original: "- You see— - Thanks, but I've heard enough, Dave,"
+  DeepL: "- Ser du... - Tak, men jeg har hørt nok, Dave,"
+  Google: "- Ser du - - tak, men jeg har hørt nok, Dave,"
+  Ollama: "– Du ved… – Tak, men jeg har hørt nok, Dave."
+  First pass: "- Ser du. .. - Tak, men jeg har hørt nok, Dave,"
+  Critic: "- Ser du. .. - Tak, men jeg har hørt nok, Dave." (CHANGED)
+  Final: "- Ser du. .. - Tak, men jeg har hørt nok, Dave."
+------------------------------------------------------------
+Line 227:
+  Original: "and I've never been more sure of what I need to do."
+  DeepL: "Og jeg har aldrig været mere sikker på, hvad jeg skal gøre."
+  Google: "Og jeg har aldrig været mere sikker på, hvad jeg skal gøre."
+  Ollama: "Og jeg har aldrig været mere sikker på, hvad jeg skal gøre."
+  First pass: "Og jeg har aldrig været mere sikker på, hvad jeg skal gøre."
+  Final: "Og jeg har aldrig været mere sikker på, hvad jeg skal gøre."
+------------------------------------------------------------
+Line 228:
+  Original: "If I don't fight back now,"
+  DeepL: "Hvis jeg ikke kæmper imod nu,"
+  Google: "Hvis jeg ikke kæmper tilbage nu,"
+  Ollama: "Hvis jeg ikke kæmper imod nu,"
+  First pass: "Hvis jeg ikke kæmper imod nu,"
+  Final: "Hvis jeg ikke kæmper imod nu,"
+------------------------------------------------------------
+Line 229:
+  Original: "every mute on the surface will end up like your friends,"
+  DeepL: "Alle stumme på overfladen vil ende som dine venner,"
+  Google: "Hver stum på overfladen ender som dine venner,"
+  Ollama: "Alle stumme på overfladen ender med at blive som dine venner."
+  First pass: "Alle stumme på overfladen vil ende som dine venner,"
+  Critic: "Alle stumme på overfladen vil ende som dine venner." (CHANGED)
+  Final: "Alle stumme på overfladen vil ende som dine venner."
+------------------------------------------------------------
+Line 230:
+  Original: "and I won't let that happen."
+  DeepL: "Og det vil jeg ikke lade ske."
+  Google: "Og jeg vil ikke lade det ske."
+  Ollama: "Og det vil jeg ikke tillade."
+  First pass: "Og det vil jeg ikke lade ske."
+  Final: "Og det vil jeg ikke lade ske."
+------------------------------------------------------------
+Line 231:
+  Original: "Wait, Kipo, you really do need to listen to the rest of Dave's story."
+  Google: "Vent, Kipo, du har virkelig brug for at lytte til resten af ​​Dave's historie."
+  DeepL: "Vent, Kipo, du er virkelig nødt til at lytte til resten af Daves historie."
+  Ollama: "Vent, Kipo, du skal virkelig høre resten af Daves historie."
+  First pass: "Vent, Kipo, du er virkelig nødt til at lytte til resten af Daves historie."
+  Final: "Vent, Kipo, du er virkelig nødt til at lytte til resten af Daves historie."
+------------------------------------------------------------
+Line 232:
+  Original: "I finally know where he's going with it."
+  Google: "Endelig ved jeg, hvor han går med det."
+  DeepL: "Nu ved jeg endelig, hvor han vil hen med det."
+  Ollama: "Nu ved jeg endelig, hvor han vil hen med det."
+  First pass: "Nu ved jeg endelig, hvor han vil hen med det."
+  Final: "Nu ved jeg endelig, hvor han vil hen med det."
+------------------------------------------------------------
+Line 233:
+  Original: "It's the story of—"
+  DeepL: "Det er historien om..."
+  Google: "Det er historien om—"
+  Ollama: "Det er historien om—"
+  First pass: "Det er historien om. .."
+  Final: "Det er historien om. .."
+------------------------------------------------------------
+Line 234:
+  Original: "#BRACKET_OPEN#whistles#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#whistles#BRACKET_CLOSE#."
+  Google: "#Bracket_open#fløjter#bracket_close#"
+  Ollama: "#BRACKET_OPEN#fløjter#BRACKET_CLOSE#"
+  First pass: "[whistles]."
+  Final: "[whistles]."
+------------------------------------------------------------
+Line 235:
+  Original: "- #BRACKET_OPEN#barking#BRACKET_CLOSE# - Come on!"
+  DeepL: "- #BRACKET_OPEN#barking#BRACKET_CLOSE# - Kom nu!"
+  Google: "-#bracket_open#barking#bracket_close# - kom nu!"
+  Ollama: "- #BRACKET_OPEN#vov#BRACKET_CLOSE# - Kom nu!"
+  First pass: "- [barking] - Kom nu!"
+  Final: "- [barking] - Kom nu!"
+------------------------------------------------------------
+Line 236:
+  Original: "#BRACKET_OPEN#siren blaring#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#siren blæser#BRACKET_CLOSE#."
+  Google: "#Bracket_open#sirene blaring#bracket_close#"
+  Ollama: "#BRACKET_OPEN#sirenelyd#BRACKET_CLOSE#"
+  First pass: "[siren blæser]"
+  Final: "[siren blæser]"
+------------------------------------------------------------
+Line 237:
+  Original: "#BRACKET_OPEN#barking#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#barking#BRACKET_CLOSE#."
+  Google: "#Bracket_open#barking#bracket_close#"
+  Ollama: "#BRACKET_OPEN#gøen#BRACKET_CLOSE#"
+  First pass: "[barking]."
+  Final: "[barking]."
+------------------------------------------------------------
+Line 238:
+  Original: "No one skips out on Dave's story time!"
+  DeepL: "Ingen går glip af Daves historietime!"
+  Google: "Ingen springer ud på Dave's historietid!"
+  Ollama: "Ingen springer over Daves historietid!"
+  First pass: "Ingen springer over Daves historietime!"
+  Critic: "Ingen springer over Daves historietid!" (CHANGED)
+  Final: "Ingen springer over Daves historietid!"
+------------------------------------------------------------
+Line 239:
+  Original: "#BRACKET_OPEN#growls#BRACKET_CLOSE#"
+  Google: "#Bracket_open#knurr#bracket_close#"
+  DeepL: "#BRACKET_OPEN#growls#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#knurrer#BRACKET_CLOSE#"
+  First pass: "[growls]."
+  Final: "[growls]."
+------------------------------------------------------------
+Line 240:
+  Original: "You need to get to her before she reaches the boat!"
+  Google: "Du skal komme til hende, før hun når båden!"
+  DeepL: "Du skal nå frem til hende, før hun når båden!"
+  Ollama: "Du skal nå hende, før hun når båden!"
+  First pass: "Du skal nå frem til hende, før hun når båden!"
+  Critic: "Du skal nå hende, før hun når båden!" (CHANGED)
+  Final: "Du skal nå hende, før hun når båden!"
+------------------------------------------------------------
+Line 241:
+  Original: "- Uh, yeah, I know that, dude. - Hurry, Dave!"
+  DeepL: "- Ja, det ved jeg godt. - Skynd dig, Dave!"
+  Google: "- Åh, ja, jeg ved det, fyr. - Skynd dig, Dave!"
+  Ollama: "- Ja, det ved jeg godt, mand. - Skynd dig, Dave!"
+  First pass: "- Ja, det ved jeg godt. - Skynd dig, Dave!"
+  Final: "- Ja, det ved jeg godt. - Skynd dig, Dave!"
+------------------------------------------------------------
+Line 242:
+  Original: "#BRACKET_OPEN#squeals#BRACKET_CLOSE#"
+  Google: "#Bracket_open#skrig#bracket_close#"
+  DeepL: "#BRACKET_OPEN#squeals#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#skrig#BRACKET_CLOSE#"
+  First pass: "[squeals]."
+  Final: "[squeals]."
+------------------------------------------------------------
+Line 243:
+  Original: "She's coming for us! Run!"
+  Google: "Hun kommer efter os! Løbe!"
+  DeepL: "Hun kommer efter os! Løb!"
+  Ollama: "Hun kommer efter os! Løb!"
+  First pass: "Hun kommer efter os! Løb!"
+  Final: "Hun kommer efter os! Løb!"
+------------------------------------------------------------
+Line 244:
+  Original: "#BRACKET_OPEN#crowd screaming#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#skrigende menneskemængde#BRACKET_CLOSE#."
+  Google: "#Bracket_open#publikum skrigende#bracket_close#"
+  Ollama: "#BRACKET_OPEN#råbende menneskemængde#BRACKET_CLOSE#"
+  First pass: "[skrigende menneskemængde]"
+  Final: "[skrigende menneskemængde]"
+------------------------------------------------------------
+Line 245:
+  Original: "Dad, why is everyone afraid of Kipo?"
+  DeepL: "Far, hvorfor er alle bange for Kipo?"
+  Google: "Far, hvorfor er alle bange for Kipo?"
+  Ollama: "Far, hvorfor er alle bange for Kipo?"
+  First pass: "Far, hvorfor er alle bange for Kipo?"
+  Final: "Far, hvorfor er alle bange for Kipo?"
+------------------------------------------------------------
+Line 246:
+  Original: "#BRACKET_OPEN#gasps#BRACKET_CLOSE# You did it, didn't you?"
+  DeepL: "#BRACKET_OPEN#gasps#BRACKET_CLOSE# Du gjorde det, gjorde du ikke?"
+  Google: "#Bracket_open#gisps#bracket_close#du gjorde det, ikke?"
+  Ollama: "#BRACKET_OPEN#hvæser#BRACKET_CLOSE# Du gjorde det, ikke sandt?"
+  First pass: "[gasps] Du gjorde det, ikke sandt?"
+  Final: "[gasps] Du gjorde det, ikke sandt?"
+------------------------------------------------------------
+Line 247:
+  Original: "You hurt Kipo's friends."
+  DeepL: "Du gjorde Kipos venner fortræd."
+  Google: "Du har skadet Kipos venner."
+  Ollama: "Du har såret Kipos venner."
+  First pass: "Du gjorde Kipos venner fortræd."
+  Critic: "Du har såret Kipos venner." (CHANGED)
+  Final: "Du har såret Kipos venner."
+------------------------------------------------------------
+Line 248:
+  Original: "I was doing what I had to, for you, Doag, to make the surface safe."
+  DeepL: "Jeg gjorde, hvad jeg var nødt til, for dig, Doag, for at gøre overfladen sikker."
+  Google: "Jeg gjorde, hvad jeg havde til, for dig, Doag, for at gøre overfladen sikker."
+  Ollama: "Jeg gjorde, hvad jeg var nødt til, for dig, Doag, for at gøre overfladen sikker."
+  First pass: "Jeg gjorde, hvad jeg var nødt til, for dig, Doag, for at gøre overfladen sikker."
+  Final: "Jeg gjorde, hvad jeg var nødt til, for dig, Doag, for at gøre overfladen sikker."
+------------------------------------------------------------
+Line 249:
+  Original: "You didn't do this for Doag, you did it for Hoag!"
+  DeepL: "Du gjorde det ikke for Doag, du gjorde det for Hoag!"
+  Google: "Du gjorde ikke dette for Doag, du gjorde det for Hoag!"
+  Ollama: "Du gjorde det ikke for Doag, du gjorde det for Hoag!"
+  First pass: "Du gjorde det ikke for Doag, du gjorde det for Hoag!"
+  Final: "Du gjorde det ikke for Doag, du gjorde det for Hoag!"
+------------------------------------------------------------
+Line 250:
+  Original: "#BRACKET_OPEN#gasps#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#gasps#BRACKET_CLOSE#."
+  Google: "#Bracket_open#gisps#bracket_close#"
+  Ollama: "#BRACKET_OPEN#åndenød#BRACKET_CLOSE#"
+  First pass: "[gasps]."
+  Final: "[gasps]."
+------------------------------------------------------------
+Line 251:
+  Original: "#BRACKET_OPEN#grunts#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#grynt#BRACKET_CLOSE#."
+  Google: "#Bracket_open#grynt#bracket_close#"
+  Ollama: "#BRACKET_OPEN#grynt#BRACKET_CLOSE#"
+  First pass: "[grynt]."
+  Critic: "[grynt]" (CHANGED)
+  Final: "[grynt]"
+------------------------------------------------------------
+Line 252:
+  Original: "Get us out of here!"
+  DeepL: "Få os ud herfra!"
+  Google: "Få os ud herfra!"
+  Ollama: "Få os væk herfra!"
+  First pass: "Få os ud herfra!"
+  Critic: "Få os væk herfra!" (CHANGED)
+  Final: "Få os væk herfra!"
+------------------------------------------------------------
+Line 253:
+  Original: "I know you're angry, but please just listen."
+  Google: "Jeg ved, at du er vred, men vær venlig bare at lytte."
+  DeepL: "Jeg ved, at du er vred, men vær sød at lytte."
+  Ollama: "Jeg ved, du er vred, men lyt nu bare."
+  First pass: "Jeg ved, du er vred, men lyt nu lige."
+  Final: "Jeg ved, du er vred, men lyt nu lige."
+------------------------------------------------------------
+Line 254:
+  Original: "Yeah, you're gonna love the epic ending to my thrilling tale."
+  DeepL: "Ja, du vil elske den episke slutning på min spændende fortælling."
+  Google: "Ja, du vil elske den episke afslutning på min spændende historie."
+  Ollama: "Ja, du vil elske den episke afslutning på min spændende historie."
+  First pass: "Ja, du vil elske den episke slutning på min spændende fortælling."
+  Critic: "Ja, du vil elske den episke slutning på min spændende historie." (CHANGED)
+  Final: "Ja, du vil elske den episke slutning på min spændende historie."
+------------------------------------------------------------
+Line 255:
+  Original: "#BRACKET_OPEN#overlapping shouting#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#overlappende råb#BRACKET_CLOSE#."
+  Google: "#Bracket_open#overlappende råb#bracket_close#"
+  Ollama: "#BRACKET_OPEN#overlappende råb#BRACKET_CLOSE#"
+  First pass: "[overlappende råb]"
+  Final: "[overlappende råb]"
+------------------------------------------------------------
+Line 256:
+  Original: "As I was saying, although I was the last of the Dave army,"
+  DeepL: "Som jeg sagde, selv om jeg var den sidste i Dave-hæren,"
+  Google: "Som jeg sagde, selvom jeg var den sidste af Dave -hæren,"
+  Ollama: "Som jeg var ved at sige, selvom jeg var den sidste af Dave-hæren,"
+  First pass: "Som jeg sagde, selv om jeg var den sidste i Dave-hæren,"
+  Critic: "Som jeg sagde, selvom jeg var den sidste i Dave-hæren," (CHANGED)
+  Final: "Som jeg sagde, selvom jeg var den sidste i Dave-hæren,"
+------------------------------------------------------------
+Line 257:
+  Original: "the fan was safe in my powerful arms..."
+  DeepL: "Ventilatoren var i sikkerhed i mine stærke arme."
+  Google: "Ventilatoren var sikker i mine magtfulde arme ..."
+  Ollama: "Ventilatoren var tryg i mine stærke arme..."
+  First pass: "Ventilatoren var i sikkerhed i mine stærke arme."
+  Final: "Ventilatoren var i sikkerhed i mine stærke arme."
+------------------------------------------------------------
+Line 258:
+  Original: "until the day I met my greatest nemesis."
+  DeepL: "Indtil den dag, hvor jeg mødte min største nemesis."
+  Google: "Indtil den dag, jeg mødte min største nemesis."
+  Ollama: "Indtil den dag, hvor jeg mødte min største nemesis."
+  First pass: "Indtil den dag, hvor jeg mødte min største nemesis."
+  Final: "Indtil den dag, hvor jeg mødte min største nemesis."
+------------------------------------------------------------
+Line 259:
+  Original: "#BRACKET_OPEN#gasps#BRACKET_CLOSE#"
+  Google: "#Bracket_open#gisps#bracket_close#"
+  DeepL: "#BRACKET_OPEN#gasps#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#gisper#BRACKET_CLOSE#"
+  First pass: "[gasps]."
+  Final: "[gasps]."
+------------------------------------------------------------
+Line 260:
+  Original: "No!"
+  Google: "Ingen!"
+  DeepL: "Nej!"
+  Ollama: "Nej!"
+  First pass: "Nej!"
+  Final: "Nej!"
+------------------------------------------------------------
+Line 261:
+  Original: "Yes!"
+  Google: "Ja!"
+  DeepL: "Ja!"
+  Ollama: "Ja!"
+  First pass: "Ja!"
+  Final: "Ja!"
+------------------------------------------------------------
+Line 262:
+  Original: "#BRACKET_OPEN#laughs#BRACKET_CLOSE#"
+  Google: "#Bracket_open#griner#bracket_close#"
+  DeepL: "#BRACKET_OPEN#latter#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#griner#BRACKET_CLOSE#"
+  First pass: "[griner]."
+  Critic: "[griner]" (CHANGED)
+  Final: "[griner]"
+------------------------------------------------------------
+Line 263:
+  Original: "#BRACKET_OPEN#grunts#BRACKET_CLOSE#"
+  Google: "#Bracket_open#grynt#bracket_close#"
+  DeepL: "#BRACKET_OPEN#grynt#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#støn#BRACKET_CLOSE#"
+  First pass: "[grynt]."
+  Critic: "[grynt]" (CHANGED)
+  Final: "[grynt]"
+------------------------------------------------------------
+Line 264:
+  Original: "A little kid?"
+  Google: "Et lille barn?"
+  DeepL: "Et lille barn?"
+  Ollama: "Et lille barn?"
+  First pass: "Et lille barn?"
+  Final: "Et lille barn?"
+------------------------------------------------------------
+Line 265:
+  Original: "- #BRACKET_OPEN#straining#BRACKET_CLOSE# - In your face, little kid!"
+  Google: "-#bracket_open#anstrengende#bracket_close# - i dit ansigt, lille barn!"
+  DeepL: "- #BRACKET_OPEN#training#BRACKET_CLOSE# - Lige i ansigtet, lille dreng!"
+  Ollama: "- #BRACKET_OPEN#anstrengelse#BRACKET_CLOSE# - I dit ansigt, lille knægt!"
+  First pass: "- [anstrengt] - Lige i ansigtet, lille knægt!"
+  Final: "- [anstrengt] - Lige i ansigtet, lille knægt!"
+------------------------------------------------------------
+Line 266:
+  Original: "Good thing I installed that security rock right there."
+  Google: "God ting, jeg installerede den sikkerhedsrock lige der."
+  DeepL: "Godt, at jeg installerede den sikkerhedssten lige der."
+  Ollama: "Godt, jeg installerede den sikkerhedssten lige der."
+  First pass: "Godt, at jeg installerede den sikkerhedssten lige der."
+  Final: "Godt, at jeg installerede den sikkerhedssten lige der."
+------------------------------------------------------------
+Line 267:
+  Original: "#BRACKET_OPEN#chuckles#BRACKET_CLOSE# I can't believe they thought a kid could beat me!"
+  Google: "#Bracket_open#chuckles#bracket_close#Jeg kan ikke tro, at de troede, at et barn kunne slå mig!"
+  DeepL: "#BRACKET_OPEN#chuckles#BRACKET_CLOSE# Jeg kan ikke tro, at de troede, at et barn kunne slå mig!"
+  Ollama: "#BRACKET_OPEN#fniser#BRACKET_CLOSE# Jeg kan ikke tro, de troede, et barn kunne slå mig!"
+  First pass: "[chuckles] Jeg kan ikke tro, de troede, et barn kunne slå mig!"
+  Final: "[chuckles] Jeg kan ikke tro, de troede, et barn kunne slå mig!"
+------------------------------------------------------------
+Line 268:
+  Original: "Tell your people to give up now 'cause no one defeats Dave!"
+  Google: "Bed dine folk om at give op nu, fordi ingen besejrer Dave!"
+  DeepL: "Sig til dine folk, at de skal give op nu, for ingen kan besejre Dave!"
+  Ollama: "Sig til dine folk, at de kan give op nu, for ingen slår Dave!"
+  First pass: "Sig til dine folk, at de skal give op nu, for ingen besejrer Dave!"
+  Critic: "Sig til dine folk, at de skal give op nu, for ingen kan besejre Dave!" (CHANGED)
+  Final: "Sig til dine folk, at de skal give op nu, for ingen kan besejre Dave!"
+------------------------------------------------------------
+Line 269:
+  Original: "#BRACKET_OPEN#laughs#BRACKET_CLOSE#"
+  Google: "#Bracket_open#griner#bracket_close#"
+  DeepL: "#BRACKET_OPEN#latter#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#griner#BRACKET_CLOSE#"
+  First pass: "[latter]."
+  Final: "[latter]."
+------------------------------------------------------------
+Line 270:
+  Original: "Oh, no."
+  Google: "Åh, nej."
+  DeepL: "Åh, nej."
+  Ollama: "Åh, nej."
+  First pass: "Åh, nej."
+  Final: "Åh, nej."
+------------------------------------------------------------
+Line 271:
+  Original: "Oh, raspberries."
+  Google: "Åh, hindbær."
+  DeepL: "Åh, hindbær."
+  Ollama: "Åh, hindbær."
+  First pass: "Åh, hindbær."
+  Critic: "Åh, bærbær." (CHANGED)
+  Final: "Åh, bærbær."
+------------------------------------------------------------
+Line 272:
+  Original: "#BRACKET_OPEN#laughing#BRACKET_CLOSE# Whoo!"
+  Google: "#Bracket_open#griner#bracket_close#whoo!"
+  DeepL: "#BRACKET_OPEN#latter#BRACKET_CLOSE# Whoo!"
+  Ollama: "#BRACKET_OPEN#griner#BRACKET_CLOSE# Whoo!"
+  First pass: "[latter] Whoo!"
+  Final: "[latter] Whoo!"
+------------------------------------------------------------
+Line 273:
+  Original: "I'll find you, young man, and I will... #BRACKET_OPEN#snoring#BRACKET_CLOSE#"
+  Google: "Jeg finder dig, ung mand, og jeg vil ...#bracket_open#snorken#bracket_close#"
+  DeepL: "Jeg finder dig, unge mand, og jeg vil... #BRACKET_OPEN#snorken#BRACKET_CLOSE#"
+  Ollama: "Jeg finder dig, unge mand, og jeg vil... #BRACKET_OPEN#snorke#BRACKET_CLOSE#"
+  First pass: "Jeg finder dig, unge mand, og jeg vil. .. [snorken]"
+  Final: "Jeg finder dig, unge mand, og jeg vil. .. [snorken]"
+------------------------------------------------------------
+Line 274:
+  Original: "There was no way I was gonna let that little weasel"
+  Google: "Der var ingen måde, jeg ville lade den lille weasel"
+  DeepL: "Jeg ville ikke lade den lille væsel..."
+  Ollama: "Jeg ville ikke lade den lille slyngel."
+  First pass: "Jeg ville ikke lade den lille væsel. .."
+  Critic: "Jeg ville ikke lade den lille væsel tage det, der retmæssigt tilhørte mig." (CHANGED)
+  Final: "Jeg ville ikke lade den lille væsel tage det, der retmæssigt tilhørte mig."
+------------------------------------------------------------
+Line 275:
+  Original: "take what was rightfully mine!"
+  DeepL: "tage, hvad der retmæssigt var mit!"
+  Google: "Tag det, der med rette var mit!"
+  Ollama: "Tag det, der retmæssigt tilhører mig!"
+  First pass: "Tage, hvad der retmæssigt var mit!"
+  Final: "Tage, hvad der retmæssigt var mit!"
+------------------------------------------------------------
+Line 276:
+  Original: "#BRACKET_OPEN#music playing#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#musikken spiller#BRACKET_CLOSE#."
+  Google: "#Bracket_open#musik, der spiller#bracket_close#"
+  Ollama: "#BRACKET_OPEN#musikken spiller#BRACKET_CLOSE#"
+  First pass: "[musikken spiller]"
+  Final: "[musikken spiller]"
+------------------------------------------------------------
+Line 277:
+  Original: "#BRACKET_OPEN#yawns#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#yawns#BRACKET_CLOSE#."
+  Google: "#Bracket_open#gabber#bracket_close#"
+  Ollama: "#BRACKET_OPEN#gaber#BRACKET_CLOSE#"
+  First pass: "[gaber]."
+  Critic: "[gaber]" (CHANGED)
+  Final: "[gaber]"
+------------------------------------------------------------
+Line 278:
+  Original: "#BRACKET_OPEN#sighs#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#sighs#BRACKET_CLOSE#."
+  Google: "#Bracket_open#sukk#bracket_close#"
+  Ollama: "#BRACKET_OPEN#sukker#BRACKET_CLOSE#"
+  First pass: "[sukker]."
+  Critic: "[sukker]" (CHANGED)
+  Final: "[sukker]"
+------------------------------------------------------------
+Line 279:
+  Original: "Huh?"
+  DeepL: "Hvad?"
+  Google: "Huh?"
+  Ollama: "Hvad?"
+  First pass: "Hvad?"
+  Final: "Hvad?"
+------------------------------------------------------------
+Line 280:
+  Original: "Eww."
+  DeepL: "Æv."
+  Google: "Eww."
+  Ollama: "Æv."
+  First pass: "Æv."
+  Final: "Æv."
+------------------------------------------------------------
+Line 281:
+  Original: "#BRACKET_OPEN#straining#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#træning#BRACKET_CLOSE#."
+  Google: "#Bracket_open#anstrengende#bracket_close#"
+  Ollama: "#BRACKET_OPEN#anstrengelse#BRACKET_CLOSE#"
+  First pass: "[anstrenger sig]."
+  Critic: "[anstrenger sig]" (CHANGED)
+  Final: "[anstrenger sig]"
+------------------------------------------------------------
+Line 282:
+  Original: "- #BRACKET_OPEN#DAVE#BRACKET_CLOSE# I got it. - Huh?"
+  DeepL: "- #BRACKET_OPEN#DAVE#BRACKET_CLOSE# Jeg har det. - Hvad?"
+  Google: "-#bracket_open#dave#bracket_close#jeg fik det. - Huh?"
+  Ollama: "- #BRACKET_OPEN#DAVE#BRACKET_CLOSE# Jeg har den. - Hvad?"
+  First pass: "- [DAVE] Jeg har den. - Hvad?"
+  Final: "- [DAVE] Jeg har den. - Hvad?"
+------------------------------------------------------------
+Line 283:
+  Original: "Hey!"
+  DeepL: "Hey!"
+  Google: "Hej!"
+  Ollama: "Hej!"
+  First pass: "Hey!"
+  Final: "Hey!"
+------------------------------------------------------------
+Line 284:
+  Original: "Hey, give it back here."
+  DeepL: "Giv den tilbage."
+  Google: "Hej, giv det tilbage her."
+  Ollama: "Giv den tilbage her."
+  First pass: "Giv den tilbage."
+  Final: "Giv den tilbage."
+------------------------------------------------------------
+Line 285:
+  Original: "#BRACKET_OPEN#straining, grunts#BRACKET_CLOSE#"
+  Google: "#Bracket_open#anstrengelse, grynt#bracket_close#"
+  DeepL: "#BRACKET_OPEN#anstrengelse, grynt#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#anstrengelse, grynt#BRACKET_CLOSE#"
+  First pass: "[anstrengelse, grynt]"
+  Final: "[anstrengelse, grynt]"
+------------------------------------------------------------
+Line 286:
+  Original: "- #BRACKET_OPEN#laughing#BRACKET_CLOSE# - #BRACKET_OPEN#boy#BRACKET_CLOSE# Oww!"
+  Google: "-#bracket_open#griner#bracket_close# -#bracket_open#dreng#bracket_close#oww!"
+  DeepL: "- #BRACKET_OPEN#latter#BRACKET_CLOSE# - #BRACKET_OPEN#dreng#BRACKET_CLOSE# Oww!"
+  Ollama: "- #BRACKET_OPEN#griner#BRACKET_CLOSE# - #BRACKET_OPEN#dreng#BRACKET_CLOSE# Avv!"
+  First pass: "- [latter] - [dreng] Avv!"
+  Final: "- [latter] - [dreng] Avv!"
+------------------------------------------------------------
+Line 287:
+  Original: "#BRACKET_OPEN#music continues#BRACKET_CLOSE#"
+  Google: "#Bracket_open#musik fortsætter#bracket_close#"
+  DeepL: "#BRACKET_OPEN#musikken fortsætter#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#musikken fortsætter#BRACKET_CLOSE#"
+  First pass: "[musikken fortsætter]."
+  Final: "[musikken fortsætter]."
+------------------------------------------------------------
+Line 288:
+  Original: "#BRACKET_OPEN#roaring#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#brølende#BRACKET_CLOSE#."
+  Google: "#Bracket_open#brølende#bracket_close#"
+  Ollama: "#BRACKET_OPEN#brølende#BRACKET_CLOSE#"
+  First pass: "[brølende]."
+  Critic: "[brølende]" (CHANGED)
+  Final: "[brølende]"
+------------------------------------------------------------
+Line 289:
+  Original: "Hey!"
+  DeepL: "Hey!"
+  Google: "Hej!"
+  Ollama: "Hej!"
+  First pass: "Hey!"
+  Final: "Hey!"
+------------------------------------------------------------
+Line 290:
+  Original: "#BRACKET_OPEN#yelps#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#yelps#BRACKET_CLOSE#."
+  Google: "#Bracket_open#yelps#bracket_close#"
+  Ollama: "#BRACKET_OPEN#hyl#BRACKET_CLOSE#"
+  First pass: "[yelps]."
+  Critic: "[gisp]." (CHANGED)
+  Final: "[gisp]."
+------------------------------------------------------------
+Line 291:
+  Original: "#BRACKET_OPEN#straining#BRACKET_CLOSE# No!"
+  DeepL: "#BRACKET_OPEN#træning#BRACKET_CLOSE# Nej!"
+  Google: "#Bracket_open#anstrengende#bracket_close#nr!"
+  Ollama: "#BRACKET_OPEN#anstrengende#BRACKET_CLOSE# Nej!"
+  First pass: "[anstrenger sig] Nej!"
+  Final: "[anstrenger sig] Nej!"
+------------------------------------------------------------
+Line 292:
+  Original: "He was the greatest mind I've ever faced, but Daves mostly never give up,"
+  DeepL: "Han var den største hjerne, jeg nogensinde har stået over for, men Daves giver for det meste aldrig op,"
+  Google: "Han var det største sind, jeg nogensinde har været udsat for, men Daves giver for det meste aldrig op,"
+  Ollama: "Han var det skarpeste hoved, jeg nogensinde har mødt, men Daves giver sjældent op."
+  First pass: "Han var den største hjerne, jeg nogensinde har stået over for, men Daves giver for det meste aldrig op,"
+  Critic: "Han var den største hjerne, jeg nogensinde har stået over for, men Daves giver som regel aldrig op." (CHANGED)
+  Final: "Han var den største hjerne, jeg nogensinde har stået over for, men Daves giver som regel aldrig op."
+------------------------------------------------------------
+Line 293:
+  Original: "and this was definitely mostly no exception."
+  DeepL: "og dette var bestemt ikke nogen undtagelse."
+  Google: "Og dette var bestemt for det meste ingen undtagelse."
+  Ollama: "og dette var bestemt ikke nogen undtagelse."
+  First pass: "Og dette var bestemt ikke nogen undtagelse."
+  Final: "Og dette var bestemt ikke nogen undtagelse."
+------------------------------------------------------------
+Line 294:
+  Original: "Huh?"
+  Google: "Huh?"
+  DeepL: "Hvad?"
+  Ollama: "Hvad?"
+  First pass: "Hvad?"
+  Final: "Hvad?"
+------------------------------------------------------------
+Line 295:
+  Original: "#BRACKET_OPEN#gasps#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#gasps#BRACKET_CLOSE#."
+  Google: "#Bracket_open#gisps#bracket_close#"
+  Ollama: "#BRACKET_OPEN#udånder#BRACKET_CLOSE#"
+  First pass: "[gasps]"
+  Final: "[gasps]"
+------------------------------------------------------------
+Line 296:
+  Original: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# I call that one the Flaming Phantom! #BRACKET_OPEN#laughing#BRACKET_CLOSE#"
+  Google: "#Bracket_open#dave#bracket_close#jeg kalder den ene den flammende fantom! #Bracket_open#griner#bracket_close#"
+  DeepL: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Jeg kalder den for det flammende fantom! #BRACKET_OPEN#latter#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Jeg kalder den for den flammende fantom! #BRACKET_OPEN#griner#BRACKET_CLOSE#"
+  First pass: "[Dave] Jeg kalder den for Det Flammende Fantom! [latter]."
+  Critic: "[Dave] Jeg kalder den Det Flammende Fantom! [latter]." (CHANGED)
+  Final: "[Dave] Jeg kalder den Det Flammende Fantom! [latter]."
+------------------------------------------------------------
+Line 297:
+  Original: "No!"
+  DeepL: "Nej!"
+  Google: "Ingen!"
+  Ollama: "Nej!"
+  First pass: "Nej!"
+  Final: "Nej!"
+------------------------------------------------------------
+Line 298:
+  Original: "I think it's time I name you."
+  DeepL: "Jeg tror, det er på tide, at jeg giver dig et navn."
+  Google: "Jeg tror, ​​det er på tide, at jeg navngiver dig."
+  Ollama: "Jeg tror, det er på tide, at jeg giver dig et navn."
+  First pass: "Jeg tror, det er på tide, at jeg giver dig et navn."
+  Critic: "Jeg tror, det er på tide, at jeg navngiver dig." (CHANGED)
+  Final: "Jeg tror, det er på tide, at jeg navngiver dig."
+------------------------------------------------------------
+Line 299:
+  Original: "Hmm, how 'bout Fan? Hey!"
+  Google: "Hmm, hvordan 'bout fan? Hej!"
+  DeepL: "Hmm, hvad med Fan? Hey, hey, hey!"
+  Ollama: "Hmm, hvad med Fan? Hej!"
+  First pass: "Hmm, hvad med Fan? Hey!"
+  Final: "Hmm, hvad med Fan? Hey!"
+------------------------------------------------------------
+Line 300:
+  Original: "Ha! You just got "Bensoned.""
+  Google: "Ha! Du er lige blevet "bensoned.""
+  DeepL: "Ha! Du er lige blevet "Bensoned"."
+  Ollama: "Ha! Du er lige blevet "bensoned"."
+  First pass: "Ha! Du er lige blevet "Bensoned"."
+  Final: "Ha! Du er lige blevet "Bensoned"."
+------------------------------------------------------------
+Line 301:
+  Original: "#BRACKET_OPEN#yelps#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#yelps#BRACKET_CLOSE#."
+  Google: "#Bracket_open#yelps#bracket_close#"
+  Ollama: "#BRACKET_OPEN#hyl#BRACKET_CLOSE#"
+  First pass: "[yelps]."
+  Final: "[yelps]."
+------------------------------------------------------------
+Line 302:
+  Original: "Well, you just got "Daved.""
+  Google: "Nå, du har lige fået "Daved.""
+  DeepL: "Du er lige blevet "Daved"."
+  Ollama: "Du er lige blevet "Daved"."
+  First pass: "Du er lige blevet "Daved"."
+  Final: "Du er lige blevet "Daved"."
+------------------------------------------------------------
+Line 303:
+  Original: "You better get comfortable 'cause that's a Dave knot,"
+  DeepL: "Du må hellere sætte dig godt til rette, for det er en Dave-knude,"
+  Google: "Du skal hellere blive komfortabel, fordi det er en Dave -knude,"
+  Ollama: "Du får hellere sidde godt fast, for det er en Dave-knude."
+  First pass: "Du må hellere sætte dig godt til rette, for det er en Dave-knude,"
+  Critic: "Du må hellere sætte dig godt til rette, for det er en Dave-knude." (CHANGED)
+  Final: "Du må hellere sætte dig godt til rette, for det er en Dave-knude."
+------------------------------------------------------------
+Line 304:
+  Original: "un-untiable to anyone but Dave."
+  DeepL: "Uundværlig for alle andre end Dave."
+  Google: "ikke-digbar for andre end Dave."
+  Ollama: "Uundværlig for alle andre end Dave."
+  First pass: "Uopløselig for alle andre end Dave."
+  Final: "Uopløselig for alle andre end Dave."
+------------------------------------------------------------
+Line 305:
+  Original: "- The fan is mine. - Oh, yeah?"
+  DeepL: "- Ventilatoren er min. - Åh, ja?"
+  Google: "- Ventilatoren er min. - Åh, ja?"
+  Ollama: "- Ventilatoren er min. - Åh, virkelig?"
+  First pass: "- Ventilatoren er min. - Åh, ja?"
+  Final: "- Ventilatoren er min. - Åh, ja?"
+------------------------------------------------------------
+Line 306:
+  Original: "Well, that's a Benson knot. Boom!"
+  DeepL: "Det er en Benson-knude. Bum!"
+  Google: "Det er en Benson -knude. Boom!"
+  Ollama: "Det er en Benson-knude. Boom!"
+  First pass: "Det er en Benson-knude. Bum!"
+  Critic: "Det er en Benson-knude. Boom!" (CHANGED)
+  Final: "Det er en Benson-knude. Boom!"
+------------------------------------------------------------
+Line 307:
+  Original: "#BRACKET_OPEN#straining#BRACKET_CLOSE#"
+  Google: "#Bracket_open#anstrengende#bracket_close#"
+  DeepL: "#BRACKET_OPEN#træning#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#anstrengende#BRACKET_CLOSE#"
+  First pass: "[anstrenger sig]."
+  Critic: "[anstrenger sig]" (CHANGED)
+  Final: "[anstrenger sig]"
+------------------------------------------------------------
+Line 308:
+  Original: "#BRACKET_OPEN#gnawing#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#gnawing#BRACKET_CLOSE#."
+  Google: "#Bracket_open#gnawing#bracket_close#"
+  Ollama: "#BRACKET_OPEN#gnasken#BRACKET_CLOSE#"
+  First pass: "[gnawing]."
+  Critic: "[gnawing]" (CHANGED)
+  Final: "[gnawing]"
+------------------------------------------------------------
+Line 309:
+  Original: "I'm coming for you, fan! #BRACKET_OPEN#gnawing#BRACKET_CLOSE#"
+  DeepL: "Jeg kommer efter dig, fan! #BRACKET_OPEN#gnawing#BRACKET_CLOSE#"
+  Google: "Jeg kommer efter dig, fan! #Bracket_open#gnawing#bracket_close#"
+  Ollama: "Jeg kommer efter dig, fan! #BRACKET_OPEN#gnawing#BRACKET_CLOSE#"
+  First pass: "Jeg kommer efter dig, fan! [gnawing]"
+  Final: "Jeg kommer efter dig, fan! [gnawing]"
+------------------------------------------------------------
+Line 310:
+  Original: "Not if I get there first!"
+  DeepL: "Ikke hvis jeg kommer først!"
+  Google: "Ikke hvis jeg kommer der først!"
+  Ollama: "Ikke hvis jeg kommer først!"
+  First pass: "Ikke hvis jeg når det først!"
+  Critic: "Ikke hvis jeg når frem først!" (CHANGED)
+  Final: "Ikke hvis jeg når frem først!"
+------------------------------------------------------------
+Line 311:
+  Original: "#BRACKET_OPEN#both gnawing#BRACKET_CLOSE# Ow! Stupid rope mouth!"
+  DeepL: "#BRACKET_OPEN#begge gnaver#BRACKET_CLOSE# Av! Dumme rebmund!"
+  Google: "#Bracket_open#begge gnawing#bracket_close#ow! Dumt reb mund!"
+  Ollama: "#BRACKET_OPEN#begge gnaver#BRACKET_CLOSE# Av! Dumme rebmund!"
+  First pass: "[begge gnaver] Av! Dumme rebmund!"
+  Final: "[begge gnaver] Av! Dumme rebmund!"
+------------------------------------------------------------
+Line 312:
+  Original: "I can't believe the all-powerful Dave got caught by some gangly kid."
+  DeepL: "Jeg kan ikke tro, at den almægtige Dave blev fanget af en lille dreng."
+  Google: "Jeg kan ikke tro, at den magtfulde Dave blev fanget af et gangly barn."
+  Ollama: "Jeg kan ikke tro, at den almægtige Dave blev overlistet af en spinkel dreng."
+  First pass: "Jeg kan ikke tro, at den almægtige Dave blev fanget af en spinkel dreng."
+  Final: "Jeg kan ikke tro, at den almægtige Dave blev fanget af en spinkel dreng."
+------------------------------------------------------------
+Line 313:
+  Original: "Excuse me? I'm the fiercest warrior of all the fanatics!"
+  Google: "Undskyld mig? Jeg er den hårdeste kriger af alle fanatikere!"
+  DeepL: "Undskyld mig? Jeg er den hårdeste kriger af alle fanatikere!"
+  Ollama: "Undskyld, jeg er den vildeste kriger blandt alle fanatikere!"
+  First pass: "Undskyld mig? Jeg er den hårdeste kriger af alle fanatikere!"
+  Critic: "Undskyld mig? Jeg er den hårdeste kriger af alle fans!" (CHANGED)
+  Final: "Undskyld mig? Jeg er den hårdeste kriger af alle fans!"
+------------------------------------------------------------
+Line 314:
+  Original: "Yeah, right. You can't even chew through that rope."
+  DeepL: "Ja, det er rigtigt. Du kan ikke engang tygge dig igennem rebet."
+  Google: "Ja, rigtigt. Du kan ikke engang tygge gennem det reb."
+  Ollama: "Ja, for søren. Du kan ikke engang tygge dig igennem det reb."
+  First pass: "Ja, det er rigtigt. Du kan ikke engang tygge dig igennem rebet."
+  Critic: "Ja, det er rigtigt. Du kan ikke engang tygge dig igennem det reb." (CHANGED)
+  Final: "Ja, det er rigtigt. Du kan ikke engang tygge dig igennem det reb."
+------------------------------------------------------------
+Line 315:
+  Original: "Neither can you."
+  DeepL: "Det kan du heller ikke."
+  Google: "Du kan heller ikke."
+  Ollama: "Du kan heller ikke."
+  First pass: "Det kan du heller ikke."
+  Final: "Det kan du heller ikke."
+------------------------------------------------------------
+Line 316:
+  Original: "Well, I will because I have to because no one else is coming for me"
+  DeepL: "Det gør jeg, fordi jeg er nødt til det, for ingen andre kommer efter mig."
+  Google: "Det vil jeg, fordi jeg er nødt til det, fordi ingen andre kommer efter mig"
+  Ollama: "Det gør jeg, fordi jeg er nødt til det, for ingen andre kommer efter mig."
+  First pass: "Det gør jeg, fordi jeg er nødt til det, for ingen andre kommer efter mig."
+  Final: "Det gør jeg, fordi jeg er nødt til det, for ingen andre kommer efter mig."
+------------------------------------------------------------
+Line 317:
+  Original: "because I'm the last Dave. So there."
+  DeepL: "fordi jeg er den sidste Dave. Sådan er det."
+  Google: "Fordi jeg er den sidste Dave. Så der."
+  Ollama: "fordi jeg er den sidste Dave. Punktum."
+  First pass: "Fordi jeg er den sidste Dave. Sådan her."
+  Final: "Fordi jeg er den sidste Dave. Sådan her."
+------------------------------------------------------------
+Line 318:
+  Original: "I'm the last, too."
+  DeepL: "Jeg er også den sidste."
+  Google: "Jeg er også den sidste."
+  Ollama: "Jeg er også den sidste."
+  First pass: "Jeg er også den sidste."
+  Final: "Jeg er også den sidste."
+------------------------------------------------------------
+Line 319:
+  Original: "But there were so many of you dweebs."
+  DeepL: "Men der var så mange af jer nørder."
+  Google: "Men der var så mange af jer dweebs."
+  Ollama: "Men der var så mange af jer nørdere."
+  First pass: "Men der var så mange af jer nørder."
+  Critic: "Men der var så mange af jer nørdere." (CHANGED)
+  Final: "Men der var så mange af jer nørdere."
+------------------------------------------------------------
+Line 320:
+  Original: "Yeah, well, not anymore."
+  Google: "Ja, ja, ikke længere."
+  DeepL: "Ja, men ikke længere."
+  Ollama: "Ja, men ikke længere."
+  First pass: "Ja, men ikke længere."
+  Final: "Ja, men ikke længere."
+------------------------------------------------------------
+Line 321:
+  Original: "Which means it's up to me to get that fan back!"
+  DeepL: "Hvilket betyder, at det er op til mig at få den fan tilbage!"
+  Google: "Hvilket betyder, at det er op til mig at få den fan tilbage!"
+  Ollama: "Hvilket betyder, at det er op til mig at få den fan tilbage!"
+  First pass: "Hvilket betyder, at det er op til mig at få fan'en tilbage!"
+  Final: "Hvilket betyder, at det er op til mig at få fan'en tilbage!"
+------------------------------------------------------------
+Line 322:
+  Original: "#BRACKET_OPEN#straining#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#træning#BRACKET_CLOSE#."
+  Google: "#Bracket_open#anstrengende#bracket_close#"
+  Ollama: "#BRACKET_OPEN#anstrengelse#BRACKET_CLOSE#"
+  First pass: "[anstrenger sig]."
+  Critic: "[anstrenger sig]" (CHANGED)
+  Final: "[anstrenger sig]"
+------------------------------------------------------------
+Line 323:
+  Original: "- #BRACKET_OPEN#groans#BRACKET_CLOSE# - Ow!"
+  DeepL: "- #BRACKET_OPEN#stønner#BRACKET_CLOSE# - Av!"
+  Google: "-#bracket_open#stønn#bracket_close# - ow!"
+  Ollama: "- #BRACKET_OPEN#støn#BRACKET_CLOSE# - Av!"
+  First pass: "- [stønner] - Av!"
+  Final: "- [stønner] - Av!"
+------------------------------------------------------------
+Line 324:
+  Original: "Being trapped stinks. There's never any snacks."
+  DeepL: "Det stinker at være fanget. Der er aldrig nogen snacks."
+  Google: "At blive fanget stinker. Der er aldrig nogen snacks."
+  Ollama: "At være fanget er træls. Der er aldrig nogen snacks."
+  First pass: "Det stinker at være fanget. Der er aldrig nogen snacks."
+  Final: "Det stinker at være fanget. Der er aldrig nogen snacks."
+------------------------------------------------------------
+Line 325:
+  Original: "Don't say "snacks." I'm starving."
+  DeepL: "Sig ikke "snacks". Jeg er hundesulten."
+  Google: "Sig ikke "snacks." Jeg sulter."
+  Ollama: "Sig ikke "snacks". Jeg er dødssulten."
+  First pass: "Sig ikke "snacks". Jeg er hundesulten."
+  Final: "Sig ikke "snacks". Jeg er hundesulten."
+------------------------------------------------------------
+Line 326:
+  Original: "Well, not that it's a competition, but I am starving-er."
+  DeepL: "Ikke at det er en konkurrence, men jeg er mere sulten."
+  Google: "Nå, ikke at det er en konkurrence, men jeg sulter."
+  Ollama: "Nå, det er ikke ligefrem en konkurrence, men jeg er dødssulten."
+  First pass: "Ikke at det er en konkurrence, men jeg er mere sulten."
+  Critic: "Ikke at det er en konkurrence, men jeg er endnu mere sulten." (CHANGED)
+  Final: "Ikke at det er en konkurrence, men jeg er endnu mere sulten."
+------------------------------------------------------------
+Line 327:
+  Original: "You know, I could hang up here for years,"
+  DeepL: "Jeg kunne hænge her i årevis,"
+  Google: "Du ved, jeg kunne hænge her i årevis,"
+  Ollama: "Du ved, jeg kunne sagtens blive hængende her i årevis."
+  First pass: "Jeg kunne hænge her i årevis,"
+  Final: "Jeg kunne hænge her i årevis,"
+------------------------------------------------------------
+Line 328:
+  Original: "but you don't want to go through puby in a tree, trust me."
+  DeepL: "Men du har ikke lyst til at gå igennem puberteten i et træ, tro mig."
+  Google: "Men du vil ikke gå gennem Puby i et træ, tro mig."
+  Ollama: "Men du vil ikke gennemgå puberteten i et træ, stol på mig."
+  First pass: "Men du har ikke lyst til at gå igennem puberteten i et træ, tro mig."
+  Critic: "Men du vil ikke gennemgå puberteten i et træ, stol på mig." (CHANGED)
+  Final: "Men du vil ikke gennemgå puberteten i et træ, stol på mig."
+------------------------------------------------------------
+Line 329:
+  Original: "So, how 'bout this,"
+  DeepL: "Så hvad med det her?"
+  Google: "Så hvordan 'bout dette,"
+  Ollama: "Så hvad med det?"
+  First pass: "Så hvad med det her?"
+  Final: "Så hvad med det her?"
+------------------------------------------------------------
+Line 330:
+  Original: "we untie each other at the same time, then we go back to fighting over Fan."
+  DeepL: "Vi slipper hinanden fri på samme tid, og så skændes vi igen om Fan."
+  Google: "Vi løsner hinanden på samme tid, så går vi tilbage til at kæmpe om fan."
+  Ollama: "Vi løsner hinanden på samme tid, og så begynder vi at skændes om Fan igen."
+  First pass: "Vi slipper hinanden fri på samme tid, og så skændes vi igen om Fan."
+  Final: "Vi slipper hinanden fri på samme tid, og så skændes vi igen om Fan."
+------------------------------------------------------------
+Line 331:
+  Original: "That's what I named the fan, by the way."
+  DeepL: "Det var i øvrigt det, jeg kaldte ventilatoren."
+  Google: "Det var det, jeg kaldte fan, forresten."
+  Ollama: "Det var i øvrigt, hvad jeg kaldte den ventilator."
+  First pass: "Det var i øvrigt det, jeg kaldte ventilatoren."
+  Critic: "Det var i øvrigt, hvad jeg kaldte ventilatoren." (CHANGED)
+  Final: "Det var i øvrigt, hvad jeg kaldte ventilatoren."
+------------------------------------------------------------
+Line 332:
+  Original: "- I was calling it Little Breezy. - Whoa! That's way better."
+  DeepL: "- Jeg kaldte den Little Breezy. - Det er meget bedre. Det er meget bedre."
+  Google: "- Jeg kaldte det lidt blæsende. - Whoa! Det er langt bedre."
+  Ollama: "- Jeg kaldte det Little Breezy. - Wow! Det er meget bedre."
+  First pass: "- Jeg kaldte den Little Breezy. - Wow! Det er meget bedre."
+  Final: "- Jeg kaldte den Little Breezy. - Wow! Det er meget bedre."
+------------------------------------------------------------
+Line 333:
+  Original: "#BRACKET_OPEN#laughs#BRACKET_CLOSE#"
+  Google: "#Bracket_open#griner#bracket_close#"
+  DeepL: "#BRACKET_OPEN#latter#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#griner#BRACKET_CLOSE#"
+  First pass: "[griner]."
+  Critic: "[griner]" (CHANGED)
+  Final: "[griner]"
+------------------------------------------------------------
+Line 334:
+  Original: "Fine. On three."
+  Google: "Bøde. På tre."
+  DeepL: "Fint nok. På tre."
+  Ollama: "Fint. På tre."
+  First pass: "Fint nok. På tre."
+  Final: "Fint nok. På tre."
+------------------------------------------------------------
+Line 335:
+  Original: "#BRACKET_OPEN#straining#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#træning#BRACKET_CLOSE#."
+  Google: "#Bracket_open#anstrengende#bracket_close#"
+  Ollama: "#BRACKET_OPEN#anstrengelse#BRACKET_CLOSE#"
+  First pass: "[anstrenger sig]."
+  Final: "[anstrenger sig]."
+------------------------------------------------------------
+Line 336:
+  Original: "- One... - Two..."
+  DeepL: "- En... - ...to..."
+  Google: "- en ... - to ..."
+  Ollama: "- En... - To..."
+  First pass: "- En. .. - To. .."
+  Final: "- En. .. - To. .."
+------------------------------------------------------------
+Line 337:
+  Original: "- #BRACKET_OPEN#both#BRACKET_CLOSE# Three! - Wait."
+  DeepL: "- #BRACKET_OPEN#both#BRACKET_CLOSE# Tre! - Vent lige lidt."
+  Google: "-#bracket_open#begge#bracket_close#tre! - Vent."
+  Ollama: "- #BRACKET_OPEN#begge#BRACKET_CLOSE# Tre! - Vent lige lidt."
+  First pass: "- [both] Tre! - Vent lige lidt."
+  Final: "- [both] Tre! - Vent lige lidt."
+------------------------------------------------------------
+Line 338:
+  Original: "#BRACKET_OPEN#both yelling, both grunt#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#begge råber, begge grynter#BRACKET_CLOSE#."
+  Google: "#Bracket_open#begge råben, begge grynt#bracket_close#"
+  Ollama: "#BRACKET_OPEN#begge råber, begge grynt#BRACKET_CLOSE#"
+  First pass: "[begge råber, begge grynter]"
+  Critic: "[begge råber, begge stønner]" (CHANGED)
+  Final: "[begge råber, begge stønner]"
+------------------------------------------------------------
+Line 339:
+  Original: "#BRACKET_OPEN#groans#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#stønner#BRACKET_CLOSE#."
+  Google: "#Bracket_open#stønn#bracket_close#"
+  Ollama: "#BRACKET_OPEN#stønner#BRACKET_CLOSE#"
+  First pass: "[stønner]"
+  Final: "[stønner]"
+------------------------------------------------------------
+Line 340:
+  Original: "#BRACKET_OPEN#crying#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#græder#BRACKET_CLOSE#."
+  Google: "#Bracket_open#gråd#bracket_close#"
+  Ollama: "#BRACKET_OPEN#græder#BRACKET_CLOSE#"
+  First pass: "[græder]"
+  Final: "[græder]"
+------------------------------------------------------------
+Line 341:
+  Original: "Whoa! No, no."
+  DeepL: "Hov! Nej, nej, nej."
+  Google: "Whoa! Nej, nej."
+  Ollama: "Hov! Nej, nej."
+  First pass: "Hov! Nej, nej."
+  Final: "Hov! Nej, nej."
+------------------------------------------------------------
+Line 342:
+  Original: "Fire bad, little dude."
+  DeepL: "Dårlig ild, lille ven."
+  Google: "Ild dårlig, lille fyr."
+  Ollama: "Ild er farlig, lille ven."
+  First pass: "Dårlig ild, lille ven."
+  Final: "Dårlig ild, lille ven."
+------------------------------------------------------------
+Line 343:
+  Original: "What are you doing here?"
+  DeepL: "Hvad laver du her?"
+  Google: "Hvad laver du her?"
+  Ollama: "Hvad laver du her?"
+  First pass: "Hvad laver du her?"
+  Final: "Hvad laver du her?"
+------------------------------------------------------------
+Line 344:
+  Original: "Mmm. Mmm!"
+  DeepL: "Mmm. Mmm!"
+  Google: "Mmm. Mmm!"
+  Ollama: "Mmm. Mmm!"
+  First pass: "Mmm. Mmm!"
+  Final: "Mmm. Mmm!"
+------------------------------------------------------------
+Line 345:
+  Original: "Whoa, not bad."
+  DeepL: "Wow, ikke dårligt."
+  Google: "Whoa, ikke dårligt."
+  Ollama: "Wow, ikke dårligt."
+  First pass: "Wow, ikke dårligt."
+  Final: "Wow, ikke dårligt."
+------------------------------------------------------------
+Line 346:
+  Original: "But it could use a little something extra."
+  DeepL: "Men den kunne godt bruge lidt ekstra."
+  Google: "Men det kunne bruge lidt noget ekstra."
+  Ollama: "Men den kunne godt bruge lidt ekstra."
+  First pass: "Men den kunne godt bruge lidt ekstra."
+  Final: "Men den kunne godt bruge lidt ekstra."
+------------------------------------------------------------
+Line 347:
+  Original: "Now try this."
+  DeepL: "Prøv nu det her."
+  Google: "Prøv nu dette."
+  Ollama: "Prøv nu det her."
+  First pass: "Prøv nu det her."
+  Final: "Prøv nu det her."
+------------------------------------------------------------
+Line 348:
+  Original: "#BRACKET_OPEN#spitting#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#spytteri#BRACKET_CLOSE#."
+  Google: "#Bracket_open#spytte#bracket_close#"
+  Ollama: "#BRACKET_OPEN#spytteri#BRACKET_CLOSE#"
+  First pass: "[spytteri]."
+  Critic: "[spytteri]" (CHANGED)
+  Final: "[spytteri]"
+------------------------------------------------------------
+Line 349:
+  Original: "Oh, no, that's horrible!"
+  DeepL: "Åh, nej, det er forfærdeligt!"
+  Google: "Åh, nej, det er forfærdeligt!"
+  Ollama: "Åh nej, det er forfærdeligt!"
+  First pass: "Åh, nej, det er forfærdeligt!"
+  Final: "Åh, nej, det er forfærdeligt!"
+------------------------------------------------------------
+Line 350:
+  Original: "Why did I eat that?"
+  DeepL: "Hvorfor spiste jeg det?"
+  Google: "Hvorfor spiste jeg det?"
+  Ollama: "Hvorfor spiste jeg det?"
+  First pass: "Hvorfor spiste jeg det?"
+  Final: "Hvorfor spiste jeg det?"
+------------------------------------------------------------
+Line 351:
+  Original: "There was no way that was gonna be good."
+  DeepL: "Det kunne på ingen måde blive godt."
+  Google: "Der var ingen måde, der ville være god."
+  Ollama: "Det kunne umuligt blive godt."
+  First pass: "Det kunne på ingen måde blive godt."
+  Final: "Det kunne på ingen måde blive godt."
+------------------------------------------------------------
+Line 352:
+  Original: "Yeah, I don't know anything about cooking."
+  DeepL: "Ja, jeg ved ikke noget om madlavning."
+  Google: "Ja, jeg ved ikke noget om madlavning."
+  Ollama: "Ja, jeg kan slet ikke lave mad."
+  First pass: "Ja, jeg ved ikke noget om madlavning."
+  Final: "Ja, jeg ved ikke noget om madlavning."
+------------------------------------------------------------
+Line 353:
+  Original: "I'm way better at eating."
+  Google: "Jeg er meget bedre til at spise."
+  DeepL: "Jeg er meget bedre til at spise."
+  Ollama: "Jeg er meget bedre til at spise."
+  First pass: "Jeg er meget bedre til at spise."
+  Final: "Jeg er meget bedre til at spise."
+------------------------------------------------------------
+Line 354:
+  Original: "#BRACKET_OPEN#giggling#BRACKET_CLOSE# Great. You eat, I'll cook."
+  DeepL: "#BRACKET_OPEN#giggling#BRACKET_CLOSE# Godt. Du spiser, jeg laver mad."
+  Google: "#Bracket_open#fnise#bracket_close#stor. Du spiser, jeg laver mad."
+  Ollama: "#BRACKET_OPEN#fnise#BRACKET_CLOSE# Godt. Du spiser, jeg laver mad."
+  First pass: "[giggling] Godt. Du spiser, jeg laver mad."
+  Final: "[giggling] Godt. Du spiser, jeg laver mad."
+------------------------------------------------------------
+Line 355:
+  Original: "You got a deal, little man."
+  DeepL: "Du har en aftale, lille mand."
+  Google: "Du fik en aftale, lille mand."
+  Ollama: "Du har en aftale, lille mand."
+  First pass: "Du har en aftale, lille mand."
+  Final: "Du har en aftale, lille mand."
+------------------------------------------------------------
+Line 356:
+  Original: "Mmm. Mmm!"
+  DeepL: "Mmm. Mmm!"
+  Google: "Mmm. Mmm!"
+  Ollama: "Mmm. Mmm!"
+  First pass: "Mmm. Mmm!"
+  Final: "Mmm. Mmm!"
+------------------------------------------------------------
+Line 357:
+  Original: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# We were stuck in an endless cycle to get that fan."
+  DeepL: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Vi var fanget i en endeløs cyklus for at få fat i den ventilator."
+  Google: "#Bracket_open#dave#bracket_close#vi sad fast i en uendelig cyklus for at få den fan."
+  Ollama: "#BRACKET_OPEN#Dave#BRACKET_CLOSE# Vi var fanget i en uendelig cyklus for at få fat i den ventilator."
+  First pass: "[Dave] Vi var fanget i en endeløs cyklus for at få den ventilator."
+  Final: "[Dave] Vi var fanget i en endeløs cyklus for at få den ventilator."
+------------------------------------------------------------
+Line 358:
+  Original: "If we hadn't slowed down and decided not to fight for just a second—"
+  DeepL: "Hvis vi ikke havde sat farten ned og besluttet ikke at kæmpe i bare et sekund..."
+  Google: "Hvis vi ikke havde bremset ned og besluttede ikke at kæmpe i et sekund -"
+  Ollama: "Hvis vi ikke havde sænket farten og besluttet os for ikke at kæmpe i et øjeblik…"
+  First pass: "Hvis vi ikke havde sat farten ned og besluttet ikke at kæmpe i bare et sekund. .."
+  Critic: "Hvis vi ikke havde sænket farten og besluttet ikke at kæmpe i bare et sekund. .." (CHANGED)
+  Final: "Hvis vi ikke havde sænket farten og besluttet ikke at kæmpe i bare et sekund. .."
+------------------------------------------------------------
+Line 359:
+  Original: "I wouldn't have my best friend, Benson."
+  DeepL: "Jeg ville ikke have min bedste ven, Benson."
+  Google: "Jeg ville ikke have min bedste ven, Benson."
+  Ollama: "Jeg ville ikke have min bedste ven, Benson."
+  First pass: "Jeg ville ikke have min bedste ven, Benson."
+  Final: "Jeg ville ikke have min bedste ven, Benson."
+------------------------------------------------------------
+Line 360:
+  Original: "And I wouldn't have my best friend, Dave."
+  DeepL: "Og jeg ville ikke have min bedste ven, Dave."
+  Google: "Og jeg ville ikke have min bedste ven, Dave."
+  Ollama: "Og jeg ville ikke have min bedste ven, Dave."
+  First pass: "Og jeg ville ikke have min bedste ven, Dave."
+  Critic: "Og jeg ville ikke have min bedste ven, Benson." (CHANGED)
+  Final: "Og jeg ville ikke have min bedste ven, Benson."
+------------------------------------------------------------
+Line 361:
+  Original: "#BRACKET_OPEN#sniffles#BRACKET_CLOSE# You guys are so weird."
+  DeepL: "#BRACKET_OPEN#sniffles#BRACKET_CLOSE# I er så underlige."
+  Google: "#Bracket_open#sniffles#bracket_close#I er så underlige."
+  Ollama: "#BRACKET_OPEN#sniffles#BRACKET_CLOSE# I er så mærkelige."
+  First pass: "[sniffles] I er så underlige."
+  Final: "[sniffles] I er så underlige."
+------------------------------------------------------------
+Line 362:
+  Original: "That's what I'm trying to say: Don't let this be your Fan, Kipo."
+  DeepL: "Det er det, jeg prøver at sige: Lad ikke dette blive din vifte, Kipo."
+  Google: "Det er det, jeg prøver at sige: Lad ikke dette være din fan, Kipo."
+  Ollama: "Det er det, jeg prøver at sige: Lad ikke det her blive din nemesis, Kipo."
+  First pass: "Det er det, jeg prøver at sige: Lad ikke dette blive din 'vifte', Kipo."
+  Critic: "Det er det, jeg prøver at sige: Lad ikke det her blive din 'vifte', Kipo." (CHANGED)
+  Final: "Det er det, jeg prøver at sige: Lad ikke det her blive din 'vifte', Kipo."
+------------------------------------------------------------
+Line 363:
+  Original: "#BRACKET_OPEN#growling#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#growling#BRACKET_CLOSE#."
+  Google: "#Bracket_open#knurrende#bracket_close#"
+  Ollama: "#BRACKET_OPEN#knurren#BRACKET_CLOSE#"
+  First pass: "[growling]."
+  Final: "[growling]."
+------------------------------------------------------------
+Line 364:
+  Original: "#BRACKET_OPEN#roaring#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#brølende#BRACKET_CLOSE#."
+  Google: "#Bracket_open#brølende#bracket_close#"
+  Ollama: "#BRACKET_OPEN#brølende#BRACKET_CLOSE#"
+  First pass: "[brølende]."
+  Critic: "[brølende]" (CHANGED)
+  Final: "[brølende]"
+------------------------------------------------------------
+Line 365:
+  Original: "Welp, I did my best."
+  DeepL: "Welp, jeg gjorde mit bedste."
+  Google: "Welp, jeg gjorde mit bedste."
+  Ollama: "Jeg gjorde, hvad jeg kunne."
+  First pass: "Welp, jeg gjorde mit bedste."
+  Final: "Welp, jeg gjorde mit bedste."
+------------------------------------------------------------
+Line 366:
+  Original: "#BRACKET_OPEN#people speaking indistinctly#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#folk taler utydeligt#BRACKET_CLOSE#."
+  Google: "#Bracket_open#folk taler utydeligt#bracket_close#"
+  Ollama: "#BRACKET_OPEN#folk taler utydeligt#BRACKET_CLOSE#"
+  First pass: "[folk taler utydeligt]"
+  Final: "[folk taler utydeligt]"
+------------------------------------------------------------
+Line 367:
+  Original: "Why is Kipo doing this?"
+  DeepL: "Hvorfor gør Kipo det her?"
+  Google: "Hvorfor gør Kipo dette?"
+  Ollama: "Hvorfor gør Kipo det her?"
+  First pass: "Hvorfor gør Kipo det her?"
+  Final: "Hvorfor gør Kipo det her?"
+------------------------------------------------------------
+Line 368:
+  Original: "She doesn't want us on the surface."
+  DeepL: "Hun vil ikke have os på overfladen."
+  Google: "Hun vil ikke have os på overfladen."
+  Ollama: "Hun vil ikke have, at vi er på overfladen."
+  First pass: "Hun vil ikke have os på overfladen."
+  Final: "Hun vil ikke have os på overfladen."
+------------------------------------------------------------
+Line 369:
+  Original: "She wants to get rid of us!"
+  DeepL: "Hun vil af med os!"
+  Google: "Hun vil slippe af med os!"
+  Ollama: "Hun vil af med os!"
+  First pass: "Hun vil af med os!"
+  Final: "Hun vil af med os!"
+------------------------------------------------------------
+Line 370:
+  Original: "That's not true."
+  DeepL: "Det er ikke sandt."
+  Google: "Det er ikke sandt."
+  Ollama: "Det er ikke sandt."
+  First pass: "Det er ikke sandt."
+  Final: "Det er ikke sandt."
+------------------------------------------------------------
+Line 371:
+  Original: "She's got this whole HMUFA thing"
+  DeepL: "Hun har hele den her HMUFA-ting."
+  Google: "Hun har hele denne hmufa -ting"
+  Ollama: "Hun har fuld styr på det der HMUFA."
+  First pass: "Hun har hele den her HMUFA-ting."
+  Final: "Hun har hele den her HMUFA-ting."
+------------------------------------------------------------
+Line 372:
+  Original: "where she wants humans and mutes to be friends."
+  DeepL: "hvor hun ønsker, at mennesker og stumme skal være venner."
+  Google: "Hvor hun ønsker, at mennesker og mutes skal være venner."
+  Ollama: "hvor hun ønsker, at mennesker og stumme er venner."
+  First pass: "Hvor hun ønsker, at mennesker og stumme skal være venner."
+  Critic: "Hvor hun ønsker, at mennesker og stumme er venner." (CHANGED)
+  Final: "Hvor hun ønsker, at mennesker og stumme er venner."
+------------------------------------------------------------
+Line 373:
+  Original: "If you like her so much..."
+  DeepL: "Hvis du kan lide hende så meget..."
+  Google: "Hvis du kan lide hende så meget ..."
+  Ollama: "Hvis du er så glad for hende..."
+  First pass: "Hvis du kan lide hende så meget. .."
+  Final: "Hvis du kan lide hende så meget. .."
+------------------------------------------------------------
+Line 374:
+  Original: "#BRACKET_OPEN#grunts#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#grynt#BRACKET_CLOSE#."
+  Google: "#Bracket_open#grynt#bracket_close#"
+  Ollama: "#BRACKET_OPEN#grynt#BRACKET_CLOSE#"
+  First pass: "[grynt]."
+  Critic: "[grynt]" (CHANGED)
+  Final: "[grynt]"
+------------------------------------------------------------
+Line 375:
+  Original: "why don't you wait for her?"
+  DeepL: "Hvorfor venter du ikke på hende?"
+  Google: "Hvorfor venter du ikke på hende?"
+  Ollama: "Hvorfor venter du ikke på hende?"
+  First pass: "Hvorfor venter du ikke på hende?"
+  Final: "Hvorfor venter du ikke på hende?"
+------------------------------------------------------------
+Line 376:
+  Original: "- #BRACKET_OPEN#crash#BRACKET_CLOSE# - #BRACKET_OPEN#both gasp#BRACKET_CLOSE#"
+  DeepL: "- #BRACKET_OPEN#crash#BRACKET_CLOSE# - #BRACKET_OPEN#begge gisper#BRACKET_CLOSE#."
+  Google: "-#bracket_open#crash#bracket_close# -#bracket_open#begge gisp#bracket_close#"
+  Ollama: "- #BRACKET_OPEN#crash#BRACKET_CLOSE# - #BRACKET_OPEN#begge gisper#BRACKET_CLOSE#"
+  First pass: "- [crash] - [begge gisper]."
+  Final: "- [crash] - [begge gisper]."
+------------------------------------------------------------
+Line 377:
+  Original: "#BRACKET_OPEN#crowd screaming#BRACKET_CLOSE#"
+  Google: "#Bracket_open#publikum skrigende#bracket_close#"
+  DeepL: "#BRACKET_OPEN#skrigende menneskemængde#BRACKET_CLOSE#."
+  Ollama: "#BRACKET_OPEN#råbende menneskemængde#BRACKET_CLOSE#"
+  First pass: "[skrigende menneskemængde]."
+  Critic: "[skrigende menneskemængde]" (CHANGED)
+  Final: "[skrigende menneskemængde]"
+------------------------------------------------------------
+Line 378:
+  Original: "#BRACKET_OPEN#roars#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#brøler#BRACKET_CLOSE#."
+  Google: "#Bracket_open#brøler#bracket_close#"
+  Ollama: "#BRACKET_OPEN#brøl#BRACKET_CLOSE#"
+  First pass: "[brøler]."
+  Critic: "[brøl]." (CHANGED)
+  Final: "[brøl]."
+------------------------------------------------------------
+Line 379:
+  Original: "#BRACKET_OPEN#indistinct chatter#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN# utydelig snak#BRACKET_CLOSE#."
+  Google: "#Bracket_open#utydelig chatter#bracket_close#"
+  Ollama: "#BRACKET_OPEN#utydelig snak#BRACKET_CLOSE#"
+  First pass: "[utydelig snak]."
+  Final: "[utydelig snak]."
+------------------------------------------------------------
+Line 380:
+  Original: "#BRACKET_OPEN#grunts#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#grynt#BRACKET_CLOSE#."
+  Google: "#Bracket_open#grynt#bracket_close#"
+  Ollama: "#BRACKET_OPEN#grynt#BRACKET_CLOSE#"
+  First pass: "[grynt]."
+  Critic: "[grynt]" (CHANGED)
+  Final: "[grynt]"
+------------------------------------------------------------
+Line 381:
+  Original: "You came to my home and hurt my friends,"
+  DeepL: "Du kom hjem til mig og gjorde mine venner fortræd,"
+  Google: "Du kom til mit hjem og skadede mine venner,"
+  Ollama: "Du kom hjem til mig og sårede mine venner."
+  First pass: "Du kom hjem til mig og gjorde mine venner fortræd,"
+  Critic: "Du kom til mit hjem og sårede mine venner," (CHANGED)
+  Final: "Du kom til mit hjem og sårede mine venner,"
+------------------------------------------------------------
+Line 382:
+  Original: "so I came here to do the same to you."
+  DeepL: "Så jeg kom her for at gøre det samme med dig."
+  Google: "Så jeg kom hit for at gøre det samme for dig."
+  Ollama: "Så jeg kom her for at gøre det samme ved dig."
+  First pass: "Så jeg kom her for at gøre det samme mod dig."
+  Final: "Så jeg kom her for at gøre det samme mod dig."
+------------------------------------------------------------
+Line 383:
+  Original: "#BRACKET_OPEN#all gasp#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#alle gisper#BRACKET_CLOSE#."
+  Google: "#Bracket_open#alle gisp#bracket_close#"
+  Ollama: "#BRACKET_OPEN#alle gisper#BRACKET_CLOSE#"
+  First pass: "[alle gisper]."
+  Critic: "[alle gisper]" (CHANGED)
+  Final: "[alle gisper]"
+------------------------------------------------------------
+Line 384:
+  Original: "But this fighting between humans and mutes has been happening for centuries."
+  DeepL: "Men denne kamp mellem mennesker og stumme har fundet sted i århundreder."
+  Google: "Men denne kamp mellem mennesker og mutes har sket i århundreder."
+  Ollama: "Men denne kamp mellem mennesker og stumme har stået på i århundreder."
+  First pass: "Men denne kamp mellem mennesker og stumme har fundet sted i århundreder."
+  Final: "Men denne kamp mellem mennesker og stumme har fundet sted i århundreder."
+------------------------------------------------------------
+Line 385:
+  Original: "And I could win today's battle,"
+  DeepL: "Og jeg kunne vinde dagens kamp,"
+  Google: "Og jeg kunne vinde dagens kamp,"
+  Ollama: "Og jeg kunne vinde dagens kamp."
+  First pass: "Og jeg kunne vinde dagens kamp,"
+  Final: "Og jeg kunne vinde dagens kamp,"
+------------------------------------------------------------
+Line 386:
+  Original: "but some other humans would come along to continue the war."
+  DeepL: "Men nogle andre mennesker ville komme og fortsætte krigen."
+  Google: "Men nogle andre mennesker ville komme med for at fortsætte krigen."
+  Ollama: "Men andre mennesker ville komme og fortsætte krigen."
+  First pass: "Men nogle andre mennesker ville komme og fortsætte krigen."
+  Critic: "Men andre mennesker ville komme og fortsætte krigen." (CHANGED)
+  Final: "Men andre mennesker ville komme og fortsætte krigen."
+------------------------------------------------------------
+Line 387:
+  Original: "That's because you can't end a war by fighting it."
+  DeepL: "Det er fordi, man ikke kan afslutte en krig ved at udkæmpe den."
+  Google: "Det er fordi du ikke kan afslutte en krig ved at bekæmpe den."
+  Ollama: "Det er fordi, man ikke kan afslutte en krig ved at føre den."
+  First pass: "Det er fordi, man ikke kan afslutte en krig ved at kæmpe den."
+  Final: "Det er fordi, man ikke kan afslutte en krig ved at kæmpe den."
+------------------------------------------------------------
+Line 388:
+  Original: "My friends helped me see that."
+  DeepL: "Mine venner hjalp mig med at se det."
+  Google: "Mine venner hjalp mig med at se det."
+  Ollama: "Mine venner hjalp mig med at se det."
+  First pass: "Mine venner hjalp mig med at se det."
+  Final: "Mine venner hjalp mig med at se det."
+------------------------------------------------------------
+Line 389:
+  Original: "Dave, you genius. You did it again."
+  DeepL: "Dave, dit geni. Du gjorde det igen."
+  Google: "Dave, dit geni. Du gjorde det igen."
+  Ollama: "Dave, du geni. Du gjorde det igen."
+  First pass: "Dave, du geni. Du gjorde det igen."
+  Final: "Dave, du geni. Du gjorde det igen."
+------------------------------------------------------------
+Line 390:
+  Original: "So I'm asking you, my people,"
+  Google: "Så jeg spørger dig, mine folk,"
+  DeepL: "Så jeg spørger jer, mit folk,"
+  Ollama: "Så jeg spørger jer, mit folk."
+  First pass: "Så jeg spørger jer, mit folk,"
+  Final: "Så jeg spørger jer, mit folk,"
+------------------------------------------------------------
+Line 391:
+  Original: "Mr. Filburn, Mrs. Graham, my friends,"
+  DeepL: "Mr. Filburn, mrs. Graham, mine venner,"
+  Google: "Mr. Filburn, fru Graham, mine venner,"
+  Ollama: "Hr. Filburn, fru Graham, mine venner,"
+  First pass: "Mr. Filburn, mrs. Graham, mine venner,"
+  Final: "Mr. Filburn, mrs. Graham, mine venner,"
+------------------------------------------------------------
+Line 392:
+  Original: "to choose to stop fighting and break the cycle."
+  DeepL: "at vælge at holde op med at kæmpe og bryde cirklen."
+  Google: "At vælge at stoppe med at kæmpe og bryde cyklussen."
+  Ollama: "at vælge at stoppe med at kæmpe og bryde cirklen."
+  First pass: "At vælge at holde op med at kæmpe og bryde cirklen."
+  Final: "At vælge at holde op med at kæmpe og bryde cirklen."
+------------------------------------------------------------
+Line 393:
+  Original: "Which is why I, Kipo Oak, am inviting you..."
+  DeepL: "Det er derfor, jeg, Kipo Oak, inviterer dig ..."
+  Google: "Derfor er jeg, Kipo Oak, jeg inviterer dig ..."
+  Ollama: "Det er derfor, jeg, Kipo Oak, inviterer dig…"
+  First pass: "Det er derfor, jeg, Kipo Oak, inviterer jer. .."
+  Final: "Det er derfor, jeg, Kipo Oak, inviterer jer. .."
+------------------------------------------------------------
+Line 394:
+  Original: "to Prahm."
+  DeepL: "til Prahm."
+  Google: "til Prahm."
+  Ollama: "til Prahm."
+  First pass: "Til Prahm."
+  Final: "Til Prahm."
+------------------------------------------------------------
+Line 395:
+  Original: "#BRACKET_OPEN#music playing#BRACKET_CLOSE#"
+  DeepL: "#BRACKET_OPEN#musikken spiller#BRACKET_CLOSE#."
+  Google: "#Bracket_open#musik, der spiller#bracket_close#"
+  Ollama: "#BRACKET_OPEN#musikken spiller#BRACKET_CLOSE#"
+  First pass: "[musikken spiller]."
+  Final: "[musikken spiller]."
+------------------------------------------------------------
+
+SUMMARY STATISTICS
+--------------------------------------------------------------------------------
+Total lines translated: 395
+
+
+TRANSLATION SERVICE STATISTICS:
+----------------------------------------
+DeepL:
+  - Available for 395 lines (100.0%)
+  - First pass matched exactly: 199 times (50.4%)
+  - Selected as final translation: 157 times (39.7%)
+  - Average similarity to final translation: 79.1%
+
+Google:
+  - Available for 395 lines (100.0%)
+  - First pass matched exactly: 57 times (14.4%)
+  - Selected as final translation: 51 times (12.9%)
+  - Average similarity to final translation: 70.1%
+
+MyMemory:
+  - Available for 210 lines (53.2%)
+  - First pass matched exactly: 43 times (20.5%)
+  - Selected as final translation: 40 times (19.0%)
+  - Average similarity to final translation: 73.4%
+
+Ollama:
+  - Available for 395 lines (100.0%)
+  - First pass matched exactly: 109 times (27.6%)
+  - Selected as final translation: 112 times (28.4%)
+  - Average similarity to final translation: 75.2%
+
+
+LLM FIRST PASS STATISTICS:
+----------------------------------------
+First pass translations used without changes: 285 (72.2%)
+First pass translations modified by critics: 110 (27.8%)
+
+
+STANDARD CRITIC STATISTICS:
+----------------------------------------
+Standard Critic changes: 110 (27.8%)
+Standard Critic pass rate: 285 lines left unchanged (72.2%)
+
+
+WORD-LEVEL STATISTICS:
+----------------------------------------
+Total source words: 2447
+Total target words: 2549
+Target/Source ratio: 104.2%
+
+================================================================================
+
+NOTE: Similarity metrics are approximate and based on character-level comparison.
+Higher similarity percentages indicate closer matches between service translations and final output.
