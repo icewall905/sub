@@ -1257,36 +1257,40 @@ def run_web_ui():
 
     def call_ollama(server_url: str, endpoint_path: str, model: str, prompt: str, temperature: float = 0.2, cfg=None) -> str:
         url = f"{server_url.rstrip('/')}{endpoint_path}"
-        
-        # Create the base request payload
+
+        # Default num_gpu value
+        num_gpu = 20 # Default if not found in config or env
+
+        # Prioritize config.ini for num_gpu
+        if cfg is not None and cfg.has_section("ollama") and cfg.has_option("ollama", "num_gpu"):
+            try:
+                num_gpu = cfg.getint("ollama", "num_gpu")
+            except ValueError:
+                append_log(f"[WARNING] Invalid integer value for num_gpu in config.ini. Using default: {num_gpu}")
+        else:
+            # Fallback to environment variable if not in config
+            num_gpu = int(os.environ.get("OLLAMA_NUM_GPU", num_gpu))
+
         payload = {
             "model": model,
             "prompt": prompt,
             "stream": False,
             "options": {
-                "temperature": temperature
+                "temperature": temperature,
+                "num_gpu": num_gpu
             }
         }
-        
-        # Only add GPU/CPU parameters if they're explicitly defined in the config
+
+        # Optionally add other performance options from config if present
         if cfg is not None and cfg.has_section("ollama"):
-            if cfg.has_option("ollama", "num_gpu"):
-                payload["options"]["num_gpu"] = cfg.getint("ollama", "num_gpu")
-            
             if cfg.has_option("ollama", "num_thread"):
                 payload["options"]["num_thread"] = cfg.getint("ollama", "num_thread")
-                
             if cfg.has_option("ollama", "use_mmap"):
                 payload["options"]["use_mmap"] = cfg.getboolean("ollama", "use_mmap")
-                
             if cfg.has_option("ollama", "use_mlock"):
                 payload["options"]["use_mlock"] = cfg.getboolean("ollama", "use_mlock")
-            
-            append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model} | Temperature: {temperature}")
-        else:
-            # When no config is provided, let Ollama use its defaults
-            append_log(f"[DEBUG] Calling Ollama with default parameters: POST {url} | Model: {model} | Temperature: {temperature}")
         
+        append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model} | Temperature: {temperature} | num_gpu: {num_gpu}")
         try:
             response = requests.post(url, json=payload, timeout=180)
             response.raise_for_status()
@@ -1688,7 +1692,7 @@ def run_web_ui():
         prompt = "\n".join(prompt_lines)
         
         temperature = cfg.getfloat("ollama", "temperature", fallback=0.3)
-        result = call_ollama(server_url, endpoint_path, model_name, prompt, temperature)
+        result = call_ollama(server_url, endpoint_path, model_name, prompt, temperature, cfg)
         
         # Clean up the result - remove any quotes or extra text
         result = result.strip(' "\'\n')
@@ -1988,7 +1992,7 @@ def run_web_ui():
             endpoint_path = cfg.get("ollama", "endpoint", fallback="/api/generate")
             model_name = cfg.get("ollama", "model", fallback="")
             if (server_url and model_name):
-                return call_ollama(server_url, endpoint_path, model_name, prompt, temperature)
+                return call_ollama(server_url, endpoint_path, model_name, prompt, temperature, cfg)
         elif (openai_enabled):
             api_key = cfg.get("openai", "api_key", fallback="")
             base_url = cfg.get("openai", "api_base_url", fallback="https://api.openai.com/v1")
