@@ -3788,28 +3788,64 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
 
     # First pass – just count jobs for nice 0‑% progress
     srt_jobs = []
+    append_log_func(f"[INFO] Looking for subtitles in language {src_iso} that need translation to {tgt_iso}")
+    
     for dirpath, _, filenames in os.walk(root_path):
+        # Keep track of which episodes have source and target subtitles
+        episodes_with_src = set()
+        episodes_with_tgt = set()
+        
+        # First, identify all English and Danish subtitles
         for fn in filenames:
-            if fn.lower().endswith(f'.{src_iso}.srt'):
-                # This is a source subtitle file
-                src_path = os.path.join(dirpath, fn)
-                
-                # Figure out the destination filename
-                base = fn[:-7]  # Remove .{src_iso}.srt
-                dest_fn = f"{base}.{tgt_iso}.srt"
-                dest_path = os.path.join(dirpath, dest_fn)
-                
-                # Skip if target file already exists
-                if os.path.exists(dest_path):
-                    continue
-                
-                # Prepare output path in work directory
-                rel_path = os.path.relpath(dirpath, root_path)
-                dest_dir_in_work = os.path.join(work_dir, rel_path)
-                os.makedirs(dest_dir_in_work, exist_ok=True)
-                dest_in_work = os.path.join(dest_dir_in_work, dest_fn)
-                
-                srt_jobs.append((src_path, dest_in_work))
+            lower_fn = fn.lower()
+            
+            # Identify base filename (without extension)
+            base_name = None
+            
+            # Match patterns like "Show.Name.S01E02.Episode.Title.en.srt"
+            # or "Show.Name.S01E02.Episode.Title.en.hi.srt"
+            if f".{src_iso}." in lower_fn and (lower_fn.endswith('.srt') or lower_fn.endswith('.ass')):
+                # Extract the episode identifier (e.g., "Show.Name.S01E02.Episode.Title")
+                parts = fn.split(f".{src_iso}.")
+                if len(parts) >= 2:
+                    base_name = parts[0]
+                    episodes_with_src.add(base_name)
+            
+            if f".{tgt_iso}." in lower_fn and (lower_fn.endswith('.srt') or lower_fn.endswith('.ass')):
+                # Extract the episode identifier
+                parts = fn.split(f".{tgt_iso}.")
+                if len(parts) >= 2:
+                    base_name = parts[0]
+                    episodes_with_tgt.add(base_name)
+        
+        # Now find episodes that have source but not target subtitles
+        episodes_needing_translation = episodes_with_src - episodes_with_tgt
+        
+        if episodes_needing_translation:
+            append_log_func(f"[INFO] Found {len(episodes_needing_translation)} episode(s) needing translation in {dirpath}")
+            
+            # Find the source subtitle files for these episodes
+            for episode in episodes_needing_translation:
+                for fn in filenames:
+                    # Look for source subtitle file for this episode
+                    if fn.startswith(episode) and f".{src_iso}." in fn and (fn.endswith('.srt') or fn.endswith('.ass')):
+                        src_path = os.path.join(dirpath, fn)
+                        
+                        # For destination filename, replace source language code with target
+                        if ".hi." in fn:  # Handle "hi" (hearing impaired) tag
+                            dest_fn = f"{episode}.{tgt_iso}.hi.srt"
+                        else:
+                            dest_fn = f"{episode}.{tgt_iso}.srt"
+                        
+                        # Prepare output path in work directory
+                        rel_path = os.path.relpath(dirpath, root_path)
+                        dest_dir_in_work = os.path.join(work_dir, rel_path)
+                        os.makedirs(dest_dir_in_work, exist_ok=True)
+                        dest_in_work = os.path.join(dest_dir_in_work, dest_fn)
+                        
+                        append_log_func(f"[INFO] Will translate: {fn} -> {dest_fn}")
+                        srt_jobs.append((src_path, dest_in_work))
+                        break
 
     # Update progress dict for UI
     progress_dict.update({
