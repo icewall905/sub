@@ -361,29 +361,30 @@ CONFIG_EDITOR_TEMPLATE = r"""
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuration Editor - SRT Subtitle Translator</title>
     <style>
+        /* Updated theme to match Home/Logs page */
         body { 
             font-family: sans-serif; 
             margin: 0; 
             padding: 0; 
-            background-color: #121212; 
-            color: #e0e0e0; 
+            background-color: #1e1e2e; /* Changed */
+            color: #cdd6f4; /* Changed */
         }
         .container { 
             max-width: 1200px; 
             margin: 2em auto; 
-            background: #1e1e1e;
+            background: #282a36; /* Changed */
             padding: 2em;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* Adjusted shadow slightly */
         }
-        h1 { text-align: center; color: #bb86fc; margin-top: 0; }
+        h1 { text-align: center; color: #f5f5f5; margin-top: 0; } /* Changed */
         h2 { 
-            color: #bb86fc; 
-            border-bottom: 1px solid #333; 
+            color: #f5f5f5; /* Changed */
+            border-bottom: 1px solid #444; /* Changed */
             padding-bottom: 0.5em; 
         }
         .config-container {
-            background: #2c2c2c;
+            background: #313244; /* Changed */
             border-radius: 6px;
             padding: 1em;
             border: 1px solid #444;
@@ -396,15 +397,16 @@ CONFIG_EDITOR_TEMPLATE = r"""
             display: block;
             margin-bottom: 0.5em;
             font-weight: bold;
+            color: #bac2de; /* Added */
         }
         .form-group input, .form-group select {
             width: 100%;
             padding: 0.5em;
-            border: 1px solid #555;
+            border: 1px solid #444; /* Changed */
             border-radius: 4px;
             box-sizing: border-box;
-            background-color: #1e1e1e;
-            color: #e0e0e0;
+            background-color: #1a1a24; /* Changed */
+            color: #cdd6f4; /* Changed */
         }
         .buttons {
             margin-top: 1.5em;
@@ -415,50 +417,53 @@ CONFIG_EDITOR_TEMPLATE = r"""
             border-radius: 4px;
             cursor: pointer;
             margin-left: 0.5em;
+            font-weight: bold; /* Added */
         }
         .cancel {
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            color: #333;
+            background-color: #6c757d; /* Changed */
+            border: 1px solid #5a6268;
+            color: #f8f9fa;
         }
         .cancel:hover {
-            background-color: #e2e6ea;
+            background-color: #5a6268;
         }
         button[type="submit"] {
-            background-color: #5cb85c;
+            background-color: #74c7ec; /* Changed */
             border: none;
-            color: white;
+            color: #1e1e2e; /* Changed */
         }
         button[type="submit"]:hover {
-            background-color: #4cae4c;
+            background-color: #89dceb; /* Changed */
         }
         .notification {
             padding: 1em;
             margin-bottom: 1em;
             border-radius: 4px;
             display: none;
+            border-left: 5px solid; /* Added */
         }
         .notification.success {
-            background-color: #dff0d8;
-            border: 1px solid #d6e9c6;
-            color: #3c763d;
+            background-color: #3c4a4f; /* Changed */
+            border-color: #a6e3a1; /* Changed */
+            color: #a6e3a1; /* Changed */
         }
         .notification.error {
-            background-color: #f2dede;
-            border: 1px solid #ebccd1;
-            color: #a94442;
+            background-color: #382a37; /* Changed */
+            border-color: #f38ba8; /* Changed */
+            color: #f38ba8; /* Changed */
         }
         .section {
-            background-color: #1e1e1e;
+            background-color: #282a36; /* Changed */
             padding: 1em;
             border-radius: 4px;
             margin-bottom: 1em;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Adjusted */
+            border: 1px solid #444; /* Added */
         }
         .loading {
             text-align: center;
             padding: 2em;
-            color: #666;
+            color: #bac2de; /* Changed */
         }
         .nav-links {
             text-align: center;
@@ -468,28 +473,28 @@ CONFIG_EDITOR_TEMPLATE = r"""
             display: inline-block;
             padding: 0.5em 1em;
             margin: 0 0.5em;
-            color: #bb86fc;
+            color: #89b4fa; /* Changed */
             text-decoration: none;
             border-radius: 4px;
         }
         .nav-links a:hover {
-            background-color: #2c2c2c;
+            background-color: #313244; /* Changed */
             text-decoration: underline;
         }
         .nav-links a.active {
             font-weight: bold;
-            border-bottom: 2px solid #bb86fc;
+            border-bottom: 2px solid #89b4fa; /* Changed */
         }
         .settings-panel {
             margin-top: 2em;
             padding: 1em;
-            background-color: #2c2c2c;
+            background-color: #313244; /* Changed */
             border-radius: 6px;
             border: 1px solid #444;
         }
         .settings-panel h3 {
             margin-top: 0;
-            color: #bb86fc;
+            color: #f5f5f5; /* Changed */
             border-bottom: 1px solid #444;
             padding-bottom: 0.5em;
         }
@@ -497,11 +502,21 @@ CONFIG_EDITOR_TEMPLATE = r"""
             padding: 0.5em;
             margin-bottom: 1em;
             width: 100%;
-            border: 1px solid #555;
+            border: 1px solid #444; /* Changed */
             border-radius: 4px;
             box-sizing: border-box;
-            background-color: #1e1e1e;
-            color: #e0e0e0;
+            background-color: #1a1a24; /* Changed */
+            color: #cdd6f4; /* Changed */
+        }
+        /* Highlight for search results */
+        .highlight-search {
+            background-color: #45475a !important; /* Use a subtle highlight color from the theme */
+            transition: background-color 0.3s ease;
+        }
+        small {
+            color: #bac2de; /* Style tooltips */
+            font-weight: normal;
+            font-size: 0.9em;
         }
     </style>
 </head>
@@ -551,58 +566,86 @@ CONFIG_EDITOR_TEMPLATE = r"""
         
         // Search functionality
         searchBox.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
+            const searchTerm = this.value.toLowerCase().trim();
             const sections = document.querySelectorAll('.section');
-            
+            let firstMatch = null;
+
             sections.forEach(section => {
-                let found = false;
-                
-                // Check section title
-                if (section.querySelector('h2').textContent.toLowerCase().includes(searchTerm)) {
-                    found = true;
-                }
-                
-                // Check form groups
+                let sectionVisible = false;
+                const sectionTitle = section.querySelector('h2');
                 const formGroups = section.querySelectorAll('.form-group');
+
+                // Check section title
+                if (sectionTitle && sectionTitle.textContent.toLowerCase().includes(searchTerm)) {
+                    sectionVisible = true;
+                    sectionTitle.classList.add('highlight-search'); // Highlight title
+                    if (!firstMatch) firstMatch = sectionTitle;
+                } else if (sectionTitle) {
+                    sectionTitle.classList.remove('highlight-search');
+                }
+
+                // Check form groups within the section
                 formGroups.forEach(group => {
-                    const label = group.querySelector('label').textContent.toLowerCase();
-                    if (label.includes(searchTerm)) {
-                        found = true;
-                        group.style.backgroundColor = '#f7f7e1'; // Highlight matching fields
+                    const label = group.querySelector('label');
+                    let fieldVisible = false;
+                    if (label && label.textContent.toLowerCase().includes(searchTerm)) {
+                        sectionVisible = true; // Make section visible if any field matches
+                        fieldVisible = true;
+                        group.classList.add('highlight-search'); // Highlight matching fields
+                        if (!firstMatch) firstMatch = group;
                     } else {
-                        group.style.backgroundColor = ''; // Reset background
+                        group.classList.remove('highlight-search');
                     }
+                    // Show/hide individual fields based on match (optional, can be noisy)
+                    // group.style.display = searchTerm && !fieldVisible ? 'none' : 'block'; 
                 });
-                
-                // Show/hide section based on search results
-                section.style.display = searchTerm && !found ? 'none' : 'block';
+
+                // Show/hide the entire section based on whether the title or any field matched
+                section.style.display = searchTerm && !sectionVisible ? 'none' : 'block';
             });
+            
+            // Scroll to the first match
+            if (firstMatch) {
+                firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         });
         
+        // ... rest of the script ...
+
         // Fetch the current configuration
         function fetchConfig() {
             fetch('/api/config')
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        // Try to get error text from response body
+                        return response.text().then(text => {
+                            throw new Error(`HTTP error! Status: ${response.status} ${response.statusText} - ${text}`);
+                        });
                     }
                     return response.json();
                 })
                 .then(data => {
-                    originalConfig = data;
+                    originalConfig = data; // Store the whole response {config: {...}}
                     renderConfigForm(data.config);
                 })
                 .catch(error => {
                     console.error('Error fetching configuration:', error);
                     showNotification('error', `Error loading configuration: ${error.message}`);
+                    document.getElementById('config-sections').innerHTML = 
+                        '<div class="notification error">Failed to load configuration. Check logs.</div>';
                 });
         }
         
         // Render the configuration form
         function renderConfigForm(config) {
             const configSections = document.getElementById('config-sections');
-            configSections.innerHTML = '';
+            configSections.innerHTML = ''; // Clear previous content
             
+            if (!config || Object.keys(config).length === 0) {
+                 configSections.innerHTML = '<div class="notification error">Configuration data is empty or invalid.</div>';
+                 return;
+            }
+
             // Sort sections for consistent display
             const sortedSections = Object.keys(config).sort();
             
@@ -615,23 +658,27 @@ CONFIG_EDITOR_TEMPLATE = r"""
                 sectionDiv.appendChild(sectionTitle);
                 
                 // Add section description for important sections
+                // ... (descriptions remain the same) ...
                 if (section === 'ollama') {
                     const description = document.createElement('p');
                     description.style.fontStyle = 'italic';
                     description.style.marginBottom = '1em';
-                    description.style.color = '#666';
+                    description.style.color = '#bac2de'; // Use theme color
                     description.textContent = 'Configure Ollama performance settings like GPU count, thread count, and memory options.';
                     sectionDiv.appendChild(description);
                 } else if (section === 'translation') {
                     const description = document.createElement('p');
                     description.style.fontStyle = 'italic';
                     description.style.marginBottom = '1em';
-                    description.style.color = '#666';
+                    description.style.color = '#bac2de'; // Use theme color
                     description.textContent = 'Configure service priority and retry settings for translation services.';
                     sectionDiv.appendChild(description);
                 }
                 
                 const settings = config[section];
+                // Handle cases where a section might exist but be empty
+                if (!settings || typeof settings !== 'object') continue; 
+
                 const sortedKeys = Object.keys(settings).sort();
                 
                 for (const key of sortedKeys) {
@@ -644,25 +691,22 @@ CONFIG_EDITOR_TEMPLATE = r"""
                     label.textContent = formatSettingName(key);
                     
                     // Add tooltips/descriptions for specific settings
+                    // ... (tooltips remain the same) ...
                     if (section === 'ollama' && key === 'num_gpu') {
                         const tooltip = document.createElement('small');
                         tooltip.textContent = ' (Number of GPUs to use for processing)';
-                        tooltip.style.color = '#666';
                         label.appendChild(tooltip);
                     } else if (section === 'ollama' && key === 'num_thread') {
                         const tooltip = document.createElement('small');
                         tooltip.textContent = ' (Number of CPU threads to use)';
-                        tooltip.style.color = '#666';
                         label.appendChild(tooltip);
                     } else if (section === 'ollama' && key === 'use_mmap') {
                         const tooltip = document.createElement('small');
                         tooltip.textContent = ' (Memory-map the model for better performance)';
-                        tooltip.style.color = '#666';
                         label.appendChild(tooltip);
                     } else if (section === 'ollama' && key === 'use_mlock') {
                         const tooltip = document.createElement('small');
                         tooltip.textContent = ' (Lock the model in RAM to prevent swapping)';
-                        tooltip.style.color = '#666';
                         label.appendChild(tooltip);
                     }
                     
@@ -676,19 +720,18 @@ CONFIG_EDITOR_TEMPLATE = r"""
                     } else if (typeof value === 'number') {
                         input = document.createElement('input');
                         input.type = 'number';
-                        input.step = Number.isInteger(value) ? '1' : '0.1';
+                        input.step = Number.isInteger(value) ? '1' : '0.1'; // Handle float/int steps
                         input.value = value;
                     } else if (key.includes('api_key') || key.includes('password')) {
                         input = document.createElement('input');
                         input.type = 'password';
                         input.value = value;
-                    } else if (key === 'enabled') {
-                        // Boolean
+                    } else if (key === 'enabled' && typeof value === 'string') { // Handle boolean as string from configparser
                         input = document.createElement('input');
                         input.type = 'checkbox';
-                        // Handle 'true' or True
-                        input.checked = (value === true || value === 'true');
+                        input.checked = value.toLowerCase() === 'true';
                     } else if (key === 'model' && section === 'ollama') {
+                        // ... (Ollama model select logic remains the same) ...
                         input = document.createElement('select');
                         
                         // Fetch available models from Ollama if we're on the Home page
@@ -720,13 +763,13 @@ CONFIG_EDITOR_TEMPLATE = r"""
                                 input.appendChild(option);
                             });
                     } else if (key === 'service_priority' && section === 'translation') {
+                        // ... (Service priority input remains the same) ...
                         input = document.createElement('input');
                         input.type = 'text';
                         input.value = value;
                         input.placeholder = 'e.g., deepl,google,libretranslate,mymemory';
                         const hint = document.createElement('small');
                         hint.textContent = ' (Comma-separated list of services in preferred order)';
-                        hint.style.color = '#666';
                         label.appendChild(hint);
                     } else {
                         input = document.createElement('input');
@@ -735,8 +778,8 @@ CONFIG_EDITOR_TEMPLATE = r"""
                     }
                     
                     input.id = `${section}-${key}`;
-                    input.name = `${section}-${key}`;
-                    input.className = 'form-control';
+                    input.name = `${section}-${key}`; // Use name for potential form submission (though we use JS)
+                    // input.className = 'form-control'; // Removed class, using direct styling
                     input.setAttribute('data-section', section);
                     input.setAttribute('data-key', key);
                     
@@ -751,6 +794,7 @@ CONFIG_EDITOR_TEMPLATE = r"""
         
         // Format setting name for display (e.g., "api_key" -> "API Key")
         function formatSettingName(key) {
+            // ... (remains the same) ...
             return key
                 .split('_')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -761,8 +805,8 @@ CONFIG_EDITOR_TEMPLATE = r"""
         function saveConfig() {
             const updatedConfig = {};
             
-            // Get all input elements
-            const inputs = document.querySelectorAll('#config-form input, #config-form select');
+            // Get all input elements with data attributes
+            const inputs = document.querySelectorAll('#config-form [data-section][data-key]');
             
             // Build updated config object
             for (const input of inputs) {
@@ -777,7 +821,8 @@ CONFIG_EDITOR_TEMPLATE = r"""
                 if (input.type === 'checkbox') {
                     value = input.checked;
                 } else if (input.type === 'number') {
-                    value = Number(input.value);
+                    // Ensure number is stored as number, not string
+                    value = input.value === '' ? null : Number(input.value); 
                 } else {
                     value = input.value;
                 }
@@ -785,17 +830,22 @@ CONFIG_EDITOR_TEMPLATE = r"""
                 updatedConfig[section][key] = value;
             }
             
+            console.log("Saving config:", JSON.stringify(updatedConfig, null, 2)); // Debug log
+
             // Send updated config to server
             fetch('/api/config', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ config: updatedConfig }),
+                body: JSON.stringify({ config: updatedConfig }), // Send in expected format
             })
                 .then(response => {
+                    // Check status before parsing JSON
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                         return response.text().then(text => {
+                            throw new Error(`HTTP error! Status: ${response.status} ${response.statusText} - ${text}`);
+                        });
                     }
                     return response.json();
                 })
@@ -803,9 +853,10 @@ CONFIG_EDITOR_TEMPLATE = r"""
                     if (data.success) {
                         showNotification('success', 'Configuration saved successfully!');
                         // Update original config to match new config
-                        originalConfig.config = updatedConfig;
+                        // Need to re-fetch or carefully merge? Re-fetch is safer.
+                        fetchConfig(); // Re-fetch to ensure consistency
                     } else {
-                        showNotification('error', `Error saving configuration: ${data.message}`);
+                        showNotification('error', `Error saving configuration: ${data.message || 'Unknown error'}`);
                     }
                 })
                 .catch(error => {
@@ -816,6 +867,7 @@ CONFIG_EDITOR_TEMPLATE = r"""
         
         // Show notification message
         function showNotification(type, message) {
+            // ... (remains the same) ...
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = `notification ${type}`;
@@ -829,9 +881,14 @@ CONFIG_EDITOR_TEMPLATE = r"""
         
         // Reset form to original values
         function resetForm() {
-            if (confirm('Are you sure you want to reset all changes?')) {
-                renderConfigForm(originalConfig.config);
-                showNotification('success', 'Form reset to original values.');
+            if (confirm('Are you sure you want to reset all changes to the last saved state?')) {
+                // Re-render using the stored originalConfig
+                if (originalConfig && originalConfig.config) {
+                    renderConfigForm(originalConfig.config);
+                    showNotification('info', 'Form reset to last saved values.'); // Use info color
+                } else {
+                     showNotification('error', 'Could not reset form, original config not loaded.');
+                }
             }
         }
         
@@ -842,7 +899,7 @@ CONFIG_EDITOR_TEMPLATE = r"""
             
             // Set up event listeners
             document.getElementById('config-form').addEventListener('submit', event => {
-                event.preventDefault();
+                event.preventDefault(); // Prevent default form submission
                 saveConfig();
             });
             
@@ -2217,9 +2274,9 @@ def run_web_ui():
                             cfix = postprocess_translation(cfix)
                             
                             if (cfix and cfix != current_translation):
-                                line_stats[f'critic_{pass_num}'] = cfix
-                                line_stats[f'critic_{pass_num}_changed'] = True
-                                line_stats[f'critic_{pass_num}_type'] = ctype
+                                line_stats['critic_{pass_num}'] = cfix
+                                line_stats['critic_{pass_num}_changed'] = True
+                                line_stats['critic_{pass_num}_type'] = ctype
                                 critic_reviews[ctype] = cfix
                                 
                                 translation_progress["current"]["critics"].append({
@@ -3184,6 +3241,128 @@ def run_web_ui():
                 // Poll progress and logs
                 setInterval(pollProgress, 2000);
                 setInterval(pollLogs, 2000);
+
+                // Fetch and display subtitle archive
+                function fetchSubsArchive() {
+                    console.log("[Archive] Fetching subtitle list..."); // Added log
+                    subsArchiveList.innerHTML = 'Loading archive...';
+                    fetch('/api/list_subs')
+                        .then(response => { // Changed to handle response object first
+                            console.log("[Archive] Received response status:", response.status); // Added log
+                            if (!response.ok) {
+                                // Try to get error text from response body
+                                return response.text().then(text => {
+                                    throw new Error(`Failed to list subs: ${response.status} ${response.statusText} - ${text}`);
+                                });
+                            }
+                            return response.json(); // Parse JSON only if response is ok
+                        })
+                        .then(data => {
+                            console.log("[Archive] Received data:", data); // Added log
+                            if (data.error) {
+                                subsArchiveList.innerHTML = `<span style="color:#f38ba8;">Error loading archive: ${data.error}</span>`;
+                                console.error("[Archive] Server returned error:", data.error); // Added log
+                                return;
+                            }
+                            if (data.files && data.files.length > 0) {
+                                // New improved list with buttons
+                                let listHtml = '<ul style="list-style-type: none; padding: 0; margin: 0;">';
+                                data.files.forEach(filename => {
+                                    const downloadUrl = `/download_sub/${encodeURIComponent(filename)}`;
+                                    listHtml += `
+                                        <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 8px; background-color: #282a36; border-radius: 4px; border: 1px solid #444;">
+                                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px;">${filename}</span>
+                                            <div>
+                                                <a href="${downloadUrl}" download style="background-color: #89b4fa; color: #1e1e2e; text-decoration: none; padding: 5px 10px; border-radius: 3px; font-size: 0.9em; margin-right: 5px;">Download</a>
+                                                <button class="delete-btn" data-filename="${filename}" style="background-color: #f38ba8; color: #1e1e2e; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.9em;">Delete</button>
+                                            </div>
+                                        </li>`;
+                                });
+                                listHtml += '</ul>';
+                                subsArchiveList.innerHTML = listHtml;
+                                
+                                // Add event listeners for delete buttons
+                                document.querySelectorAll('.delete-btn').forEach(btn => {
+                                    btn.addEventListener('click', function() {
+                                        const filename = this.getAttribute('data-filename');
+                                        if (confirm(`Are you sure you want to delete "${filename}"?`)) {
+                                            deleteSubtitleFile(filename);
+                                        }
+                                    });
+                                });
+                                
+                                console.log("[Archive] Successfully updated archive list."); // Added log
+                            } else {
+                                subsArchiveList.innerHTML = 'No subtitles found in the archive.';
+                                console.log("[Archive] No subtitle files found."); // Added log
+                            }
+                        })
+                        .catch(err => {
+                            console.error("[Archive] Error fetching or processing subs archive:", err); // Enhanced log
+                            subsArchiveList.innerHTML = `<span style="color:#f38ba8;">Error loading archive. Check browser console (F12) for details.</span>`;
+                        });
+                }
+
+                // Function to delete a subtitle file
+                function deleteSubtitleFile(filename) {
+                    console.log(`[Archive] Attempting to delete file: ${filename}`);
+                    fetch(`/api/delete_sub/${encodeURIComponent(filename)}`, {
+                        method: 'DELETE',
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.error || `Server error: ${response.status}`);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            console.log(`[Archive] Successfully deleted file: ${filename}`);
+                            // Show a brief notification
+                            const statusElement = document.createElement('div');
+                            statusElement.textContent = `Successfully deleted ${filename}`;
+                            statusElement.style.backgroundColor = '#313244';
+                            statusElement.style.color = '#a6e3a1';
+                            statusElement.style.padding = '0.5em';
+                            statusElement.style.marginTop = '0.5em';
+                            statusElement.style.borderRadius = '4px';
+                            statusElement.style.textAlign = 'center';
+                            
+                            subsArchiveList.parentNode.insertBefore(statusElement, subsArchiveList.nextSibling);
+                            
+                            // Remove notification after 3 seconds
+                            setTimeout(() => {
+                                statusElement.remove();
+                            }, 3000);
+                            
+                            // Refresh the list
+                            fetchSubsArchive();
+                        } else {
+                            alert(`Error deleting file: ${data.error || 'Unknown error'}`);
+                        }
+                    })
+                    .catch(err => {
+                        console.error(`[Archive] Error deleting file: ${err}`);
+                        alert(`Error deleting file: ${err.message}`);
+                    });
+                }
+
+                // Initialize fetch on page load
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Initialize the subsArchiveList variable
+                    const subsArchiveList = document.getElementById('subs-archive-list');
+                    // Make it globally available
+                    window.subsArchiveList = subsArchiveList;
+                    
+                    fetchSubsArchive();
+                    // ... other initializations ...
+                });
+
+                // Refresh button for archive
+                const refreshSubsBtn = document.getElementById('refresh-subs-btn');
+                refreshSubsBtn.addEventListener('click', fetchSubsArchive);
             </script>
     </body>
     </html>
@@ -3450,13 +3629,39 @@ def run_web_ui():
     @app.route("/api/list_subs")
     def api_list_subs():
         try:
+            append_log(f"[INFO] Listing subtitle files in {SUBS_FOLDER}")
+            if not os.path.exists(SUBS_FOLDER):
+                append_log(f"[WARNING] Subs folder {SUBS_FOLDER} does not exist")
+                return jsonify({"files": [], "warning": f"Subs folder {SUBS_FOLDER} does not exist"})
+            
             files = [f for f in os.listdir(SUBS_FOLDER) if f.lower().endswith('.srt') and os.path.isfile(os.path.join(SUBS_FOLDER, f))]
             files.sort(key=lambda f: os.path.getmtime(os.path.join(SUBS_FOLDER, f)), reverse=True) # Sort by modification time, newest first
+            append_log(f"[INFO] Found {len(files)} subtitle files in archive")
             return jsonify({"files": files})
         except Exception as e:
             append_log(f"[ERROR] Failed to list subs folder: {e}")
             return jsonify({"files": [], "error": str(e)}), 500
+    
+    # Add a route to delete subtitle files from SUBS_FOLDER
+    @app.route("/api/delete_sub/<path:filename>", methods=["DELETE"])
+    def api_delete_sub(filename):
+        try:
+            safe_filename = secure_filename(filename)
+            if safe_filename != filename:
+                return jsonify({"success": False, "error": "Invalid filename"}), 400
+                
+            file_path = os.path.join(SUBS_FOLDER, safe_filename)
             
+            if not os.path.isfile(file_path):
+                return jsonify({"success": False, "error": "File not found"}), 404
+                
+            os.remove(file_path)
+            append_log(f"[INFO] Deleted subtitle file: {safe_filename}")
+            return jsonify({"success": True})
+        except Exception as e:
+            append_log(f"[ERROR] Failed to delete subtitle file: {str(e)}")
+            return jsonify({"success": False, "error": str(e)}), 500
+
     @app.route("/api/start-scan", methods=["POST"])
     def api_start_scan():
         data = request.get_json(silent=True) or {}
@@ -3607,8 +3812,7 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None):
         "status"      : "translating",
         "current_file": "",
         "done_files"  : 0,
-        "total_files" : len(srt_jobs),
-        "zip_path"    : ""
+        "total_files" : len(srt_jobs)
     })
 
     for idx, (src, dest_in_work) in enumerate(srt_jobs, 1):

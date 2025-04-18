@@ -33,10 +33,10 @@ server_url = http://localhost:11434
 endpoint = /api/generate
 model = gemma3:12b
 # Performance settings for Ollama
-num_gpu = 1      # Number of GPUs to use (increase for multi-GPU systems)
-num_thread = 4   # Number of threads to use for computation
-use_mmap = true  # Memory-map the model (usually improves performance)
-use_mlock = true # Lock the model in RAM (prevents swapping to disk)
+#num_gpu = 1      # Number of GPUs to use (increase for multi-GPU systems)
+#num_thread = 4   # Number of threads to use for computation
+#use_mmap = true  # Memory-map the model (usually improves performance)
+#use_mlock = true # Lock the model in RAM (prevents swapping to disk)
 
 [openai]
 enabled = false
