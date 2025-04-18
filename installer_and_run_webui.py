@@ -3703,7 +3703,7 @@ def run_web_ui():
         # Background thread so the HTTP response returns instantly
         threading.Thread(
             target=scan_and_translate_directory,
-            args=(root, cfg, translation_progress),
+            args=(root, cfg, translation_progress, translate_srt, append_log),
             daemon=True
         ).start()
 
@@ -3759,7 +3759,7 @@ def extract_item_name(filename: str) -> str:
     m = _SERIES_RE.match(base) or _MOVIE_RE.match(base)
     return (m.group("title") if m else base).replace('.', ' ').strip()
 
-def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None):
+def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, translate_func=None, log_func=None):
     """
     Walk *root_path* recursively, translate each *.{src}.srt* that does not
     already have a *.{tgt}.srt* sibling. Updates *progress_dict* so the
@@ -3773,11 +3773,15 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None):
         cfg = load_config()
     if progress_dict is None:
         progress_dict = {}
+    
+    # Use provided functions or fallbacks
+    translate_srt_func = translate_func or (lambda *args: print(f"Would translate: {args}"))
+    append_log_func = log_func or print
 
     src_iso = get_iso_code(cfg.get("general", "source_language", fallback="en"))
     tgt_iso = get_iso_code(cfg.get("general", "target_language", fallback="da"))
 
-    # We’ll collect output files here so the user can download one zip at the end
+    # We'll collect output files here so the user can download one zip at the end
     work_dir  = tempfile.mkdtemp(prefix="bulk_subs_")
     TEMP_DIRS_TO_CLEAN.add(work_dir) # Ensure cleanup
     out_files = []
@@ -3786,25 +3790,26 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None):
     srt_jobs = []
     for dirpath, _, filenames in os.walk(root_path):
         for fn in filenames:
-            if fn.lower().endswith(".srt") and f".{src_iso}." in fn.lower():
-                in_full  = os.path.join(dirpath, fn)
-                # Create output filename in the temporary work directory to avoid overwriting originals
-                # Use a structure within the work_dir that mirrors the original relative path
+            if fn.lower().endswith(f'.{src_iso}.srt'):
+                # This is a source subtitle file
+                src_path = os.path.join(dirpath, fn)
+                
+                # Figure out the destination filename
+                base = fn[:-7]  # Remove .{src_iso}.srt
+                dest_fn = f"{base}.{tgt_iso}.srt"
+                dest_path = os.path.join(dirpath, dest_fn)
+                
+                # Skip if target file already exists
+                if os.path.exists(dest_path):
+                    continue
+                
+                # Prepare output path in work directory
                 rel_path = os.path.relpath(dirpath, root_path)
-                out_dir_in_work = os.path.join(work_dir, rel_path)
-                os.makedirs(out_dir_in_work, exist_ok=True)
-                out_fn = fn.lower().replace(f".{src_iso}.", f".{tgt_iso}.")
-                out_full_in_work = os.path.join(out_dir_in_work, out_fn)
-
-                # Check if the *original* target file exists in the source directory
-                original_out_full = os.path.join(dirpath, out_fn)
-
-                if not os.path.exists(original_out_full):
-                    srt_jobs.append((in_full, out_full_in_work)) # Translate *to* the work dir
-                else:
-                    # If called from CLI, print skip message
-                    if 'print' in globals():
-                         print(f"[SKIP] {os.path.relpath(original_out_full, root_path)} already exists")
+                dest_dir_in_work = os.path.join(work_dir, rel_path)
+                os.makedirs(dest_dir_in_work, exist_ok=True)
+                dest_in_work = os.path.join(dest_dir_in_work, dest_fn)
+                
+                srt_jobs.append((src_path, dest_in_work))
 
     # Update progress dict for UI
     progress_dict.update({
@@ -3820,18 +3825,17 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None):
         progress_dict["current_file"] = rel_src_path
         # If called from CLI, print progress
         if 'print' in globals():
-            item_name = extract_item_name(os.path.basename(src))
-            print(f"[{item_name}] Translating {os.path.basename(src)} ({idx}/{len(srt_jobs)})…")
+            print(f"[{idx}/{len(srt_jobs)}] Translating {rel_src_path}...")
 
         try:
-            # Translate the source file directly into the temporary destination path
-            translate_srt(src, dest_in_work, cfg)
-            out_files.append(dest_in_work) # Add the successfully translated file in work_dir
+            # Call the translate function with the provided parameters
+            translate_srt_func(src, dest_in_work, cfg)
+            out_files.append(dest_in_work)
+            append_log_func(f"[BULK] Successfully translated: {rel_src_path}")
         except Exception as e:
-            log_msg = f"[BULK ERROR] {rel_src_path}: {e}"
-            append_log(log_msg) # Use append_log for consistency
-            if 'print' in globals():
-                print(log_msg)
+            # Log error but continue with next file
+            log_msg = f"[ERROR] Failed to translate {rel_src_path}: {str(e)}"
+            append_log_func(log_msg)
         progress_dict["done_files"] = idx
 
     # Package results if any files were translated
@@ -3840,13 +3844,12 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None):
         zip_basename = "translated_subs.zip"
         zip_name = os.path.join(work_dir, zip_basename)
         with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED) as z:
-            for fp in out_files:
-                # Arcname should be relative to the *work_dir* base, preserving structure
-                arcname = os.path.relpath(fp, work_dir)
-                z.write(fp, arcname=arcname)
-        append_log(f"[BULK] Created zip file: {zip_name}")
+            for f in out_files:
+                arcname = os.path.relpath(f, work_dir)
+                z.write(f, arcname)
+        append_log_func(f"[BULK] Created zip file: {zip_name}")
     else:
-        append_log("[BULK] No files needed translation or translation failed for all files.")
+        append_log_func("[BULK] No files needed translation or translation failed for all files.")
 
     skipped_count = len(srt_jobs) - len(out_files)
     message = f"Finished {len(out_files)} files."
@@ -3858,12 +3861,12 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None):
         "zip_path" : zip_name, # Path to the zip file within the temp dir
         "message"  : message
     })
-    append_log(f"[BULK] {message}")
+    append_log_func(f"[BULK] {message}")
     # If called from CLI, print final message
     if 'print' in globals():
         print(f"[BULK] {message}")
         if zip_name:
-            print(f"[BULK] Results packaged in: {zip_name}")
+            print(f"[BULK] Results saved to: {zip_name}")
 
 def main():
     parser = argparse.ArgumentParser(
