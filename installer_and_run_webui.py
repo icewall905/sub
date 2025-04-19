@@ -1318,39 +1318,39 @@ def run_web_ui():
     def call_ollama(server_url: str, endpoint_path: str, model: str, prompt: str, temperature: float = 0.2, cfg=None) -> str:
         url = f"{server_url.rstrip('/')}{endpoint_path}"
 
-        # Default num_gpu value
-        num_gpu = 20 # Default if not found in config or env
-
-        # Prioritize config.ini for num_gpu
-        if cfg is not None and cfg.has_section("ollama") and cfg.has_option("ollama", "num_gpu"):
-            try:
-                num_gpu = cfg.getint("ollama", "num_gpu")
-            except ValueError:
-                append_log(f"[WARNING] Invalid integer value for num_gpu in config.ini. Using default: {num_gpu}")
-        else:
-            # Fallback to environment variable if not in config
-            num_gpu = int(os.environ.get("OLLAMA_NUM_GPU", num_gpu))
-
+        # Create the basic payload without options first
         payload = {
             "model": model,
             "prompt": prompt,
             "stream": False,
-            "options": {
-                "temperature": temperature,
-                "num_gpu": num_gpu
-            }
+            "options": {}
         }
 
-        # Optionally add other performance options from config if present
+        # Only add parameters that are explicitly defined in the config
         if cfg is not None and cfg.has_section("ollama"):
+            # Add temperature to options
+            payload["options"]["temperature"] = temperature
+            
+            # Only add num_gpu if explicitly defined in config
+            if cfg.has_option("ollama", "num_gpu"):
+                payload["options"]["num_gpu"] = cfg.getint("ollama", "num_gpu")
+                
+            # Only add these options if explicitly defined in config
             if cfg.has_option("ollama", "num_thread"):
                 payload["options"]["num_thread"] = cfg.getint("ollama", "num_thread")
             if cfg.has_option("ollama", "use_mmap"):
                 payload["options"]["use_mmap"] = cfg.getboolean("ollama", "use_mmap")
             if cfg.has_option("ollama", "use_mlock"):
                 payload["options"]["use_mlock"] = cfg.getboolean("ollama", "use_mlock")
+            
+            # Log which options are actually being sent
+            options_list = ', '.join([f"{k}: {v}" for k, v in payload["options"].items()])
+            append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model} | Options: {options_list}")
+        else:
+            # If no config is provided, just use temperature
+            payload["options"]["temperature"] = temperature
+            append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model} | Temperature: {temperature}")
         
-        append_log(f"[DEBUG] Calling Ollama: POST {url} | Model: {model} | Temperature: {temperature} | num_gpu: {num_gpu}")
         try:
             response = requests.post(url, json=payload, timeout=180)
             response.raise_for_status()
@@ -3978,7 +3978,7 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
             if f".{tgt_iso}." in lower_fn and (lower_fn.endswith('.srt') or lower_fn.endswith('.ass')):
                 # Extract the episode identifier
                 parts = fn.split(f".{tgt_iso}.")
-                if len(parts) >= 2:
+                if len(parts) >= 2):
                     base_name = parts[0]
                     episodes_with_tgt.add(base_name)
         
