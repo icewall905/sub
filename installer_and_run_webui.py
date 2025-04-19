@@ -4117,73 +4117,18 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
 
     # Custom translation function to intercept and relay live updates
     def bulk_translate_with_updates(src_path, dest_path, config):
-        """Wrapper around translate_srt that captures and relays progress updates"""
-        # Create a temporary progress dictionary just for this file's translation
-        file_progress = {
-            "mode": "single", 
-            "current_line": 0,
-            "total_lines": 0,
-            "status": "translating",
-            "processed_lines": [],
-            "current": {
-                "line_number": 0,
-                "original": "",
-                "suggestions": {},
-                "first_pass": "",
-                "standard_critic": "",
-                "standard_critic_changed": False,
-                "critics": [],
-                "final": "",
-                "llm_status": ""
-            }
-        }
-        
-        # Save the current values to restore later
-        original_processed_lines = progress_dict.get("processed_lines", [])
-        
-        # Override the progress dict temporarily
-        def update_progress_wrapper():
-            """Update the main progress dict with file-specific progress"""
-            # Update the file-specific info in the main progress dict
+        try:
+            append_log_func(f"[BULK] Starting translation for: {os.path.basename(src_path)}")
             progress_dict["current_file"] = os.path.basename(src_path)
             
-            # Copy over the current line being processed
-            if "current" in file_progress and file_progress["current"]:
-                progress_dict["current"] = file_progress["current"]
-            
-            # Copy percentage information
-            if "current_line" in file_progress and "total_lines" in file_progress:
-                file_percentage = (file_progress["current_line"] / max(1, file_progress["total_lines"])) * 100
-                progress_dict["file_percentage"] = file_percentage
-        
-        # Set up periodic progress updates
-        def progress_monitor(file_progress_dict):
-            # This would be called by the translate_srt function
-            update_progress_wrapper()
-        
-        # Call the actual translation function, which will update file_progress
-        try:
-            translate_srt_func(src_path, dest_path, config, progress_dict=file_progress)
-            
-            # Add the processed lines from this file to the main progress_dict
-            if file_progress.get("processed_lines"):
-                # Only keep the last 20 processed lines to avoid memory issues
-                recent_lines = file_progress.get("processed_lines", [])[-20:]
-                progress_dict["processed_lines"] = recent_lines
-                
-                # Log the final translation for the last line
-                if recent_lines:
-                    last_line = recent_lines[-1]
-                    append_log_func(f"[BULK] Translated line {last_line.get('line_number', '?')}: '{last_line.get('original', '')}' → '{last_line.get('final', '')}'")
-            
-            return True
+            # Call the translate_srt function without passing progress_dict
+            # We'll manually update the progress_dict here instead
+            result = translate_srt_func(src_path, dest_path, config)
+            return result
         except Exception as e:
-            append_log_func(f"[ERROR] Error in bulk translation wrapper: {str(e)}")
+            error_msg = f"Error in bulk translation wrapper: {str(e)}"
+            append_log_func(f"[ERROR] {error_msg}")
             return False
-        finally:
-            # Restore the original processed lines, but keep the current line info
-            # progress_dict["processed_lines"] = original_processed_lines
-            pass
     
     # Process each file with progress updates
     for idx, (src, dest_in_work) in enumerate(srt_jobs, 1):
