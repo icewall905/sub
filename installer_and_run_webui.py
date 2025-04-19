@@ -3976,33 +3976,69 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
     srt_jobs = []
     append_log_func(f"[INFO] Looking for subtitles in language {src_iso} that need translation to {tgt_iso}")
     
+    # Update progress dictionary with scan information
+    progress_dict.update({
+        "mode": "bulk",
+        "status": "queued",
+        "message": f"Scanning directories for subtitle files...",
+        "total_files": 0,
+        "done_files": 0,
+        "current_file": ""
+    })
+    
     for dirpath, _, filenames in os.walk(root_path):
         # Keep track of which episodes have source and target subtitles
         episodes_with_src = set()
         episodes_with_tgt = set()
         
-        # First, identify all English and Danish subtitles
-        for fn in filenames:
-            lower_fn = fn.lower()
+        # First, build a list of all subtitle files
+        subtitle_files = [fn for fn in filenames if fn.lower().endswith('.srt') or fn.lower().endswith('.ass')]
+        
+        if not subtitle_files:
+            continue
             
-            # Identify base filename (without extension)
+        append_log_func(f"[INFO] Found {len(subtitle_files)} subtitle files in {dirpath}")
+        
+        # Try to extract episode identifiers using multiple patterns
+        for fn in subtitle_files:
+            lower_fn = fn.lower()
             base_name = None
             
-            # Match patterns like "Show.Name.S01E02.Episode.Title.en.srt"
-            # or "Show.Name.S01E02.Episode.Title.en.hi.srt"
-            if f".{src_iso}." in lower_fn and (lower_fn.endswith('.srt') or lower_fn.endswith('.ass')):
-                # Extract the episode identifier (e.g., "Show.Name.S01E02.Episode.Title")
-                parts = fn.split(f".{src_iso}.")
-                if len(parts) >= 2:
-                    base_name = parts[0]
-                    episodes_with_src.add(base_name)
+            # Try to extract episode identifier with multiple patterns
             
-            if f".{tgt_iso}." in lower_fn and (lower_fn.endswith('.srt') or lower_fn.endswith('.ass')):
-                # Extract the episode identifier
-                parts = fn.split(f".{tgt_iso}.")
-                if len(parts) >= 2:
-                    base_name = parts[0]
+            # Check if file contains source language code
+            if src_iso in lower_fn and (lower_fn.endswith('.srt') or lower_fn.endswith('.ass')):
+                # Try to extract a consistent base name for the episode
+                # First try to get the series and episode number using regex
+                import re
+                match = re.search(r'(.+?[Ss]\d+[Ee]\d+)', fn)
+                if match:
+                    base_name = match.group(1)
+                else:
+                    # Fallback: remove the language code and extension
+                    parts = re.split(r'\.{}\.|\_{}\.|\.{}|\_{}'.format(src_iso, src_iso, src_iso, src_iso), fn, 1)
+                    if len(parts) >= 1:
+                        base_name = parts[0]
+                
+                if base_name:
+                    episodes_with_src.add(base_name)
+                    append_log_func(f"[DEBUG] Found source subtitle for: {base_name}")
+            
+            # Check if file contains target language code
+            if tgt_iso in lower_fn and (lower_fn.endswith('.srt') or lower_fn.endswith('.ass')):
+                # Extract episode identifier similarly
+                import re
+                match = re.search(r'(.+?[Ss]\d+[Ee]\d+)', fn)
+                if match:
+                    base_name = match.group(1)
+                else:
+                    parts = re.split(r'\.{}\.|\_{}\.|\.{}|\_{}'.format(tgt_iso, tgt_iso, tgt_iso, tgt_iso), fn, 1)
+                    if len(parts) >= 1:
+                        base_name = parts[0]
+                
+                if base_name:
                     episodes_with_tgt.add(base_name)
+                    append_log_func(f"[DEBUG] Found target subtitle for: {base_name}")
         
         # Now find episodes that have source but not target subtitles
         episodes_needing_translation = episodes_with_src - episodes_with_tgt
@@ -4013,15 +4049,32 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
             # Find the source subtitle files for these episodes
             for episode in episodes_needing_translation:
                 for fn in filenames:
-                    # Look for source subtitle file for this episode
-                    if fn.startswith(episode) and f".{src_iso}." in fn and (fn.endswith('.srt') or fn.endswith('.ass')):
+                    # Look for source subtitle file for this episode using more flexible matching
+                    if episode in fn and src_iso in fn.lower() and (fn.lower().endswith('.srt') or fn.lower().endswith('.ass')):
                         src_path = os.path.join(dirpath, fn)
                         
-                        # For destination filename, replace source language code with target
-                        if ".hi." in fn:  # Handle "hi" (hearing impaired) tag
-                            dest_fn = f"{episode}.{tgt_iso}.hi.srt"
+                        # For destination filename, create proper target language version
+                        base, ext = os.path.splitext(fn)
+                        
+                        # Replace source language code with target
+                        if ".hi." in fn or "_hi." in fn:  # Handle "hi" (hearing impaired) tag
+                            if ".hi." in fn:
+                                dest_fn = base.replace(f".{src_iso}.", f".{tgt_iso}.") + ext
+                            else:
+                                dest_fn = base.replace(f"_{src_iso}_", f"_{tgt_iso}_") + ext
                         else:
-                            dest_fn = f"{episode}.{tgt_iso}.srt"
+                            # Handle different separators
+                            if f".{src_iso}." in fn:
+                                dest_fn = base.replace(f".{src_iso}.", f".{tgt_iso}.") + ext
+                            elif f"_{src_iso}." in fn:
+                                dest_fn = base.replace(f"_{src_iso}.", f"_{tgt_iso}.") + ext
+                            elif f".{src_iso}" in fn and fn.endswith(f".{src_iso}{ext}"):
+                                dest_fn = base[:-len(src_iso)] + tgt_iso + ext
+                            elif f"_{src_iso}" in fn and fn.endswith(f"_{src_iso}{ext}"):
+                                dest_fn = base[:-len(src_iso)] + tgt_iso + ext
+                            else:
+                                # Fallback: just add target language before extension
+                                dest_fn = f"{base}.{tgt_iso}{ext}"
                         
                         # Prepare output path in work directory
                         rel_path = os.path.relpath(dirpath, root_path)
@@ -4053,6 +4106,14 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
             "llm_status": ""
         }
     })
+    
+    if len(srt_jobs) == 0:
+        append_log_func(f"[INFO] No subtitle files found that need translation from {src_iso} to {tgt_iso}")
+        progress_dict.update({
+            "status": "done",
+            "message": f"No subtitle files found that need translation from {src_iso} to {tgt_iso}"
+        })
+        return None
 
     # Custom translation function to intercept and relay live updates
     def bulk_translate_with_updates(src_path, dest_path, config):
