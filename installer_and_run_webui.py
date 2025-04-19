@@ -3947,325 +3947,130 @@ def extract_item_name(filename: str) -> str:
 
 def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, translate_func=None, log_func=None):
     """
-    Walk *root_path* recursively, translate each *.{src}.srt* that does not
-    already have a *.{tgt}.srt* sibling. Updates *progress_dict* so the
-    UI can poll live status.
+    Scans a directory recursively for subtitle files matching the source language
+    and translates them if a target language version doesn't exist.
     """
-    import os
-    import zipfile, tempfile, shutil
-
-    # If called from CLI, load config and create a dummy progress dict
+    if log_func is None: log_func = print # Use default print if no logger passed
     if cfg is None:
-        cfg = load_config()
-    if progress_dict is None:
-        progress_dict = {}
-    
-    # Use provided functions or fallbacks
-    translate_srt_func = translate_func or (lambda *args: print(f"Would translate: {args}"))
-    append_log_func = log_func or print
+        log_func("[SCANNER][ERROR] Configuration not provided to scanner.")
+        return
 
-    src_iso = get_iso_code(cfg.get("general", "source_language", fallback="en"))
-    tgt_iso = get_iso_code(cfg.get("general", "target_language", fallback="da"))
+    try:
+        source_lang = cfg.get('general', 'source_language', fallback='en')
+        target_lang = cfg.get('general', 'target_language', fallback='da')
+        # Ensure markers include dots for safer replacement
+        source_marker = f".{source_lang}."
+        target_marker = f".{target_lang}."
+    except Exception as e:
+        log_func(f"[SCANNER][ERROR] Failed to read language settings from config: {e}")
+        return
 
-    # We'll collect output files here so the user can download one zip at the end
-    work_dir  = tempfile.mkdtemp(prefix="bulk_subs_")
-    TEMP_DIRS_TO_CLEAN.add(work_dir) # Ensure cleanup
-    out_files = []
+    log_func(f"[SCANNER] Starting scan in '{root_path}' for source '{source_marker}' and target '{target_marker}'")
 
-    # First pass – just count jobs for nice 0‑% progress
-    srt_jobs = []
-    append_log_func(f"[INFO] Looking for subtitles in language {src_iso} that need translation to {tgt_iso}")
-    
-    # Update progress dictionary with scan information
-    progress_dict.update({
-        "mode": "bulk",
-        "status": "queued",
-        "message": f"Scanning directories for subtitle files...",
-        "total_files": 0,
-        "done_files": 0,
-        "current_file": ""
-    })
-    
-    for dirpath, _, filenames in os.walk(root_path):
-        # Keep track of which episodes have source and target subtitles
-        episodes_with_src = set()
-        episodes_with_tgt = set()
-        
-        # First, build a list of all subtitle files
-        subtitle_files = [fn for fn in filenames if fn.lower().endswith('.srt') or fn.lower().endswith('.ass')]
-        
-        if not subtitle_files:
-            continue
-            
-        append_log_func(f"[INFO] Found {len(subtitle_files)} subtitle files in {dirpath}")
-        
-        # Try to extract episode identifiers using multiple patterns
-        for fn in subtitle_files:
-            lower_fn = fn.lower()
-            base_name = None
-            
-            # Try to extract episode identifier with multiple patterns
-            
-            # Check if file contains source language code
-            if src_iso in lower_fn and (lower_fn.endswith('.srt') or lower_fn.endswith('.ass')):
-                # Try to extract a consistent base name for the episode
-                # First try to get the series and episode number using regex
-                import re
-                match = re.search(r'(.+?[Ss]\d+[Ee]\d+)', fn)
-                if match:
-                    base_name = match.group(1)
+    found_files = 0
+    translated_files = 0
+    skipped_files = 0
+    files_to_translate = []
+
+    for subdir, _, files in os.walk(root_path):
+        # log_func(f"[SCANNER][DEBUG] Scanning directory: {subdir}")
+        for file in files:
+            # log_func(f"[SCANNER][DEBUG] Checking file: {file}")
+            # Check if it's an SRT file AND contains the source language marker
+            if file.endswith(".srt") and source_marker in file:
+                source_filepath = os.path.join(subdir, file)
+                # log_func(f"[SCANNER][DEBUG] Found potential source file: {source_filepath}")
+
+                # --- Refined target filename construction ---
+                # Try to replace the *last* occurrence of the source marker
+                # This handles cases like "Show.Name.en.S01E01.en.srt" -> "Show.Name.en.S01E01.da.srt"
+                # And "Show.Name.S01E01.en.hi.srt" -> "Show.Name.S01E01.da.hi.srt"
+                marker_pos = file.rfind(source_marker)
+
+                # Ensure the marker was found and is part of the filename structure, not just a substring
+                if marker_pos != -1:
+                    # Construct target filename by replacing the identified marker
+                    target_filename = file[:marker_pos] + target_marker + file[marker_pos + len(source_marker):]
+                    target_filepath = os.path.join(subdir, target_filename)
+                    # log_func(f"[SCANNER][DEBUG] Expecting target file: {target_filepath}")
+
+                    target_exists = os.path.exists(target_filepath)
+                    # log_func(f"[SCANNER][DEBUG] Does target exist? {target_exists}")
+
+                    if not target_exists:
+                        log_func(f"[SCANNER] Queuing for translation: {source_filepath}")
+                        log_func(f"[SCANNER] --> Target non-existent: {target_filepath}")
+                        files_to_translate.append((source_filepath, target_filepath))
+                        found_files += 1 # Count as found only if queued
+                    else:
+                        log_func(f"[SCANNER] Target file already exists, skipping: {target_filepath}")
+                        skipped_files += 1
                 else:
-                    # Fallback: remove the language code and extension
-                    parts = re.split(r'\.{}\.|\_{}\.|\.{}|\_{}'.format(src_iso, src_iso, src_iso, src_iso), fn, 1)
-                    if len(parts) >= 1:
-                        base_name = parts[0]
-                
-                if base_name:
-                    episodes_with_src.add(base_name)
-                    append_log_func(f"[DEBUG] Found source subtitle for: {base_name}")
-            
-            # Check if file contains target language code
-            if tgt_iso in lower_fn and (lower_fn.endswith('.srt') or lower_fn.endswith('.ass')):
-                # Extract episode identifier similarly
-                import re
-                match = re.search(r'(.+?[Ss]\d+[Ee]\d+)', fn)
-                if match:
-                    base_name = match.group(1)
-                else:
-                    parts = re.split(r'\.{}\.|\_{}\.|\.{}|\_{}'.format(tgt_iso, tgt_iso, tgt_iso, tgt_iso), fn, 1)
-                    if len(parts) >= 1:
-                        base_name = parts[0]
-                
-                if base_name:
-                    episodes_with_tgt.add(base_name)
-                    append_log_func(f"[DEBUG] Found target subtitle for: {base_name}")
-        
-        # Now find episodes that have source but not target subtitles
-        episodes_needing_translation = episodes_with_src - episodes_with_tgt
-        
-        if episodes_needing_translation:
-            append_log_func(f"[INFO] Found {len(episodes_needing_translation)} episode(s) needing translation in {dirpath}")
-            
-            # Find the source subtitle files for these episodes
-            for episode in episodes_needing_translation:
-                for fn in filenames:
-                    # Look for source subtitle file for this episode using more flexible matching
-                    if episode in fn and src_iso in fn.lower() and (fn.lower().endswith('.srt') or fn.lower().endswith('.ass')):
-                        src_path = os.path.join(dirpath, fn)
-                        
-                        # For destination filename, create proper target language version
-                        base, ext = os.path.splitext(fn)
-                        
-                        # Replace source language code with target
-                        if ".hi." in fn or "_hi." in fn:  # Handle "hi" (hearing impaired) tag
-                            if ".hi." in fn:
-                                dest_fn = base.replace(f".{src_iso}.", f".{tgt_iso}.") + ext
-                            else:
-                                dest_fn = base.replace(f"_{src_iso}_", f"_{tgt_iso}_") + ext
-                        else:
-                            # Handle different separators
-                            if f".{src_iso}." in fn:
-                                dest_fn = base.replace(f".{src_iso}.", f".{tgt_iso}.") + ext
-                            elif f"_{src_iso}." in fn:
-                                dest_fn = base.replace(f"_{src_iso}.", f"_{tgt_iso}.") + ext
-                            elif f".{src_iso}" in fn and fn.endswith(f".{src_iso}{ext}"):
-                                dest_fn = base[:-len(src_iso)] + tgt_iso + ext
-                            elif f"_{src_iso}" in fn and fn.endswith(f"_{src_iso}{ext}"):
-                                dest_fn = base[:-len(src_iso)] + tgt_iso + ext
-                            else:
-                                # Fallback: just add target language before extension
-                                dest_fn = f"{base}.{tgt_iso}{ext}"
-                        
-                        # Prepare output path in work directory
-                        rel_path = os.path.relpath(dirpath, root_path)
-                        dest_dir_in_work = os.path.join(work_dir, rel_path)
-                        os.makedirs(dest_dir_in_work, exist_ok=True)
-                        dest_in_work = os.path.join(dest_dir_in_work, dest_fn)
-                        
-                        append_log_func(f"[INFO] Will translate: {fn} -> {dest_fn}")
-                        srt_jobs.append((src_path, dest_in_work))
-                        break
+                    # This case should technically not happen if `source_marker in file` is true,
+                    # but added for robustness. Could indicate weird filename.
+                    log_func(f"[SCANNER][WARN] Source marker '{source_marker}' reported in file '{file}' but rfind failed. Skipping.")
+                    skipped_files += 1
+            # Optional: Log skipped files for debugging
+            # elif file.endswith(".srt"):
+            #     log_func(f"[SCANNER][DEBUG] File ends with .srt but source_marker ('{source_marker}') not found or pattern mismatch: {file}")
+            # else:
+            #     log_func(f"[SCANNER][DEBUG] Skipping non-srt file: {file}")
 
-    # Initialize bulk translation progress structure
-    progress_dict.update({
-        "mode"           : "bulk",
-        "status"         : "translating",
-        "current_file"   : "",
-        "done_files"     : 0,
-        "total_files"    : len(srt_jobs),
-        "processed_lines": [], # Add this for bulk mode to match single file mode
-        "current"        : {   # Initialize current field with empty values
-            "line_number": 0,
-            "original": "",
-            "suggestions": {},
-            "first_pass": "",
-            "standard_critic": "",
-            "standard_critic_changed": False,
-            "critics": [],
-            "final": "",
-            "llm_status": ""
-        }
-    })
-    
-    if len(srt_jobs) == 0:
-        append_log_func(f"[INFO] No subtitle files found that need translation from {src_iso} to {tgt_iso}")
-        progress_dict.update({
-            "status": "done",
-            "message": f"No subtitle files found that need translation from {src_iso} to {tgt_iso}"
-        })
-        return None
 
-    # Custom translation function to intercept and relay live updates
-    def bulk_translate_with_updates(src_path, dest_path, config):
-        """
-        Wrapper around translate_srt that captures and relays progress updates
-        for the bulk translation process.
-        """
-        append_log_func(f"[BULK] Translating {os.path.basename(src_path)}")
-        progress_dict["current_file"] = os.path.basename(src_path)
-        
-        # Create a local progress tracker that we'll use to capture updates
-        # from the translate_srt function during translation of this file
-        local_progress = {
-            "current_line": 0,
-            "total_lines": 0,
-            "status": "translating",
-            "current": {
-                "line_number": 0,
-                "original": "",
-                "suggestions": {},
-                "first_pass": "",
-                "standard_critic": "",
-                "standard_critic_changed": False,
-                "critics": [],
-                "final": "",
-                "llm_status": ""
-            },
-            "processed_lines": []
-        }
-        
-        # Define callbacks to capture progress updates
-        def progress_callback(current, total, line_info=None):
-            """Captures progress updates from translate_srt"""
-            local_progress["current_line"] = current
-            local_progress["total_lines"] = total
-            
-            if line_info:
-                # Update the current line information
-                local_progress["current"].update(line_info)
-                
-                # Store completed lines in history (keep last 10)
-                if "final" in line_info and line_info.get("final"):
-                    local_progress["processed_lines"].append(line_info.copy())
-                    if len(local_progress["processed_lines"]) > 10:
-                        local_progress["processed_lines"].pop(0)
-            
-            # Propagate the current file's progress to the main progress dictionary
-            # This allows the UI to show detailed progress information
-            progress_dict["current"] = local_progress["current"]
-            progress_dict["processed_lines"] = local_progress["processed_lines"]
-            
-            # Also update the file name and completion percentage
-            progress_dict["current_file"] = os.path.basename(src_path)
-            
-            # Log detailed progress information to console
-            if line_info and "original" in line_info and "final" in line_info:
-                try:
-                    # Use the live_stream_translation_info function if available in the global context
-                    if 'live_stream_translation_info' in globals():
-                        live_stream_translation_info(
-                            stage="BULK TRANSLATION",
-                            original=line_info.get("original", ""),
-                            translation=line_info.get("final", ""),
-                            current_idx=current,
-                            total_lines=total,
-                            deepl_translation=line_info.get("suggestions", {}).get("deepl", ""),
-                            critic_type="standard"
-                        )
-                except Exception as e:
-                    append_log_func(f"[ERROR] Failed to display live translation info: {e}")
-        
-        # Call the main translate_srt function from the parent scope
+    log_func(f"[SCANNER] Scan complete. Found {found_files} source files needing translation. {skipped_files} skipped (target exists or pattern mismatch).")
+
+    if not files_to_translate:
+        log_func("[SCANNER] No files found requiring translation.")
+        if progress_dict is not None:
+            progress_dict['status'] = 'Scan Complete: No files to translate.'
+            progress_dict['progress'] = 100
+        return
+
+    # Update progress before starting translation
+    if progress_dict is not None:
+        progress_dict['status'] = f'Starting translation for {len(files_to_translate)} files...'
+        progress_dict['progress'] = 0
+        progress_dict['total_files'] = len(files_to_translate)
+        progress_dict['current_file_index'] = 0
+        progress_dict['errors'] = 0 # Initialize errors count
+
+    # Translate the files
+    for i, (source_path, target_path) in enumerate(files_to_translate):
+        current_file_num = i + 1
+        total_files_to_translate = len(files_to_translate)
+        if progress_dict is not None:
+            progress_dict['status'] = f'Translating {os.path.basename(source_path)} ({current_file_num}/{total_files_to_translate})...'
+            progress_dict['current_file_index'] = current_file_num
+            # Ensure progress calculation avoids division by zero if list is somehow empty (though checked above)
+            progress_dict['progress'] = int((current_file_num / total_files_to_translate) * 100) if total_files_to_translate > 0 else 100
+
+
+        log_func(f"[SCANNER] Translating ({current_file_num}/{total_files_to_translate}): {source_path} -> {target_path}")
         try:
-            # Use translate_srt directly since we're in the same scope as scan_and_translate_directory
-            translate_srt(src_path, dest_path, config, progress_callback=progress_callback)
-            return True
-        except Exception as e:
-            append_log_func(f"[ERROR] Failed to translate {src_path}: {e}")
-            progress_dict["errors"] = progress_dict.get("errors", []) + [
-                f"Error translating {os.path.basename(src_path)}: {str(e)}"
-            ]
-            return False
-
-    # Process each file with progress updates
-    for idx, (src, dest_in_work) in enumerate(srt_jobs, 1):
-        rel_src_path = os.path.relpath(src, root_path)
-        progress_dict["current_file"] = rel_src_path
-        append_log_func(f"[BULK] [{idx}/{len(srt_jobs)}] Starting translation for: {rel_src_path}")
-        
-        # If called from CLI, print progress
-        if 'print' in globals():
-            print(f"[{idx}/{len(srt_jobs)}] Translating {rel_src_path}...")
-
-        try:
-            # Use our wrapper function to get live updates during translation
-            success = bulk_translate_with_updates(src, dest_in_work, cfg)
-            
-            if success:
-                out_files.append(dest_in_work)
-                append_log_func(f"[BULK] Successfully translated: {rel_src_path}")
+            if translate_func:
+                 # Assuming translate_func is translate_srt which takes (input_path, output_path, cfg)
+                 translate_func(source_path, target_path, cfg)
+                 translated_files += 1
+                 log_func(f"[SCANNER] Successfully translated: {target_path}")
             else:
-                append_log_func(f"[BULK] Failed to translate: {rel_src_path}")
+                 log_func("[SCANNER][ERROR] No translate function provided.")
+                 if progress_dict is not None: progress_dict['errors'] = progress_dict.get('errors', 0) + 1
+
         except Exception as e:
-            # Log error but continue with next file
-            log_msg = f"[ERROR] Failed to translate {rel_src_path}: {str(e)}"
-            append_log_func(log_msg)
-        
-        progress_dict["done_files"] = idx
-        # Clear the current line info for the next file
-        progress_dict["current"] = {
-            "line_number": 0,
-            "original": "",
-            "suggestions": {},
-            "first_pass": "",
-            "standard_critic": "",
-            "standard_critic_changed": False,
-            "critics": [],
-            "final": "",
-            "llm_status": ""
-        }
+            log_func(f"[SCANNER][ERROR] Failed to translate {source_path}: {e}")
+            # Optionally log traceback for detailed debugging
+            # import traceback
+            # log_func(traceback.format_exc())
+            if progress_dict is not None: progress_dict['errors'] = progress_dict.get('errors', 0) + 1
 
-    # Package results if any files were translated
-    zip_name = ""
-    if out_files:
-        zip_basename = "translated_subs.zip"
-        zip_name = os.path.join(work_dir, zip_basename)
-        with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED) as z:
-            for f in out_files:
-                arcname = os.path.relpath(f, work_dir)
-                z.write(f, arcname)
-        append_log_func(f"[BULK] Created zip file: {zip_name}")
-    else:
-        append_log_func("[BULK] No files needed translation or translation failed for all files.")
 
-    skipped_count = len(srt_jobs) - len(out_files)
-    message = f"Finished {len(out_files)} files."
-    if skipped_count > 0:
-        message += f" Skipped {skipped_count} files (already exist or failed)."
-
-    progress_dict.update({
-        "status"   : "done",
-        "zip_path" : zip_name, # Path to the zip file within the temp dir
-        "message"  : message
-    })
-    append_log_func(f"[BULK] {message}")
-    # If called from CLI, print final message
-    if 'print' in globals():
-        print(f"[BULK] {message}")
-        if zip_name:
-            print(f"[BULK] Results saved to: {zip_name}")
-            
-    return zip_name
+    log_func(f"[SCANNER] Translation process finished. Translated {translated_files} files.")
+    if progress_dict is not None:
+        final_status = f'Translation Complete: {translated_files} files translated.'
+        if progress_dict.get('errors', 0) > 0:
+            final_status += f" ({progress_dict['errors']} errors)"
+        progress_dict['status'] = final_status
+        progress_dict['progress'] = 100
 
 def main():
     parser = argparse.ArgumentParser(
