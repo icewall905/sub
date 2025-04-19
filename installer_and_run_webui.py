@@ -3978,7 +3978,7 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
             if f".{tgt_iso}." in lower_fn and (lower_fn.endswith('.srt') or lower_fn.endswith('.ass')):
                 # Extract the episode identifier
                 parts = fn.split(f".{tgt_iso}.")
-                if len(parts) >= 2):
+                if len(parts) >= 2:
                     base_name = parts[0]
                     episodes_with_tgt.add(base_name)
         
