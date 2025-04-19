@@ -4153,6 +4153,58 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
             
     return zip_name
 
+def bulk_translate_with_updates(src_path, dest_path, config):
+    """
+    Wrapper function that calls translate_srt_func while properly tracking progress.
+    
+    This function is specifically for bulk translation mode, ensuring that:
+    1. The progress tracking is updated for each file being processed 
+    2. Line-by-line progress is preserved in the global progress dictionary
+    3. Log messages are properly formatted for bulk mode
+    """
+    try:
+        append_log_func(f"[BULK] Starting translation for: {os.path.basename(src_path)}")
+        progress_dict["current_file"] = os.path.basename(src_path)
+        
+        # Make sure progress_dict is properly initialized for the current file
+        if "current_line" not in progress_dict:
+            progress_dict["current_line"] = 0
+        if "total_lines" not in progress_dict:
+            progress_dict["total_lines"] = 0
+        if "processed_lines" not in progress_dict:
+            progress_dict["processed_lines"] = []
+        if "current" not in progress_dict:
+            progress_dict["current"] = {
+                "line_number": 0,
+                "original": "",
+                "suggestions": {},
+                "first_pass": "",
+                "standard_critic": "",
+                "standard_critic_changed": False,
+                "critics": [],
+                "final": "",
+                "llm_status": ""
+            }
+        
+        # Mark as translating
+        progress_dict["status"] = "translating"
+        
+        # The translate_srt_func already updates the progress_dict during the translation
+        # so we don't need to create a temporary one - it will automatically track line progress
+        result = translate_srt_func(src_path, dest_path, config)
+        
+        # After translation, trim processed lines history if it gets too long
+        # Keep only the last 30 lines to avoid excessive browser memory usage
+        if len(progress_dict.get("processed_lines", [])) > 30:
+            progress_dict["processed_lines"] = progress_dict["processed_lines"][-30:]
+        
+        append_log_func(f"[BULK] Completed translation for: {os.path.basename(src_path)}")
+        return result
+    except Exception as e:
+        error_msg = f"Error in bulk translation wrapper: {str(e)}"
+        append_log_func(f"[ERROR] {error_msg}")
+        return False
+
 def main():
     parser = argparse.ArgumentParser(
         description="Translate individual SRTs **or** whole folders")
