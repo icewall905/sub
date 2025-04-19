@@ -2958,147 +2958,160 @@ def run_web_ui():
                     xhr.send(formData);
                 });
                 
-                function colorizeLogs(logText) {
-                    if (!logText) return "No logs available";
-                    
-                    return logText
-                        .replace(/\[ERROR\].*$/gm, match => `<span class="error-line">${match}</span>`)
-                        .replace(/\[WARNING\].*$/gm, match => `<span class="warn-line">${match}</span>`)
-                        .replace(/\[INFO\].*$/gm, match => `<span class="info-line">${match}</span>`)
-                        .replace(/\[DEBUG\].*$/gm, match => `<span class="debug-line">${match}</span>`)
-                        .replace(/\[LIVE\].*$/gm, match => `<span class="progress-line">${match}</span>`);
+                // Function to check if a translation is already in progress
+                function checkActiveTranslation() {
+                    fetch('/api/progress')
+                        .then(r => r.json())
+                        .then(progress => {
+                            if (progress.status === 'translating' || progress.status === 'queued') {
+                                // Show the status and progress box if translation is active
+                                status.textContent = 'Translation in progress...';
+                                status.style.display = 'block';
+                                progressBox.style.display = 'block';
+                                
+                                // Update progress information immediately
+                                updateProgressDisplay(progress);
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Error checking translation status:", err);
+                        });
+                }
+                
+                // Function to update progress display based on progress data
+                function updateProgressDisplay(progress) {
+                    if (progress.mode === "bulk") {
+                        // Handle bulk mode progress
+                        if (progress.status === 'queued') {
+                            progressBox.innerHTML = `<strong>Bulk translation queued...</strong>`;
+                        } else if (progress.status === 'translating') {
+                            const percent = progress.total_files > 0 ? Math.round((progress.done_files / progress.total_files) * 100) : 0;
+                            progressBox.innerHTML = `
+                                <strong>Bulk Translating: ${progress.done_files} / ${progress.total_files} files (${percent}%)</strong><br>
+                                Current file: ${progress.current_file || 'Starting...'}<br>
+                                <div style="background: #45475a; height: 20px; border-radius: 4px; margin: 10px 0;">
+                                    <div style="background: #89b4fa; height: 100%; width: ${percent}%; border-radius: 4px;"></div>
+                                </div>
+                            `;
+                        } else if (progress.status === 'done') {
+                            // Bulk finished - show download link
+                            progressBox.innerHTML = `
+                                <strong style="color:#a6e3a1;">✓ Bulk translation complete!</strong><br>
+                                ${progress.message}<br><br>
+                                ${progress.zip_path ? 
+                                    `<a href="/download-zip?temp=${encodeURIComponent(progress.zip_path)}"
+                                       style="color:#89b4fa; background-color: #313244; padding: 0.5em 1em; border-radius: 4px; text-decoration: none;">Download all translated subtitles (.zip)</a>` : 
+                                    '<span style="color:#f9e2af;">No files were translated or zipped.</span>'
+                                }
+                            `;
+                        }
+                    } else {
+                        // Handle single file mode progress
+                        if (progress.status === 'idle') {
+                            progressBox.textContent = 'Waiting for translation to start...';
+                        } else if (progress.status === 'translating') {
+                            const percent = progress.total_lines > 0 ? Math.round((progress.current_line / progress.total_lines) * 100) : 0;
+                            progressBox.innerHTML = `
+                                <strong>Translating: ${progress.current_line} / ${progress.total_lines} lines (${percent}%)</strong><br>
+                                <div style="background: #45475a; height: 20px; border-radius: 4px; margin: 10px 0;">
+                                    <div style="background: #89b4fa; height: 100%; width: ${percent}%; border-radius: 4px;"></div>
+                                </div>
+                                ${progress.current.line_number > 0 ? `
+                                    <h4>Current Line (#${progress.current.line_number})</h4>
+                                    <div style="padding: 10px; border-left: 3px solid #89b4fa; margin-bottom: 15px; background: #1a1a24; border-radius: 4px;">
+                                        <strong>Original:</strong> ${progress.current.original}<br>
+                                        
+                                        <div style="margin-top: 8px;">
+                                            <strong>Online Translations:</strong><br>
+                                            ${Object.entries(progress.current.suggestions || {}).map(([service, text]) => 
+                                                `<div style="margin-left: 10px; margin-bottom: 5px;"><em>${service}:</em> ${text}</div>`
+                                            ).join('')}
+                                        </div>
+                                        
+                                        ${progress.current.first_pass ? `
+                                            <div style="margin-top: 8px;">
+                                                <strong>First Pass:</strong> ${progress.current.first_pass}<br>
+                                            </div>
+                                        ` : ''}
+                                        
+                                        ${progress.current.standard_critic ? `
+                                            <div style="margin-top: 8px;">
+                                                <strong>Standard Critic:</strong> ${progress.current.standard_critic} 
+                                                ${progress.current.standard_critic_changed ? 
+                                                    '<span style="color: #f38ba8;">(Changed)</span>' : 
+                                                    '<span style="color: #a6e3a1;">(No Change)</span>'}
+                                            </div>
+                                        ` : ''}
+                                        
+                                        ${progress.current.critics && progress.current.critics.length > 0 ? `
+                                            <div style="margin-top: 8px;">
+                                                <strong>Specialized Critics:</strong><br>
+                                                ${progress.current.critics.map(critic => 
+                                                    `<div style="margin-left: 10px; margin-bottom: 5px;">
+                                                        <em>${critic.type}:</em> ${critic.translation} 
+                                                        ${critic.changed ? 
+                                                            '<span style="color: #f38ba8;">(Changed)</span>' : 
+                                                            '<span style="color: #a6e3a1;">(No Change)</span>'}
+                                                    </div>`
+                                                ).join('')}
+                                            </div>
+                                        ` : ''}
+                                        
+                                        ${progress.current.final ? `
+                                            <div style="margin-top: 8px;">
+                                                <strong>Final Translation:</strong> ${progress.current.final}<br>
+                                            </div>
+                                        ` : ''}
+                                        
+                                        ${progress.current.llm_status ? `
+                                            <div style="margin-top: 8px; color: #bac2de;">
+                                                <strong>Status:</strong> ${progress.current.llm_status}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                ` : ''}
+                                
+                                <h4>Translation History (Last 10)</h4>
+                                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #444; padding: 10px; border-radius: 4px; background: #1a1a24;">
+                                    ${progress.processed_lines && progress.processed_lines.length > 0 ? 
+                                        progress.processed_lines.slice(-10).reverse().map(line => `
+                                            <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;">
+                                                <h5 style="margin-top: 0; margin-bottom: 10px; background: #313244; padding: 5px; border-radius: 3px;">Line #${line.line_number}</h5>
+                                                
+                                                <div style="padding-left: 10px; border-left: 3px solid #444;">
+                                                    <div style="margin-bottom: 10px;">
+                                                        <strong>Original:</strong> <span style="color: #cdd6f4;">${line.original}</span>
+                                                    </div>
+                                                    
+                                                    <!-- Final translation -->
+                                                    <div style="margin-bottom: 5px; font-weight: bold; background: #313244; padding: 5px; border-left: 3px solid #a6e3a1; border-radius: 3px;">
+                                                        <strong>Final Translation:</strong> ${line.final}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `).join('') : 
+                                        '<div style="color: #bac2de; text-align: center; padding: 10px;">No translated lines yet</div>'
+                                    }
+                                </div>
+                            `;
+                        } else if (progress.status === 'done') {
+                            // Single file finished
+                            progressBox.innerHTML = `
+                                <strong style="color:#a6e3a1;">✓ Translation Complete!</strong><br>
+                                Total lines: ${progress.total_lines}<br>
+                                ${progress.message || ''}
+                            `;
+                            // Note: Download link is handled by the /upload route redirect for single files
+                        }
+                    }
                 }
                 
                 function pollProgress() {
                     fetch('/api/progress')
                         .then(r => r.json())
                         .then(progress => {
-                            if (progress.mode === "bulk") {
-                                // Handle bulk mode progress
-                                if (progress.status === 'queued') {
-                                    progressBox.innerHTML = `<strong>Bulk translation queued...</strong>`;
-                                } else if (progress.status === 'translating') {
-                                    const percent = progress.total_files > 0 ? Math.round((progress.done_files / progress.total_files) * 100) : 0;
-                                    progressBox.innerHTML = `
-                                        <strong>Bulk Translating: ${progress.done_files} / ${progress.total_files} files (${percent}%)</strong><br>
-                                        Current file: ${progress.current_file || 'Starting...'}<br>
-                                        <div style="background: #45475a; height: 20px; border-radius: 4px; margin: 10px 0;">
-                                            <div style="background: #89b4fa; height: 100%; width: ${percent}%; border-radius: 4px;"></div>
-                                        </div>
-                                    `;
-                                } else if (progress.status === 'done') {
-                                    // Bulk finished - show download link
-                                    progressBox.innerHTML = `
-                                        <strong style="color:#a6e3a1;">✓ Bulk translation complete!</strong><br>
-                                        ${progress.message}<br><br>
-                                        ${progress.zip_path ? 
-                                            `<a href="/download-zip?temp=${encodeURIComponent(progress.zip_path)}"
-                                               style="color:#89b4fa; background-color: #313244; padding: 0.5em 1em; border-radius: 4px; text-decoration: none;">Download all translated subtitles (.zip)</a>` : 
-                                            '<span style="color:#f9e2af;">No files were translated or zipped.</span>'
-                                        }
-                                    `;
-                                }
-                            } else {
-                                // Handle single file mode progress (existing logic)
-                                if (progress.status === 'idle') {
-                                    progressBox.textContent = 'Waiting for translation to start...';
-                                } else if (progress.status === 'translating') {
-                                    const percent = progress.total_lines > 0 ? Math.round((progress.current_line / progress.total_lines) * 100) : 0;
-                                    // ... (rest of the existing single file progress rendering logic) ...
-                                    // Keep the detailed view for single files
-                                    progressBox.innerHTML = `
-                                        <strong>Translating: ${progress.current_line} / ${progress.total_lines} lines (${percent}%)</strong><br>
-                                        <div style="background: #45475a; height: 20px; border-radius: 4px; margin: 10px 0;">
-                                            <div style="background: #89b4fa; height: 100%; width: ${percent}%; border-radius: 4px;"></div>
-                                        </div>
-                                        ${progress.current.line_number > 0 ? `
-                                            <h4>Current Line (#${progress.current.line_number})</h4>
-                                            <div style="padding: 10px; border-left: 3px solid #89b4fa; margin-bottom: 15px; background: #1a1a24; border-radius: 4px;">
-                                                <strong>Original:</strong> ${progress.current.original}<br>
-                                                
-                                                <div style="margin-top: 8px;">
-                                                    <strong>Online Translations:</strong><br>
-                                                    ${Object.entries(progress.current.suggestions || {}).map(([service, text]) => 
-                                                        `<div style="margin-left: 10px; margin-bottom: 5px;"><em>${service}:</em> ${text}</div>`
-                                                    ).join('')}
-                                                </div>
-                                                
-                                                ${progress.current.first_pass ? `
-                                                    <div style="margin-top: 8px;">
-                                                        <strong>First Pass:</strong> ${progress.current.first_pass}<br>
-                                                    </div>
-                                                ` : ''}
-                                                
-                                                ${progress.current.standard_critic ? `
-                                                    <div style="margin-top: 8px;">
-                                                        <strong>Standard Critic:</strong> ${progress.current.standard_critic} 
-                                                        ${progress.current.standard_critic_changed ? 
-                                                            '<span style="color: #f38ba8;">(Changed)</span>' : 
-                                                            '<span style="color: #a6e3a1;">(No Change)</span>'}
-                                                    </div>
-                                                ` : ''}
-                                                
-                                                ${progress.current.critics && progress.current.critics.length > 0 ? `
-                                                    <div style="margin-top: 8px;">
-                                                        <strong>Specialized Critics:</strong><br>
-                                                        ${progress.current.critics.map(critic => 
-                                                            `<div style="margin-left: 10px; margin-bottom: 5px;">
-                                                                <em>${critic.type}:</em> ${critic.translation} 
-                                                                ${critic.changed ? 
-                                                                    '<span style="color: #f38ba8;">(Changed)</span>' : 
-                                                                    '<span style="color: #a6e3a1;">(No Change)</span>'}
-                                                            </div>`
-                                                        ).join('')}
-                                                    </div>
-                                                ` : ''}
-                                                
-                                                ${progress.current.final ? `
-                                                    <div style="margin-top: 8px;">
-                                                        <strong>Final Translation:</strong> ${progress.current.final}<br>
-                                                    </div>
-                                                ` : ''}
-                                                
-                                                ${progress.current.llm_status ? `
-                                                    <div style="margin-top: 8px; color: #bac2de;">
-                                                        <strong>Status:</strong> ${progress.current.llm_status}
-                                                    </div>
-                                                ` : ''}
-                                            </div>
-                                        ` : ''}
-                                        
-                                        <h4>Translation History (Last 10)</h4>
-                                        <div style="max-height: 300px; overflow-y: auto; border: 1px solid #444; padding: 10px; border-radius: 4px; background: #1a1a24;">
-                                            ${progress.processed_lines && progress.processed_lines.length > 0 ? 
-                                                progress.processed_lines.slice(-10).reverse().map(line => `
-                                                    <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;">
-                                                        <h5 style="margin-top: 0; margin-bottom: 10px; background: #313244; padding: 5px; border-radius: 3px;">Line #${line.line_number}</h5>
-                                                        
-                                                        <div style="padding-left: 10px; border-left: 3px solid #444;">
-                                                            <div style="margin-bottom: 10px;">
-                                                                <strong>Original:</strong> <span style="color: #cdd6f4;">${line.original}</span>
-                                                            </div>
-                                                            
-                                                            <!-- Final translation -->
-                                                            <div style="margin-bottom: 5px; font-weight: bold; background: #313244; padding: 5px; border-left: 3px solid #a6e3a1; border-radius: 3px;">
-                                                                <strong>Final Translation:</strong> ${line.final}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                `).join('') : 
-                                                '<div style="color: #bac2de; text-align: center; padding: 10px;">No translated lines yet</div>'
-                                            }
-                                        </div>
-                                    `;
-                                } else if (progress.status === 'done') {
-                                    // Single file finished
-                                    progressBox.innerHTML = `
-                                        <strong style="color:#a6e3a1;">✓ Translation Complete!</strong><br>
-                                        Total lines: ${progress.total_lines}<br>
-                                        ${progress.message || ''}
-                                    `;
-                                    // Note: Download link is handled by the /upload route redirect for single files
-                                }
-                            }
+                            // Use the updateProgressDisplay function to handle the progress data
+                            updateProgressDisplay(progress);
                         })
                         .catch(err => {
                             console.error("Error fetching progress:", err);
@@ -3218,7 +3231,13 @@ def run_web_ui():
                 });
                 
                 // Initialize page
-                loadConfigValues();
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Load config values
+                    loadConfigValues();
+                    
+                    // Check for active translations when the page loads
+                    checkActiveTranslation();
+                });
 
                 // ─── NEW: start bulk job ─────────────────────────────────────────
                 document.getElementById("scan_button").addEventListener("click", () => {
@@ -3481,6 +3500,9 @@ def run_web_ui():
                         }
                     });
                 }
+                
+                // Check for active translation on page load
+                checkActiveTranslation();
             </script>
     </body>
     </html>
