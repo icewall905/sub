@@ -2787,10 +2787,31 @@ def run_web_ui():
 
             <hr style="margin:1.5em 0">
 
-            <label for="scan_path">…or translate an entire folder:</label>
-            <input type="text" id="scan_path" name="scan_path"
-                   placeholder="/tv/Kipo and the Age of Wonderbeasts" 
-                   style="border:1px solid #444;padding:.5em;width:calc(100% - 1.2em); background-color: #1a1a24; color: #cdd6f4; margin-bottom: 1em;">
+            <label>…or translate an entire folder:</label>
+            <div style="display: flex; flex-direction: column; margin-bottom: 1em;">
+                <!-- File browser component -->
+                <div style="border:1px solid #444; background-color: #1a1a24; color: #cdd6f4; border-radius: 4px; overflow: hidden;">
+                    <!-- Path display and navigation bar -->
+                    <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #444; background-color: #313244;">
+                        <button id="parent_dir_btn" style="background-color: #45475a; border: none; color: #cdd6f4; padding: 5px 10px; margin-right: 10px; border-radius: 4px; cursor: pointer;">
+                            <span style="font-weight: bold;">⬆️ Up</span>
+                        </button>
+                        <div id="current_path" style="flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 5px 10px; background-color: #1a1a24; border-radius: 4px;">
+                            /
+                        </div>
+                    </div>
+                    
+                    <!-- Directory listing -->
+                    <div id="dir_browser" style="max-height: 300px; overflow-y: auto; padding: 10px;">
+                        <div style="text-align: center; padding: 20px; color: #bac2de;">
+                            Loading directories...
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hidden input field to store the selected path (for compatibility) -->
+                <input type="hidden" id="scan_path" name="scan_path">
+            </div>
 
             <input type="button" id="scan_button" value="Scan & Translate Folder"
                    style="margin-top:1em;background-color:#a6e3a1; color: #1e1e2e; padding: 0.8em 1.5em; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; width: 100%; font-weight: bold;">
@@ -2803,7 +2824,7 @@ def run_web_ui():
 
             <!-- Subtitle Archive Section -->
             <div class="settings-panel" style="margin-top: 2em;">
-                <h3>Subtitle Archive (./subs/)</h3>
+                <h3>Subtitle Archive</h3>
                 <div id="subs-archive-list" style="max-height: 300px; overflow-y: auto; background: #1a1a24; padding: 1em; border-radius: 6px; border: 1px solid #444;">
                     Loading archive...
                 </div>
@@ -3363,6 +3384,103 @@ def run_web_ui():
                 // Refresh button for archive
                 const refreshSubsBtn = document.getElementById('refresh-subs-btn');
                 refreshSubsBtn.addEventListener('click', fetchSubsArchive);
+
+                // Initialize the directory browser when the page loads
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Initialize the file browser
+                    initFileBrowser();
+                });
+                
+                // File browser functionality
+                function initFileBrowser() {
+                    const dirBrowser = document.getElementById('dir_browser');
+                    const currentPathElement = document.getElementById('current_path');
+                    const parentDirBtn = document.getElementById('parent_dir_btn');
+                    const scanPathInput = document.getElementById('scan_path');
+                    
+                    // Initial load of root directories
+                    loadDirectory('');
+                    
+                    // Function to load directories
+                    function loadDirectory(path) {
+                        dirBrowser.innerHTML = '<div style="text-align: center; padding: 20px; color: #bac2de;">Loading...</div>';
+                        
+                        fetch(`/api/browse_dirs?path=${encodeURIComponent(path)}`)
+                            .then(response => {
+                                if (!response.ok) {
+                                    return response.json().then(data => {
+                                        throw new Error(data.error || `Error: ${response.status}`);
+                                    });
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                // Update the current path display
+                                currentPathElement.textContent = data.current_path || '/';
+                                // Store the current path in the hidden input for form submission
+                                scanPathInput.value = data.current_path;
+                                
+                                // Create directory list
+                                if (data.directories && data.directories.length > 0) {
+                                    let listHtml = '<ul style="list-style-type: none; padding: 0; margin: 0;">';
+                                    
+                                    // If we have a parent directory, add "Up one level" option
+                                    if (data.parent_path) {
+                                        listHtml += `
+                                            <li style="padding: 8px; margin-bottom: 8px; background-color: #313244; border-radius: 4px; cursor: pointer;"
+                                                data-path="${data.parent_path}">
+                                                <span style="font-weight: bold;">⬆️ Up to parent directory</span>
+                                            </li>`;
+                                    }
+                                    
+                                    // Add all directories
+                                    data.directories.forEach(dir => {
+                                        if (typeof dir === 'string') {
+                                            // Handle the case where directories are simple strings (Windows drives)
+                                            listHtml += `
+                                                <li style="padding: 8px; margin-bottom: 8px; background-color: #282a36; border-radius: 4px; cursor: pointer;"
+                                                    data-path="${dir}">
+                                                    <span style="font-weight: bold;">📁 ${dir}</span>
+                                                </li>`;
+                                        } else {
+                                            // Handle the case where directories are objects with name and path
+                                            listHtml += `
+                                                <li style="padding: 8px; margin-bottom: 8px; background-color: #282a36; border-radius: 4px; cursor: pointer;"
+                                                    data-path="${dir.path}">
+                                                    <span style="font-weight: bold;">📁 ${dir.name}</span>
+                                                </li>`;
+                                        }
+                                    });
+                                    
+                                    listHtml += '</ul>';
+                                    dirBrowser.innerHTML = listHtml;
+                                    
+                                    // Add click event listeners to all directory items
+                                    dirBrowser.querySelectorAll('li').forEach(li => {
+                                        li.addEventListener('click', function() {
+                                            const dirPath = this.getAttribute('data-path');
+                                            loadDirectory(dirPath);
+                                        });
+                                    });
+                                } else {
+                                    dirBrowser.innerHTML = '<div style="text-align: center; padding: 20px; color: #bac2de;">No directories found</div>';
+                                }
+                            })
+                            .catch(error => {
+                                dirBrowser.innerHTML = `<div style="text-align: center; padding: 20px; color: #f38ba8;">${error.message}</div>`;
+                                console.error('Error loading directories:', error);
+                            });
+                    }
+                    
+                    // "Up" button event listener
+                    parentDirBtn.addEventListener('click', function() {
+                        const currentPath = currentPathElement.textContent;
+                        if (currentPath && currentPath !== '/') {
+                            const parentPath = currentPath.split('/').slice(0, -1).join('/');
+                            loadDirectory(parentPath || '/');
+                        }
+                    });
+                }
             </script>
     </body>
     </html>
@@ -3733,6 +3851,52 @@ def run_web_ui():
         except Exception as e:
             append_log(f"[ERROR] /download-zip: Failed to send file {temp_path}: {e}")
             return "Error serving file", 500
+
+    @app.route("/api/browse_dirs", methods=["GET"])
+    def api_browse_dirs():
+        """API endpoint to list directories for the file browser"""
+        parent_path = request.args.get("path", "")
+        
+        # Default to system root directories if no path provided
+        if not parent_path:
+            if os.name == "nt":  # Windows
+                import string
+                # Get all drives
+                drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
+                return jsonify({"directories": drives, "current_path": "", "parent_path": ""})
+            else:  # Unix-like
+                parent_path = "/"
+        
+        try:
+            # Security check: normalize path to prevent directory traversal
+            parent_path = os.path.normpath(parent_path)
+            
+            # Get the parent of the current directory for "up one level" functionality
+            parent_of_parent = os.path.dirname(parent_path) if parent_path != "/" else ""
+            
+            # List all directories in the parent path
+            dirs = []
+            if os.path.isdir(parent_path):
+                for item in os.listdir(parent_path):
+                    full_path = os.path.join(parent_path, item)
+                    if os.path.isdir(full_path):
+                        dirs.append({"name": item, "path": full_path})
+                
+                # Sort directories by name
+                dirs.sort(key=lambda x: x["name"].lower())
+                
+                return jsonify({
+                    "directories": dirs,
+                    "current_path": parent_path,
+                    "parent_path": parent_of_parent
+                })
+            else:
+                return jsonify({"error": "Not a valid directory"}), 400
+        except PermissionError:
+            return jsonify({"error": "Permission denied accessing this directory"}), 403
+        except Exception as e:
+            append_log(f"[ERROR] Error browsing directory {parent_path}: {str(e)}")
+            return jsonify({"error": f"Error accessing directory: {str(e)}"}), 500
 
     host = cfg_for_logger.get("general", "host", fallback="127.0.0.1")
     port = cfg_for_logger.getint("general", "port", fallback=5000)
