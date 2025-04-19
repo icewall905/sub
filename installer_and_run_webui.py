@@ -4185,8 +4185,9 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
                 except Exception as e:
                     append_log_func(f"[ERROR] Failed to display live translation info: {e}")
         
-        # Call translate_srt with our progress callback
+        # Call the main translate_srt function from the parent scope
         try:
+            # Use translate_srt directly since we're in the same scope as scan_and_translate_directory
             translate_srt(src_path, dest_path, config, progress_callback=progress_callback)
             return True
         except Exception as e:
