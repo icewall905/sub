@@ -1927,7 +1927,7 @@ def run_web_ui():
         context_after  = cfg.getint("general", "context_size_after", fallback=10)
 
         start_idx = max(0, index - context_before)
-        end_idx   = min(len(lines), index + context_after + 1)
+        end_idx   = min(len(lines), index + context_size_after + 1)
 
         chunk_before = lines[start_idx:index]
         chunk_after  = lines[index+1:end_idx]
@@ -3953,7 +3953,6 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
     if log_func is None: 
         log_func = print
     if cfg is None:
-        from installer_and_run_webui import load_config  # Import locally to avoid circular imports
         cfg = load_config()
 
     # Constants
@@ -3968,26 +3967,17 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
     target_marker = f".{target_lang}."
 
     try:
-        use_live_updates = cfg.getboolean("general", "live_updates", fallback=True)
+        use_live_updates = cfg.getboolean("general", "use_live_viewer", fallback=True)
     except Exception as e:
+        log_func(f"[WARNING] Error getting use_live_viewer setting: {e}")
         use_live_updates = True
-        log_func(f"[WARNING] Error reading live_updates config: {e}. Defaulting to True.")
     
     # Import live translation viewer if enabled
     if use_live_updates:
         try:
-            from live_translation_viewer import live_stream_translation_info, show_translation_comparison
-            log_func("[INFO] Live translation updates enabled")
-            
-            # Show a starting message in the live viewer
-            live_stream_translation_info(
-                "SCAN STARTED",
-                f"Scanning directory: {root_path}",
-                f"Looking for subtitles with language marker: {source_marker}",
-                0, 0, None, "scanner"
-            )
-        except ImportError as e:
-            log_func(f"[WARNING] Could not import live_translation_viewer: {e}")
+            from live_translation_viewer import live_stream_translation_info
+        except ImportError:
+            log_func("[WARNING] Could not import live_translation_viewer, will use regular output")
             use_live_updates = False
 
     log_func(f"[SCANNER] Starting scan in '{root_path}' for source '{source_marker}' and target '{target_marker}'")
@@ -3999,142 +3989,94 @@ def scan_and_translate_directory(root_path: str, cfg=None, progress_dict=None, t
 
     for subdir, _, files in os.walk(root_path):
         for file in files:
-            # Only process .srt files
-            if not file.lower().endswith(".srt"):
-                continue
-                
-            # Check if this is a source language file
-            if source_marker in file:
-                found_files += 1
+            if file.lower().endswith('.srt') and source_marker.lower() in file.lower():
                 source_path = os.path.join(subdir, file)
-                
-                # Determine target filename by replacing source language with target
-                target_file = file.replace(source_marker, target_marker)
+                # Construct target path with the target language marker
+                target_file = file.lower().replace(source_marker.lower(), target_marker.lower())
                 target_path = os.path.join(subdir, target_file)
                 
                 # Check if target file already exists
                 if os.path.exists(target_path):
-                    log_func(f"[SCANNER] Skipping {file} - target already exists: {target_file}")
+                    log_func(f"[SCANNER] Skipping {file} - target file already exists: {target_file}")
                     skipped_files += 1
-                else:
-                    log_func(f"[SCANNER] Found {file} to translate")
-                    files_to_translate.append((source_path, target_path))
-                    
-                    # Update the live view with scan progress
-                    if use_live_updates and found_files % 5 == 0:  # Update every 5 files to avoid too many updates
-                        live_stream_translation_info(
-                            "SCANNING",
-                            f"Found {found_files} subtitle files so far",
-                            f"Files queued for translation: {len(files_to_translate)}",
-                            found_files, 0, None, "scanner"
-                        )
+                    continue
+                
+                found_files += 1
+                files_to_translate.append((source_path, target_path))
+                log_func(f"[SCANNER] Found file to translate: {source_path} -> {target_path}")
 
     log_func(f"[SCANNER] Scan complete. Found {found_files} source files needing translation. {skipped_files} skipped (target exists or pattern mismatch).")
 
     # Show scan results in the live viewer
     if use_live_updates:
-        live_stream_translation_info(
-            "SCAN COMPLETE",
-            f"Found {found_files} subtitle files in {root_path}",
-            f"Files to translate: {len(files_to_translate)} | Skipped: {skipped_files}",
-            found_files, found_files, None, "scanner"
-        )
+        live_stream_translation_info("Scan Complete", f"Found {found_files} files to translate", 
+                                    f"{skipped_files} files skipped (already have translations)",
+                                    0, found_files)
 
     if not files_to_translate:
-        log_func("[SCANNER] No files to translate.")
-        if progress_dict is not None:
-            progress_dict["status"] = "done"
-            progress_dict["message"] = "No files found for translation."
-        return 0, 0
+        log_func("[SCANNER] No files to translate. Exiting.")
+        return
 
     # Update progress before starting translation
     if progress_dict is not None:
-        progress_dict["total_files"] = len(files_to_translate)
-        progress_dict["done_files"] = 0
-        progress_dict["current_file"] = ""
-        progress_dict["status"] = "translating"
+        progress_dict.update({
+            "status": "translating",
+            "mode": "bulk",
+            "total_files": len(files_to_translate),
+            "done_files": 0,
+            "current_file": "",
+            "message": f"Found {found_files} files to translate"
+        })
 
     # Import translate_srt function if not provided
     if translate_func is None:
-        from installer_and_run_webui import translate_srt
         translate_func = translate_srt
 
     # Translate the files
     for i, (source_path, target_path) in enumerate(files_to_translate):
-        file_name = os.path.basename(source_path)
-        log_func(f"[SCANNER] Translating file {i+1}/{len(files_to_translate)}: {file_name}")
-        
-        if progress_dict is not None:
-            progress_dict["current_file"] = file_name
-            
-        # Display bulk translation progress in the live viewer
-        if use_live_updates:
-            live_stream_translation_info(
-                "BULK TRANSLATION",
-                f"File {i+1} of {len(files_to_translate)}: {file_name}",
-                f"Translated so far: {translated_files} files",
-                i+1, len(files_to_translate), None, "bulk"
-            )
-        
         try:
-            # Call the provided translate function
-            translate_func(source_path, target_path, cfg, progress_dict)
+            log_func(f"[SCANNER] Translating file {i+1}/{len(files_to_translate)}: {source_path}")
+            if progress_dict is not None:
+                progress_dict.update({
+                    "current_file": os.path.basename(source_path),
+                    "done_files": i,
+                })
+                
+            # Create a separate progress dictionary for this file's translation
+            # so that the main progress dict doesn't get overwritten
+            file_progress_dict = {
+                "current_line": 0,
+                "total_lines": 0,
+                "status": "idle",
+                "mode": "single",
+                "current": {},
+                "processed_lines": []
+            }
             
+            # Pass the file-specific progress dictionary to translate_srt
+            translate_func(source_path, target_path, cfg, file_progress_dict)
             translated_files += 1
             
-            if progress_dict is not None:
-                progress_dict["done_files"] = i + 1
-                
-            # Copy the translated file to the subs folder for easy access
-            subs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), SUBS_FOLDER)
-            os.makedirs(subs_dir, exist_ok=True)
-            target_basename = os.path.basename(target_path)
-            subs_copy_path = os.path.join(subs_dir, target_basename)
-            shutil.copy2(target_path, subs_copy_path)
-            log_func(f"[SCANNER] Copied translated file to {subs_copy_path}")
-            
-            # Display completion status for this file
-            if use_live_updates:
-                live_stream_translation_info(
-                    "FILE COMPLETED",
-                    f"Completed: {file_name}",
-                    f"Progress: {i+1}/{len(files_to_translate)} files ({((i+1)/len(files_to_translate))*100:.1f}%)",
-                    i+1, len(files_to_translate), None, "complete"
-                )
-            
+            log_func(f"[SCANNER] Successfully translated file {i+1}/{len(files_to_translate)}")
         except Exception as e:
-            log_func(f"[SCANNER] Error translating {source_path}: {str(e)}")
-            
-            # Show error in the live viewer
-            if use_live_updates:
-                live_stream_translation_info(
-                    "ERROR",
-                    f"Error processing file: {file_name}",
-                    f"Error message: {str(e)}",
-                    i+1, len(files_to_translate), None, "error"
-                )
+            log_func(f"[ERROR] Failed to translate {source_path}: {e}")
 
     # Show final summary in the live viewer
     if use_live_updates:
-        stages = {
-            "Total files found": f"{found_files}",
-            "Files translated": f"{translated_files}",
-            "Files skipped": f"{skipped_files}",
-            "Success rate": f"{(translated_files/len(files_to_translate))*100:.1f}% of attempted files"
-        }
-        show_translation_comparison(
-            f"Bulk translation of {len(files_to_translate)} files from directory: {root_path}",
-            stages,
-            source_lang,
-            target_lang
-        )
+        live_stream_translation_info("Bulk Translation Complete", 
+                                   f"Translated {translated_files}/{found_files} files",
+                                   f"Translation job complete!", 
+                                   found_files, found_files)
 
     log_func(f"[SCANNER] Translation process finished. Translated {translated_files} files.")
     if progress_dict is not None:
-        progress_dict["status"] = "done"
-        progress_dict["message"] = f"Translated {translated_files} files successfully."
+        progress_dict.update({
+            "status": "done",
+            "done_files": translated_files,
+            "message": f"Translated {translated_files}/{found_files} files successfully."
+        })
     
-    return found_files, translated_files
+    return
 
 def main():
     parser = argparse.ArgumentParser(

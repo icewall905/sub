@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subtitle Translator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Subtitle Translator</h1>
+        
+        <div class="nav-links">
+            <a href="/" class="active">Home</a>
+            <a href="/logs">Logs</a>
+            <a href="/config">Configuration</a>
+        </div>
+        
+        <div class="cards">
+            <div class="card">
+                <h2>Upload Subtitle</h2>
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="subtitle-file">Subtitle File:</label>
+                        <input type="file" id="subtitle-file" name="subtitle-file" accept=".srt,.vtt,.ass,.ssa">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="source-language">Source Language:</label>
+                        <select id="source-language" name="source-language">
+                            {% for code, name in languages %}
+                            <option value="{{ code }}" {% if code == default_source %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="target-language">Target Language:</label>
+                        <select id="target-language" name="target-language">
+                            {% for code, name in languages %}
+                            <option value="{{ code }}" {% if code == default_target %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="primary">Start Translation</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>Recent Translations</h2>
+                <div id="recent-files">
+                    {% if recent_files %}
+                    <ul class="file-list">
+                        {% for file in recent_files %}
+                        <li>
+                            <span class="file-name">{{ file.name }}</span>
+                            <span class="file-date">{{ file.date }}</span>
+                            <div class="file-actions">
+                                <a href="/download/{{ file.id }}" class="download-btn">Download</a>
+                                <button class="view-btn" data-file="{{ file.id }}">View</button>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>No recent translations found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div id="status-container" style="display: none;">
+            <h2>Translation Progress</h2>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+                <div id="progress-text">0%</div>
+            </div>
+            <div id="status-message">Initializing translation...</div>
+        </div>
+        
+        <div id="result-container" style="display: none;">
+            <h2>Translation Complete</h2>
+            <div id="result-message"></div>
+            <div class="button-group">
+                <button id="download-btn" class="primary">Download Translation</button>
+                <button id="view-btn" class="secondary">View Translation</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">Subtitle Preview</h2>
+            <div id="subtitle-preview"></div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

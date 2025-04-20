@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Viewer - Subtitle Translator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Log Viewer</h1>
+        
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/logs" class="active">Logs</a>
+            <a href="/config">Configuration</a>
+        </div>
+        
+        <div class="controls">
+            <select id="log-file-select">
+                {% for file in log_files %}
+                <option value="{{ file }}" {% if file == current_log %}selected{% endif %}>{{ file }}</option>
+                {% endfor %}
+            </select>
+            
+            <div class="button-group">
+                <button id="refresh-log" class="primary">Refresh</button>
+                <button id="clear-log" class="secondary">Clear Log</button>
+                <button id="auto-refresh" class="toggle">Auto-refresh: Off</button>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="search-log" placeholder="Search in logs..." />
+                <div class="search-stats">
+                    <span id="search-count">0</span> matches
+                    <button id="prev-match" disabled>&uarr;</button>
+                    <button id="next-match" disabled>&darr;</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="log-container">
+            <pre id="log-content">{{ log_content }}</pre>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/log_viewer.js') }}"></script>
+</body>
+</html>

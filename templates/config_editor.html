@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Editor - Subtitle Translator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Subtitle Translator Configuration</h1>
+        
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/logs">Logs</a>
+            <a href="/config" class="active">Configuration</a>
+        </div>
+        
+        <div id="notification" style="display: none;" class="notification"></div>
+        
+        <div class="search-container">
+            <input type="text" id="search-config" placeholder="Search settings..." />
+        </div>
+        
+        <form id="config-form">
+            <div id="config-sections"></div>
+            
+            <div class="button-group">
+                <button type="button" id="reset-btn" class="secondary">Reset Changes</button>
+                <button type="submit" id="save-btn" class="primary">Save Configuration</button>
+            </div>
+        </form>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/config_editor.js') }}"></script>
+</body>
+</html>

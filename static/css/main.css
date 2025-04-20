@@ -1,0 +1,385 @@
+/* Main styles for SRT Subtitle Translator */
+body { 
+    font-family: sans-serif; 
+    margin: 0; 
+    padding: 0; 
+    background-color: #1e1e2e; 
+    color: #cdd6f4;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 2em auto;
+    background: #282a36;
+    padding: 2em;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+h1 { text-align: center; color: #f5f5f5; margin-top: 0; }
+
+h2 { 
+    color: #f5f5f5;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.5em; 
+}
+
+.nav-links {
+    text-align: center;
+    margin-bottom: 1.5em;
+}
+
+.nav-links a {
+    display: inline-block;
+    padding: 0.5em 1em;
+    margin: 0 0.5em;
+    color: #89b4fa;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.nav-links a:hover {
+    background-color: #313244;
+    text-decoration: underline;
+}
+
+.nav-links a.active {
+    font-weight: bold;
+    border-bottom: 2px solid #89b4fa;
+}
+
+/* Log viewer styles */
+#log-container { 
+    background-color: #1a1a24; 
+    color: #cdd6f4; 
+    padding: 1em; 
+    border-radius: 6px; 
+    font-family: monospace; 
+    height: 70vh; 
+    overflow-y: auto;
+    white-space: pre-wrap;
+    margin-top: 1em;
+    border: 1px solid #444;
+}
+
+.error { color: #f38ba8; }
+.warning { color: #f9e2af; }
+.info { color: #89b4fa; }
+.debug { color: #a6e3a1; }
+
+.controls { 
+    margin-top: 1em; 
+    display: flex; 
+    align-items: center;
+    background: #313244;
+    padding: 1em;
+    border-radius: 6px;
+    border: 1px solid #444;
+}
+
+.controls button { 
+    background-color: #74c7ec; 
+    border: none; 
+    color: #1e1e2e; 
+    padding: 0.5em 1em; 
+    margin-right: 1em;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.controls button:hover { background-color: #89dceb; }
+.controls label { margin-right: 0.5em; }
+
+.settings-panel {
+    margin-top: 2em;
+    padding: 1em;
+    background-color: #313244;
+    border-radius: 6px;
+    border: 1px solid #444;
+}
+
+.settings-panel h3 {
+    margin-top: 0;
+    color: #f5f5f5;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.5em;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5em;
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin-right: 0.5em;
+}
+
+select, input[type="checkbox"] {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 0.3em;
+}
+
+select option {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+}
+
+/* Config editor styles */
+.config-container {
+    background: #313244;
+    border-radius: 6px;
+    padding: 1em;
+    border: 1px solid #444;
+    margin-top: 1em;
+}
+
+.form-group {
+    margin-bottom: 1em;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+    color: #bac2de;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 0.5em;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #1a1a24;
+    color: #cdd6f4;
+}
+
+.buttons {
+    margin-top: 1.5em;
+    text-align: right;
+}
+
+.buttons button {
+    padding: 0.6em 1.2em;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 0.5em;
+    font-weight: bold;
+}
+
+.cancel {
+    background-color: #6c757d;
+    border: 1px solid #5a6268;
+    color: #f8f9fa;
+}
+
+.cancel:hover {
+    background-color: #5a6268;
+}
+
+button[type="submit"] {
+    background-color: #74c7ec;
+    border: none;
+    color: #1e1e2e;
+}
+
+button[type="submit"]:hover {
+    background-color: #89dceb;
+}
+
+.notification {
+    padding: 1em;
+    margin-bottom: 1em;
+    border-radius: 4px;
+    display: none;
+    border-left: 5px solid;
+}
+
+.notification.success {
+    background-color: #3c4a4f;
+    border-color: #a6e3a1;
+    color: #a6e3a1;
+}
+
+.notification.error {
+    background-color: #382a37;
+    border-color: #f38ba8;
+    color: #f38ba8;
+}
+
+.section {
+    background-color: #282a36;
+    padding: 1em;
+    border-radius: 4px;
+    margin-bottom: 1em;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    border: 1px solid #444;
+}
+
+.loading {
+    text-align: center;
+    padding: 2em;
+    color: #bac2de;
+}
+
+.search-box {
+    padding: 0.5em;
+    margin-bottom: 1em;
+    width: 100%;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #1a1a24;
+    color: #cdd6f4;
+}
+
+/* Highlight for search results */
+.highlight-search {
+    background-color: #45475a !important;
+    transition: background-color 0.3s ease;
+}
+
+small {
+    color: #bac2de;
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
+/* Upload form styles */
+.upload-form {
+    background-color: #313244;
+    border-radius: 8px;
+    padding: 2em;
+    margin-bottom: 2em;
+    border: 1px solid #444;
+}
+
+.file-input-container {
+    margin-bottom: 1.5em;
+}
+
+.submit-container {
+    margin-top: 1.5em;
+    text-align: center;
+}
+
+.upload-button {
+    background-color: #74c7ec;
+    color: #1e1e2e;
+    border: none;
+    padding: 0.8em 2em;
+    border-radius: 4px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.upload-button:hover {
+    background-color: #89dceb;
+}
+
+.file-list {
+    margin-top: 2em;
+}
+
+.file-item {
+    background-color: #282a36;
+    border-radius: 4px;
+    padding: 0.8em;
+    margin-bottom: 0.8em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #444;
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.file-actions button {
+    background-color: #45475a;
+    color: #cdd6f4;
+    border: none;
+    padding: 0.4em 0.8em;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.file-actions button:hover {
+    background-color: #585b70;
+}
+
+.file-actions button.download {
+    background-color: #74c7ec;
+    color: #1e1e2e;
+}
+
+.file-actions button.download:hover {
+    background-color: #89dceb;
+}
+
+/* Progress indicators */
+.progress-container {
+    margin-top: 1em;
+    background-color: #313244;
+    border-radius: 6px;
+    padding: 1em;
+    border: 1px solid #444;
+    display: none;
+}
+
+.progress-bar {
+    height: 20px;
+    background-color: #1a1a24;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 0.5em;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #74c7ec;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    line-height: 20px;
+    color: #f5f5f5;
+    font-weight: bold;
+    mix-blend-mode: difference;
+}
+
+/* Live console styles */
+.live-console {
+    background-color: #1a1a24;
+    border-radius: 6px;
+    height: 200px;
+    overflow-y: auto;
+    padding: 1em;
+    margin-top: 1em;
+    font-family: monospace;
+    white-space: pre-wrap;
+    border: 1px solid #444;
+    display: none;
+}
+
+.live-console-title {
+    margin-top: 1em;
+    font-weight: bold;
+    color: #bac2de;
+}

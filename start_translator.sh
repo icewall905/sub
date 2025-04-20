@@ -105,8 +105,8 @@ print_message "$YELLOW" "If your browser doesn't open automatically, navigate to
 print_message "$YELLOW" "Press Ctrl+C to stop the application."
 print_message "$BLUE" "=========================================="
 
-# Run the application
-$PYTHON installer_and_run_webui.py
+# Run the application (using the new app.py instead of the old file)
+$PYTHON app.py
 
 # Deactivate virtual environment at exit
 deactivate 2>/dev/null || true
