@@ -23,39 +23,68 @@
         
         <div class="cards">
             <div class="card">
-                <h2>Upload Subtitle</h2>
-                <form id="upload-form" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="subtitle-file">Subtitle File:</label>
-                        <input type="file" id="subtitle-file" name="file" accept=".srt">
+                <h2>Translate Subtitles</h2>
+                <div class="bulk-header">
+                    <p>Translate subtitle files individually or in bulk:</p>
+                    <div class="bulk-controls">
+                        <button id="toggle-browser-btn" class="icon-button" title="Toggle file browser">🔍</button>
                     </div>
+                </div>
+                
+                <!-- File selection and browsing section -->
+                <div class="translation-options">
+                    <!-- Upload single file section -->
+                    <form id="upload-form" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="subtitle-file">Single File Upload:</label>
+                            <input type="file" id="subtitle-file" name="file" accept=".srt">
+                        </div>
+                        
+                        <div class="language-options">
+                            <div class="form-group">
+                                <label for="source-language">Source Language:</label>
+                                <select id="source-language" name="source_language">
+                                    <option value="en">English</option>
+                                    <!-- Other language options -->
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="target-language">Target Language:</label>
+                                <select id="target-language" name="target_language">
+                                    <option value="da">Danish</option>
+                                    <!-- Other language options -->
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="submit-container">
+                            <button type="submit" class="upload-button">Upload & Translate</button>
+                        </div>
+                    </form>
                     
-                    <div class="form-group">
-                        <label for="source-language">Source Language:</label>
-                        <select id="source-language" name="source_language">
-                            <option value="en">English</option>
-                            <!-- Other language options -->
-                        </select>
+                    <!-- Directory browsing section -->
+                    <div class="directory-browsing">
+                        <div class="form-group">
+                            <label>Bulk Directory Selection:</label>
+                            <button id="browse-btn" class="secondary">Browse Directories</button>
+                        </div>
+                        
+                        <!-- Inline collapsible file browser -->
+                        <div id="inline-file-browser" class="inline-file-browser">
+                            <div class="browser-header">
+                                <span id="current-path-display">No directory selected</span>
+                            </div>
+                            <div class="browser-content">
+                                <ul id="inline-directory-list" class="directory-list"></ul>
+                            </div>
+                            <div class="browser-actions">
+                                <button id="inline-select-dir-btn" class="primary">Translate SRT files in this directory</button>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="target-language">Target Language:</label>
-                        <select id="target-language" name="target_language">
-                            <option value="da">Danish</option>
-                            <!-- Other language options -->
-                        </select>
-                    </div>
-                    
-                    <div class="submit-container">
-                        <button type="submit" class="upload-button">Upload & Translate</button>
-                    </div>
-                </form>
-            </div>
-            
-            <div class="card">
-                <h2>Bulk Conversion</h2>
-                <p>Translate multiple subtitle files at once by selecting a directory:</p>
-                <button id="browse-btn" class="secondary">Browse Directories</button>
+                </div>
+                
                 <div id="bulk-translation-status" style="display: none;">
                     <div class="progress-container">
                         <div id="bulk-progress-bar" class="progress-bar"></div>
@@ -121,22 +150,6 @@
             <p>All translated subtitle files in your archive:</p>
             <div id="subtitle-archive">
                 <p>Loading subtitle archive...</p>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Directory Browser Modal -->
-    <div id="directory-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close-dir">&times;</span>
-            <h2>Select Directory</h2>
-            <div id="directory-browser">
-                <div id="current-path"></div>
-                <ul id="directory-list"></ul>
-            </div>
-            <div class="modal-actions">
-                <button id="select-dir-btn" class="primary">Select</button>
-                <button id="cancel-dir-btn" class="secondary">Cancel</button>
             </div>
         </div>
     </div>

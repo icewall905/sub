@@ -7,10 +7,27 @@ let bulkProgressInterval = null;
 let currentJobId = null; // Keep track of the current single translation job
 // Track expanded history items by their line_number
 let expandedHistoryItems = new Set();
+let browserVisible = false; // File Browser State Management
+
+// Helper function to log debug messages
+function debug(message) {
+    console.log(`[DEBUG] ${message}`);
+}
 
 // --- Consolidated DOMContentLoaded Listener ---
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Document loaded, initializing...");
+
+    // Check if we have a saved state for the file browser visibility
+    const savedState = localStorage.getItem('inlineFileBrowserVisible');
+    if (savedState === 'true') {
+        showInlineFileBrowser();
+    }
+    
+    // Initialize with home directory
+    if (browserVisible) {
+        browseInlineDirectory('');
+    }
 
     // --- Form Handling ---
     const uploadForm = document.getElementById('upload-form');
@@ -86,12 +103,10 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.style.display = 'none';
         });
     }
-    const directoryModal = document.getElementById('directory-modal');
+    
     window.addEventListener('click', function(event) {
         if (event.target == modal && modal) {
             modal.style.display = 'none';
-        } else if (event.target == directoryModal && directoryModal) {
-            directoryModal.style.display = 'none';
         }
     });
 
@@ -100,34 +115,62 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Directory Browser ---
     const browseDirBtn = document.getElementById('browse-btn');
-    const closeDirBtn = document.querySelector('.close-dir');
-    const cancelDirBtn = document.getElementById('cancel-dir-btn');
-    const selectDirBtn = document.getElementById('select-dir-btn');
-
+    
     if (browseDirBtn) {
+        debug("Adding click event listener to Browse Directories button");
         browseDirBtn.addEventListener('click', function() {
-            openDirectoryBrowser();
+            debug("Browse Directories button clicked");
+            // Show the inline browser if it's hidden
+            if (!browserVisible) {
+                debug("Showing inline file browser");
+                showInlineFileBrowser();
+            }
+            
+            // Try to load the last browsed path if available
+            const lastPath = localStorage.getItem('lastBrowsedPath') || '';
+            debug(`Browsing to directory: ${lastPath || 'root'}`);
+            browseInlineDirectory(lastPath);
         });
+    } else {
+        console.error("Browse Directories button not found");
     }
-    if (closeDirBtn && directoryModal) {
-        closeDirBtn.addEventListener('click', function() {
-            directoryModal.style.display = 'none';
-        });
-    }
-    if (cancelDirBtn && directoryModal) {
-        cancelDirBtn.addEventListener('click', function() {
-            directoryModal.style.display = 'none';
-        });
-    }
-    if (selectDirBtn) {
-        selectDirBtn.addEventListener('click', function() {
-            if (selectedDirectory) { // selectedDirectory should be defined globally or scoped appropriately
-                if(directoryModal) directoryModal.style.display = 'none';
-                startBulkTranslation(selectedDirectory);
+
+    // Set up toggle browser button
+    const toggleBrowserBtn = document.getElementById('toggle-browser-btn');
+    if (toggleBrowserBtn) {
+        debug("Adding click event listener to toggle browser button");
+        toggleBrowserBtn.addEventListener('click', function() {
+            debug("Toggle browser button clicked");
+            if (browserVisible) {
+                hideInlineFileBrowser();
             } else {
-                alert('Please select a directory first.');
+                showInlineFileBrowser();
+                // Load directory listing if it's empty
+                if (document.getElementById('inline-directory-list').children.length === 0) {
+                    browseInlineDirectory('');
+                }
             }
         });
+    } else {
+        console.error("Toggle browser button not found");
+    }
+
+    // Set up inline select directory button
+    const inlineSelectDirBtn = document.getElementById('inline-select-dir-btn');
+    if (inlineSelectDirBtn) {
+        debug("Adding click event listener to inline select directory button");
+        inlineSelectDirBtn.addEventListener('click', function() {
+            debug("Inline select directory button clicked");
+            if (!selectedDirectory) {
+                alert('Please navigate to and select a directory first');
+                return;
+            }
+            
+            // Start bulk translation with the selected directory
+            startBulkTranslation(selectedDirectory);
+        });
+    } else {
+        console.error("Inline select directory button not found");
     }
 
     // --- Flash Messages ---
@@ -178,7 +221,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
 
     console.log("Initialization complete.");
 }); // --- End of Consolidated DOMContentLoaded Listener ---
@@ -973,50 +1015,74 @@ function checkBulkProgress() {
 
 // --- File Browser Functions ---
 
-// Handle directory browser launch
-document.getElementById('browse-btn').addEventListener('click', function() {
-    // Show the directory modal
-    const dirModal = document.getElementById('directory-modal');
-    dirModal.style.display = 'block';
-    
-    // Start with empty path (root)
-    browseDirectory('');
-});
-
-// Close directory browser modal using X
-document.querySelector('.close-dir').addEventListener('click', function() {
-    document.getElementById('directory-modal').style.display = 'none';
-});
-
-// Cancel directory selection
-document.getElementById('cancel-dir-btn').addEventListener('click', function() {
-    document.getElementById('directory-modal').style.display = 'none';
-});
-
-// Confirm directory selection and start bulk translation
-document.getElementById('select-dir-btn').addEventListener('click', function() {
-    if (!selectedDirectory) {
-        alert('Please select a directory first');
+// Show inline file browser
+function showInlineFileBrowser() {
+    debug("In showInlineFileBrowser()");
+    const browser = document.getElementById('inline-file-browser');
+    if (!browser) {
+        console.error("Inline file browser element not found");
         return;
     }
     
-    // Hide the modal
-    document.getElementById('directory-modal').style.display = 'none';
+    browser.classList.add('active');
     
-    // Start bulk translation with the selected directory
-    startBulkTranslation(selectedDirectory);
-});
+    const toggleBtn = document.getElementById('toggle-browser-btn');
+    if (toggleBtn) {
+        toggleBtn.textContent = '🔽';
+        toggleBtn.title = 'Hide file browser';
+    }
+    
+    browserVisible = true;
+    localStorage.setItem('inlineFileBrowserVisible', 'true');
+    debug("Inline file browser shown");
+}
 
-// Browse to a directory
-function browseDirectory(path) {
-    // Show loading indicator
-    const dirList = document.getElementById('directory-list');
+// Hide inline file browser
+function hideInlineFileBrowser() {
+    debug("In hideInlineFileBrowser()");
+    const browser = document.getElementById('inline-file-browser');
+    if (!browser) {
+        console.error("Inline file browser element not found");
+        return;
+    }
+    
+    browser.classList.remove('active');
+    
+    const toggleBtn = document.getElementById('toggle-browser-btn');
+    if (toggleBtn) {
+        toggleBtn.textContent = '🔍';
+        toggleBtn.title = 'Show file browser';
+    }
+    
+    browserVisible = false;
+    localStorage.setItem('inlineFileBrowserVisible', 'false');
+    debug("Inline file browser hidden");
+}
+
+// Browse directory - inline version
+function browseInlineDirectory(path) {
+    debug(`In browseInlineDirectory(), path: ${path}`);
+    const dirList = document.getElementById('inline-directory-list');
+    if (!dirList) {
+        console.error("Directory list element not found");
+        return;
+    }
+
     dirList.innerHTML = '<li class="loading">Loading directories...</li>';
     
     // Update current path display
-    document.getElementById('current-path').textContent = path || '/';
+    const pathDisplay = document.getElementById('current-path-display');
+    if (pathDisplay) {
+        pathDisplay.textContent = path || 'Root Directory';
+    }
+    
+    // Save the current path to localStorage
+    if (path) {
+        localStorage.setItem('lastBrowsedPath', path);
+    }
     
     // Fetch directories from the server
+    debug(`Fetching directories from: /api/browse_dirs?path=${encodeURIComponent(path)}`);
     fetch(`/api/browse_dirs?path=${encodeURIComponent(path)}`)
         .then(response => {
             if (!response.ok) {
@@ -1027,56 +1093,67 @@ function browseDirectory(path) {
             return response.json();
         })
         .then(data => {
+            debug("Directory data received:", data);
             // Clear existing list
             dirList.innerHTML = '';
             
+            // Get parent path from API response
+            const parentPath = data.parent_path || '';
+            const currentPath = data.current_path || path || '';
+            
             // Add parent directory option if not at root
-            if (data.parent_path && data.parent_path !== data.current_path) {
+            if (parentPath && parentPath !== currentPath) {
                 const parentItem = document.createElement('li');
                 parentItem.className = 'directory-item parent';
                 parentItem.innerHTML = '<span class="dir-icon">📁</span> <span class="dir-name">..</span>';
                 parentItem.addEventListener('click', function() {
-                    browseDirectory(data.parent_path);
+                    browseInlineDirectory(parentPath);
                 });
                 dirList.appendChild(parentItem);
             }
             
-            // Add directories
-            if (data.items && data.items.length > 0) {
-                data.items.forEach(item => {
+            // Process the directories array from the API response
+            const directories = data.directories || [];
+            if (directories.length > 0) {
+                directories.forEach(dir => {
                     const listItem = document.createElement('li');
-                    listItem.className = item.is_dir ? 'directory-item' : 'file-item';
+                    listItem.className = 'directory-item';
                     
                     // Create icon and name elements
                     const icon = document.createElement('span');
                     icon.className = 'dir-icon';
-                    icon.textContent = item.is_dir ? '📁' : '📄';
+                    icon.textContent = '📁';
                     
                     const name = document.createElement('span');
-                    name.className = item.is_dir ? 'dir-name' : 'file-name';
-                    name.textContent = item.name;
+                    name.className = 'dir-name';
+                    name.textContent = dir.name;
                     
                     // Add to list item
                     listItem.appendChild(icon);
                     listItem.appendChild(name);
                     
                     // Add click handler for directories
-                    if (item.is_dir) {
-                        listItem.addEventListener('click', function() {
-                            browseDirectory(item.path);
-                        });
-                    }
+                    listItem.addEventListener('click', function() {
+                        browseInlineDirectory(dir.path);
+                    });
                     
                     dirList.appendChild(listItem);
                 });
                 
-                // Special double-click handler to select the current directory
+                // Special option to select the current directory
                 const selectCurrentDirItem = document.createElement('li');
                 selectCurrentDirItem.className = 'directory-item select-current';
                 selectCurrentDirItem.innerHTML = '<span class="dir-icon">✓</span> <span class="dir-name">Select this directory</span>';
                 selectCurrentDirItem.addEventListener('click', function() {
-                    selectedDirectory = data.current_path;
-                    highlightSelectedDirectory();
+                    selectedDirectory = currentPath;
+                    
+                    // Update the display with the selected directory
+                    const pathDisplay = document.getElementById('current-path-display');
+                    if (pathDisplay) {
+                        pathDisplay.innerHTML = `<strong>Selected:</strong> ${selectedDirectory}`;
+                    }
+                    
+                    localStorage.setItem('selectedDirectory', selectedDirectory);
                 });
                 dirList.appendChild(selectCurrentDirItem);
             } else {
@@ -1087,21 +1164,13 @@ function browseDirectory(path) {
             }
             
             // Update the selected directory
-            selectedDirectory = data.current_path;
-            highlightSelectedDirectory();
+            selectedDirectory = currentPath;
+            localStorage.setItem('selectedDirectory', selectedDirectory);
         })
         .catch(error => {
             console.error('Error browsing directories:', error);
             dirList.innerHTML = `<li class="error-message">${error.message}</li>`;
         });
-}
-
-// Highlight the selected directory in the UI
-function highlightSelectedDirectory() {
-    document.getElementById('current-path').innerHTML = `<strong>Selected:</strong> ${selectedDirectory}`;
-    
-    // Update select button text to be more clear
-    document.getElementById('select-dir-btn').textContent = `Translate SRT files in this directory`;
 }
 
 // Start bulk translation process
@@ -1110,13 +1179,28 @@ function startBulkTranslation(directoryPath) {
     
     // Show the bulk translation status
     const bulkStatus = document.getElementById('bulk-translation-status');
-    bulkStatus.style.display = 'block';
+    if (bulkStatus) {
+        bulkStatus.style.display = 'block';
+    }
     
     // Update UI
-    document.getElementById('bulk-status-message').textContent = `Starting bulk translation for ${directoryPath}...`;
-    document.getElementById('bulk-progress-bar').style.width = '0%';
-    document.getElementById('bulk-progress-text').textContent = '0%';
-    document.getElementById('bulk-download-link').style.display = 'none';
+    const statusMessage = document.getElementById('bulk-status-message');
+    const progressBar = document.getElementById('bulk-progress-bar');
+    const progressText = document.getElementById('bulk-progress-text');
+    const downloadLink = document.getElementById('bulk-download-link');
+    
+    if (statusMessage) {
+        statusMessage.textContent = `Starting bulk translation for ${directoryPath}...`;
+    }
+    if (progressBar) {
+        progressBar.style.width = '0%';
+    }
+    if (progressText) {
+        progressText.textContent = '0%';
+    }
+    if (downloadLink) {
+        downloadLink.style.display = 'none';
+    }
     
     // Call the API to start the scan
     fetch('/api/start-scan', {
@@ -1144,8 +1228,12 @@ function startBulkTranslation(directoryPath) {
     })
     .catch(error => {
         console.error('Error starting bulk translation:', error);
-        document.getElementById('bulk-status-message').textContent = `Error: ${error.message}`;
-        document.getElementById('bulk-progress-bar').style.width = '0%';
+        if (statusMessage) {
+            statusMessage.textContent = `Error: ${error.message}`;
+        }
+        if (progressBar) {
+            progressBar.style.width = '0%';
+        }
     });
 }
 
@@ -1170,7 +1258,15 @@ function updateBulkProgress() {
         .then(response => response.json())
         .then(data => {
             // Update status message
-            document.getElementById('bulk-status-message').textContent = data.message || 'Processing...';
+            const statusMessage = document.getElementById('bulk-status-message');
+            const progressBar = document.getElementById('bulk-progress-bar');
+            const progressText = document.getElementById('bulk-progress-text');
+            const downloadLink = document.getElementById('bulk-download-link');
+            const downloadZipLink = document.getElementById('download-zip-link');
+            
+            if (statusMessage) {
+                statusMessage.textContent = data.message || 'Processing...';
+            }
             
             // Calculate and update progress bar
             let progressPercent = 0;
@@ -1178,25 +1274,30 @@ function updateBulkProgress() {
                 progressPercent = Math.round((data.done_files / data.total_files) * 100);
             }
             
-            document.getElementById('bulk-progress-bar').style.width = `${progressPercent}%`;
-            document.getElementById('bulk-progress-text').textContent = `${progressPercent}%`;
+            if (progressBar) {
+                progressBar.style.width = `${progressPercent}%`;
+            }
+            if (progressText) {
+                progressText.textContent = `${progressPercent}%`;
+            }
             
             // Check if the process is complete
             if (data.status === 'completed') {
                 clearInterval(progressInterval);
                 
                 // Show download link if available
-                if (data.zip_path) {
-                    const downloadLink = document.getElementById('download-zip-link');
-                    downloadLink.href = `/download-zip?temp=${encodeURIComponent(data.zip_path)}`;
-                    document.getElementById('bulk-download-link').style.display = 'block';
+                if (data.zip_path && downloadLink && downloadZipLink) {
+                    downloadZipLink.href = `/download-zip?temp=${encodeURIComponent(data.zip_path)}`;
+                    downloadLink.style.display = 'block';
                 }
             }
             
             // Check if the process failed
             if (data.status === 'failed') {
                 clearInterval(progressInterval);
-                document.getElementById('bulk-status-message').textContent = `Error: ${data.message}`;
+                if (statusMessage) {
+                    statusMessage.textContent = `Error: ${data.message}`;
+                }
             }
         })
         .catch(error => {
