@@ -970,3 +970,236 @@ function checkBulkProgress() {
             // Consider stopping polling after multiple errors?
         });
 }
+
+// --- File Browser Functions ---
+
+// Handle directory browser launch
+document.getElementById('browse-btn').addEventListener('click', function() {
+    // Show the directory modal
+    const dirModal = document.getElementById('directory-modal');
+    dirModal.style.display = 'block';
+    
+    // Start with empty path (root)
+    browseDirectory('');
+});
+
+// Close directory browser modal using X
+document.querySelector('.close-dir').addEventListener('click', function() {
+    document.getElementById('directory-modal').style.display = 'none';
+});
+
+// Cancel directory selection
+document.getElementById('cancel-dir-btn').addEventListener('click', function() {
+    document.getElementById('directory-modal').style.display = 'none';
+});
+
+// Confirm directory selection and start bulk translation
+document.getElementById('select-dir-btn').addEventListener('click', function() {
+    if (!selectedDirectory) {
+        alert('Please select a directory first');
+        return;
+    }
+    
+    // Hide the modal
+    document.getElementById('directory-modal').style.display = 'none';
+    
+    // Start bulk translation with the selected directory
+    startBulkTranslation(selectedDirectory);
+});
+
+// Browse to a directory
+function browseDirectory(path) {
+    // Show loading indicator
+    const dirList = document.getElementById('directory-list');
+    dirList.innerHTML = '<li class="loading">Loading directories...</li>';
+    
+    // Update current path display
+    document.getElementById('current-path').textContent = path || '/';
+    
+    // Fetch directories from the server
+    fetch(`/api/browse_dirs?path=${encodeURIComponent(path)}`)
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Error browsing directories');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Clear existing list
+            dirList.innerHTML = '';
+            
+            // Add parent directory option if not at root
+            if (data.parent_path && data.parent_path !== data.current_path) {
+                const parentItem = document.createElement('li');
+                parentItem.className = 'directory-item parent';
+                parentItem.innerHTML = '<span class="dir-icon">📁</span> <span class="dir-name">..</span>';
+                parentItem.addEventListener('click', function() {
+                    browseDirectory(data.parent_path);
+                });
+                dirList.appendChild(parentItem);
+            }
+            
+            // Add directories
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.className = item.is_dir ? 'directory-item' : 'file-item';
+                    
+                    // Create icon and name elements
+                    const icon = document.createElement('span');
+                    icon.className = 'dir-icon';
+                    icon.textContent = item.is_dir ? '📁' : '📄';
+                    
+                    const name = document.createElement('span');
+                    name.className = item.is_dir ? 'dir-name' : 'file-name';
+                    name.textContent = item.name;
+                    
+                    // Add to list item
+                    listItem.appendChild(icon);
+                    listItem.appendChild(name);
+                    
+                    // Add click handler for directories
+                    if (item.is_dir) {
+                        listItem.addEventListener('click', function() {
+                            browseDirectory(item.path);
+                        });
+                    }
+                    
+                    dirList.appendChild(listItem);
+                });
+                
+                // Special double-click handler to select the current directory
+                const selectCurrentDirItem = document.createElement('li');
+                selectCurrentDirItem.className = 'directory-item select-current';
+                selectCurrentDirItem.innerHTML = '<span class="dir-icon">✓</span> <span class="dir-name">Select this directory</span>';
+                selectCurrentDirItem.addEventListener('click', function() {
+                    selectedDirectory = data.current_path;
+                    highlightSelectedDirectory();
+                });
+                dirList.appendChild(selectCurrentDirItem);
+            } else {
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'empty-message';
+                emptyItem.textContent = 'No directories found';
+                dirList.appendChild(emptyItem);
+            }
+            
+            // Update the selected directory
+            selectedDirectory = data.current_path;
+            highlightSelectedDirectory();
+        })
+        .catch(error => {
+            console.error('Error browsing directories:', error);
+            dirList.innerHTML = `<li class="error-message">${error.message}</li>`;
+        });
+}
+
+// Highlight the selected directory in the UI
+function highlightSelectedDirectory() {
+    document.getElementById('current-path').innerHTML = `<strong>Selected:</strong> ${selectedDirectory}`;
+    
+    // Update select button text to be more clear
+    document.getElementById('select-dir-btn').textContent = `Translate SRT files in this directory`;
+}
+
+// Start bulk translation process
+function startBulkTranslation(directoryPath) {
+    console.log(`Starting bulk translation for directory: ${directoryPath}`);
+    
+    // Show the bulk translation status
+    const bulkStatus = document.getElementById('bulk-translation-status');
+    bulkStatus.style.display = 'block';
+    
+    // Update UI
+    document.getElementById('bulk-status-message').textContent = `Starting bulk translation for ${directoryPath}...`;
+    document.getElementById('bulk-progress-bar').style.width = '0%';
+    document.getElementById('bulk-progress-text').textContent = '0%';
+    document.getElementById('bulk-download-link').style.display = 'none';
+    
+    // Call the API to start the scan
+    fetch('/api/start-scan', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ path: directoryPath })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Failed to start bulk translation');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.ok) {
+            // Start polling for progress updates
+            startProgressPolling();
+        } else {
+            throw new Error(data.error || 'Unknown error starting translation');
+        }
+    })
+    .catch(error => {
+        console.error('Error starting bulk translation:', error);
+        document.getElementById('bulk-status-message').textContent = `Error: ${error.message}`;
+        document.getElementById('bulk-progress-bar').style.width = '0%';
+    });
+}
+
+// Poll for translation progress
+let progressInterval = null;
+function startProgressPolling() {
+    // Clear any existing interval
+    if (progressInterval) {
+        clearInterval(progressInterval);
+    }
+    
+    // Poll every 2 seconds
+    progressInterval = setInterval(updateBulkProgress, 2000);
+    
+    // Initial update
+    updateBulkProgress();
+}
+
+// Update the bulk translation progress
+function updateBulkProgress() {
+    fetch('/api/progress')
+        .then(response => response.json())
+        .then(data => {
+            // Update status message
+            document.getElementById('bulk-status-message').textContent = data.message || 'Processing...';
+            
+            // Calculate and update progress bar
+            let progressPercent = 0;
+            if (data.total_files > 0) {
+                progressPercent = Math.round((data.done_files / data.total_files) * 100);
+            }
+            
+            document.getElementById('bulk-progress-bar').style.width = `${progressPercent}%`;
+            document.getElementById('bulk-progress-text').textContent = `${progressPercent}%`;
+            
+            // Check if the process is complete
+            if (data.status === 'completed') {
+                clearInterval(progressInterval);
+                
+                // Show download link if available
+                if (data.zip_path) {
+                    const downloadLink = document.getElementById('download-zip-link');
+                    downloadLink.href = `/download-zip?temp=${encodeURIComponent(data.zip_path)}`;
+                    document.getElementById('bulk-download-link').style.display = 'block';
+                }
+            }
+            
+            // Check if the process failed
+            if (data.status === 'failed') {
+                clearInterval(progressInterval);
+                document.getElementById('bulk-status-message').textContent = `Error: ${data.message}`;
+            }
+        })
+        .catch(error => {
+            console.error('Error updating progress:', error);
+        });
+}

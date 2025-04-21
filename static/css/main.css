@@ -798,3 +798,115 @@ small {
 .close-flash:hover {
     opacity: 1;
 }
+
+/* File browser styles */
+.directory-item, .file-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.directory-item {
+    background-color: #333;
+}
+
+.file-item {
+    background-color: #2a2a2a;
+}
+
+.directory-item:hover, .file-item:hover {
+    background-color: #444;
+}
+
+.directory-item.selected, .directory-item.select-current {
+    background-color: rgba(74, 103, 65, 0.3); /* Mossy green with opacity */
+    border-left: 3px solid #4a6741;
+}
+
+.directory-item.parent {
+    background-color: #252525;
+    font-style: italic;
+}
+
+#directory-browser {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 15px 0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #1e1e1e;
+}
+
+#current-path {
+    padding: 10px 15px;
+    background-color: #252525;
+    border-bottom: 1px solid #444;
+    word-break: break-all;
+}
+
+#directory-list {
+    list-style: none;
+    padding: 10px;
+    margin: 0;
+}
+
+.loading, .empty-message, .error-message {
+    padding: 15px;
+    text-align: center;
+    font-style: italic;
+}
+
+.error-message {
+    color: #e88e86;
+}
+
+.dir-icon, .file-icon {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Special styling for "Select this directory" option */
+.select-current {
+    margin-top: 10px;
+    background-color: rgba(74, 103, 65, 0.3) !important;
+    border: 1px dashed #4a6741;
+    font-weight: bold;
+}
+
+.select-current:hover {
+    background-color: rgba(74, 103, 65, 0.5) !important;
+}
+
+/* Directory modal specific styles */
+#directory-modal .modal-content {
+    width: 90%;
+    max-width: 800px;
+}
+
+#select-dir-btn {
+    background-color: #4a6741; /* Mossy green */
+    color: white;
+}
+
+#select-dir-btn:hover {
+    background-color: #5a7b4f; /* Lighter mossy green */
+}
+
+#cancel-dir-btn {
+    background-color: #555;
+}
+
+#cancel-dir-btn:hover {
+    background-color: #666;
+}
