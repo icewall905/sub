@@ -5,10 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subtitle Translator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/sublogo.png') }}" type="image/png">
 </head>
 <body>
     <div class="container">
         <h1>Subtitle Translator</h1>
+        
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/sublogo.png') }}" alt="Subtitle Translator" class="site-logo">
+        </div>
         
         <div class="nav-links">
             <a href="/" class="active">Home</a>

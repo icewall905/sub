@@ -3,14 +3,14 @@ body {
     font-family: sans-serif; 
     margin: 0; 
     padding: 0; 
-    background-color: #1e1e2e; 
-    color: #cdd6f4;
+    background-color: #1e1e1e; /* Darker background */
+    color: #e0e0e0; /* Lighter text */
 }
 
 .container {
     max-width: 1200px;
     margin: 2em auto;
-    background: #282a36;
+    background: #252525; /* Darker container background */
     padding: 2em;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -33,25 +33,46 @@ h2 {
     display: inline-block;
     padding: 0.5em 1em;
     margin: 0 0.5em;
-    color: #89b4fa;
+    color: #ccc; /* Lighter link color */
     text-decoration: none;
     border-radius: 4px;
 }
 
 .nav-links a:hover {
-    background-color: #313244;
+    background-color: #333;
     text-decoration: underline;
 }
 
 .nav-links a.active {
     font-weight: bold;
-    border-bottom: 2px solid #89b4fa;
+    border-bottom: 2px solid #4a6741; /* Mossy green */
+}
+
+/* Logo styles for subtitle translator */
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.5em;
+}
+
+.site-logo {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 0.5em;
+}
+
+/* For smaller screens, reduce logo size */
+@media (max-width: 768px) {
+    .site-logo {
+        max-width: 150px;
+    }
 }
 
 /* Log viewer styles */
 #log-container { 
-    background-color: #1a1a24; 
-    color: #cdd6f4; 
+    background-color: #1a1a1a; /* Darker log container */ 
+    color: #e0e0e0; 
     padding: 1em; 
     border-radius: 6px; 
     font-family: monospace; 
@@ -62,25 +83,25 @@ h2 {
     border: 1px solid #444;
 }
 
-.error { color: #f38ba8; }
+.error { color: #ff5555; } /* More vivid error color */
 .warning { color: #f9e2af; }
 .info { color: #89b4fa; }
-.debug { color: #a6e3a1; }
+.debug { color: #4a6741; } /* Mossy green for debug */
 
 .controls { 
     margin-top: 1em; 
     display: flex; 
     align-items: center;
-    background: #313244;
+    background: #333;
     padding: 1em;
     border-radius: 6px;
     border: 1px solid #444;
 }
 
 .controls button { 
-    background-color: #74c7ec; 
+    background-color: #4a6741; /* Mossy green */ 
     border: none; 
-    color: #1e1e2e; 
+    color: #e0e0e0; 
     padding: 0.5em 1em; 
     margin-right: 1em;
     border-radius: 4px;
@@ -88,13 +109,13 @@ h2 {
     font-weight: bold;
 }
 
-.controls button:hover { background-color: #89dceb; }
+.controls button:hover { background-color: #5a7b4f; } /* Lighter mossy green */
 .controls label { margin-right: 0.5em; }
 
 .settings-panel {
     margin-top: 2em;
     padding: 1em;
-    background-color: #313244;
+    background-color: #333;
     border-radius: 6px;
     border: 1px solid #444;
 }
@@ -116,17 +137,17 @@ h2 {
     margin-right: 0.5em;
 }
 
-select, input[type="checkbox"] {
-    background-color: #1e1e2e;
-    color: #cdd6f4;
+select, input[type="checkbox"], input[type="text"], input[type="file"] {
+    background-color: #333;
+    color: #e0e0e0;
     border: 1px solid #444;
     border-radius: 4px;
     padding: 0.3em;
 }
 
 select option {
-    background-color: #1e1e2e;
-    color: #cdd6f4;
+    background-color: #333;
+    color: #e0e0e0;
 }
 
 /* Config editor styles */
@@ -146,7 +167,7 @@ select option {
     display: block;
     margin-bottom: 0.5em;
     font-weight: bold;
-    color: #bac2de;
+    color: #ccc;
 }
 
 .form-group input, .form-group select {
@@ -155,8 +176,8 @@ select option {
     border: 1px solid #444;
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: #1a1a24;
-    color: #cdd6f4;
+    background-color: #333;
+    color: #e0e0e0;
 }
 
 .buttons {
@@ -173,23 +194,27 @@ select option {
 }
 
 .cancel {
-    background-color: #6c757d;
-    border: 1px solid #5a6268;
+    background-color: #555;
+    border: 1px solid #666;
     color: #f8f9fa;
 }
 
 .cancel:hover {
-    background-color: #5a6268;
+    background-color: #666;
 }
 
 button[type="submit"] {
-    background-color: #74c7ec;
+    background-color: #4a6741; /* Mossy green */
+    color: white;
     border: none;
-    color: #1e1e2e;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
 }
 
 button[type="submit"]:hover {
-    background-color: #89dceb;
+    background-color: #5a7b4f; /* Lighter mossy green */
 }
 
 .notification {
@@ -201,15 +226,15 @@ button[type="submit"]:hover {
 }
 
 .notification.success {
-    background-color: #3c4a4f;
-    border-color: #a6e3a1;
-    color: #a6e3a1;
+    background-color: rgba(74, 103, 65, 0.3); /* Mossy green with transparency */
+    border-color: #4a6741;
+    color: #a5c094;
 }
 
 .notification.error {
-    background-color: #382a37;
-    border-color: #f38ba8;
-    color: #f38ba8;
+    background-color: rgba(184, 67, 54, 0.3);
+    border-color: #b84336;
+    color: #e88e86;
 }
 
 .section {
@@ -269,19 +294,17 @@ small {
 }
 
 .upload-button {
-    background-color: #74c7ec;
-    color: #1e1e2e;
+    background-color: #4a6741; /* Mossy green */
+    color: white;
     border: none;
-    padding: 0.8em 2em;
+    padding: 10px 15px;
     border-radius: 4px;
-    font-size: 1em;
-    font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s;
+    font-weight: bold;
 }
 
 .upload-button:hover {
-    background-color: #89dceb;
+    background-color: #5a7b4f; /* Lighter mossy green */
 }
 
 .file-list {
@@ -289,7 +312,7 @@ small {
 }
 
 .file-item {
-    background-color: #282a36;
+    background-color: #333;
     border-radius: 4px;
     padding: 0.8em;
     margin-bottom: 0.8em;
@@ -305,8 +328,8 @@ small {
 }
 
 .file-actions button {
-    background-color: #45475a;
-    color: #cdd6f4;
+    background-color: #444;
+    color: #e0e0e0;
     border: none;
     padding: 0.4em 0.8em;
     border-radius: 4px;
@@ -314,22 +337,22 @@ small {
 }
 
 .file-actions button:hover {
-    background-color: #585b70;
+    background-color: #555;
 }
 
 .file-actions button.download {
-    background-color: #74c7ec;
-    color: #1e1e2e;
+    background-color: #4a6741; /* Mossy green */
+    color: white;
 }
 
 .file-actions button.download:hover {
-    background-color: #89dceb;
+    background-color: #5a7b4f; /* Lighter mossy green */
 }
 
 /* Progress indicators */
 .progress-container {
     margin-top: 1em;
-    background-color: #313244;
+    background-color: #333;
     border-radius: 6px;
     padding: 1em;
     border: 1px solid #444;
@@ -347,7 +370,7 @@ small {
 
 .progress-fill {
     height: 100%;
-    background-color: #74c7ec;
+    background-color: #4a6741; /* Mossy green */
     width: 0%;
     transition: width 0.3s;
 }
@@ -366,7 +389,7 @@ small {
 
 /* Progress container styles */
 .progress-container {
-    background: #1e1e2e;
+    background: #333;
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 20px;
@@ -379,7 +402,7 @@ small {
 
 .progress-bar-container {
     height: 8px;
-    background: #313244;
+    background: #444;
     border-radius: 4px;
     overflow: hidden;
     margin-bottom: 10px;
@@ -387,13 +410,13 @@ small {
 
 .progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, #89b4fa, #cba6f7);
+    background: #4a6741; /* Mossy green */
     transition: width 0.5s ease;
 }
 
 /* Current translation styles */
 .current-translation {
-    background: #1e1e2e;
+    background: #333;
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 20px;
@@ -430,10 +453,11 @@ small {
 }
 
 .critic-feedback {
-    background: #313244;
+    background: #333;
     padding: 10px;
     border-radius: 4px;
     margin-bottom: 15px;
+    border-left: 3px solid #4a6741; /* Mossy green */
 }
 
 .final-translation {
@@ -477,14 +501,14 @@ small {
 
 /* Timing info styling */
 .timing {
-    color: #a6adc8;
+    color: #aaa;
     font-size: 0.85em;
     font-style: italic;
 }
 
 /* Improved status display */
 .improved {
-    color: #a6e3a1;
+    color: #a5c094; /* Lighter mossy green */
     font-size: 0.85em;
     margin-left: 5px;
 }
@@ -497,7 +521,7 @@ small {
 }
 
 .history-section h3 {
-    color: #cba6f7;
+    color: #6a8a5e; /* Lighter mossy green */
     margin-bottom: 15px;
     font-size: 1.1em;
 }
@@ -512,12 +536,12 @@ small {
     margin-bottom: 10px;
     border: 1px solid #444;
     border-radius: 4px;
-    background: #282a36;
+    background: #333;
 }
 
 .history-header {
     padding: 8px 12px;
-    background: #313244;
+    background: #444;
     border-radius: 4px 4px 0 0;
     cursor: pointer;
     display: flex;
@@ -526,7 +550,7 @@ small {
 }
 
 .history-header:hover {
-    background: #45475a;
+    background: #555;
 }
 
 .history-content {
@@ -538,11 +562,11 @@ small {
 
 .line-number {
     font-weight: bold;
-    color: #f5c2e7;
+    color: #aaa;
 }
 
 .expand-btn {
-    color: #89b4fa;
+    color: #6a8a5e; /* Lighter mossy green */
     transition: transform 0.2s;
 }
 
@@ -550,20 +574,20 @@ small {
 .critic-feedback {
     margin: 8px 0 8px 20px;
     padding: 8px;
-    background: #313244;
-    border-left: 3px solid #cba6f7;
+    background: #333;
+    border-left: 3px solid #4a6741; /* Mossy green */
     border-radius: 0 4px 4px 0;
     font-size: 0.9em;
 }
 
 /* Current line styling */
 .translation-item.current {
-    background: #313244;
-    border-left: 3px solid #89b4fa;
+    background: #333;
+    border-left: 3px solid #4a6741; /* Mossy green */
 }
 
 .translation-item h3 {
-    color: #89b4fa;
+    color: #6a8a5e; /* Lighter mossy green */
     margin-top: 0;
     font-size: 1em;
 }
@@ -612,7 +636,7 @@ small {
 }
 
 .report-modal-content {
-    background-color: #282a36;
+    background-color: #252525;
     margin: 5% auto;
     padding: 25px;
     border: 1px solid #444;
@@ -651,7 +675,7 @@ small {
 }
 
 .report-section h3 {
-    color: #cba6f7;
+    color: #6a8a5e; /* Lighter mossy green */
     margin-top: 0;
     margin-bottom: 15px;
     border-bottom: 1px solid #444;
@@ -731,10 +755,46 @@ small {
 
 /* Make the report button stand out */
 .file-actions button.report-btn {
-    background-color: #cba6f7;
-    color: #1e1e2e;
+    background-color: #4a6741; /* Mossy green */
+    color: white;
 }
 
 .file-actions button.report-btn:hover {
-    background-color: #d2b5fa;
+    background-color: #5a7b4f; /* Lighter mossy green */
+}
+
+/* Flash messages */
+.flash-message {
+    margin-bottom: 15px;
+    padding: 12px 15px;
+    border-radius: 4px;
+    position: relative;
+}
+
+.flash-message.success {
+    background-color: rgba(74, 103, 65, 0.3); /* Mossy green with transparency */
+    color: #a5c094;
+    border-left: 4px solid #4a6741;
+}
+
+.flash-message.error {
+    background-color: rgba(184, 67, 54, 0.3);
+    color: #e88e86;
+    border-left: 4px solid #b84336;
+}
+
+.close-flash {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.close-flash:hover {
+    opacity: 1;
 }
