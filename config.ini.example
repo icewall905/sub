@@ -8,7 +8,7 @@ use_google = true
 use_libretranslate = true
 use_mymemory = true
 host = 127.0.0.1
-port = 5000
+port = 5089
 temperature = 0.2
 debug_mode = false # Set to true for verbose logging, including full LLM prompts
 
@@ -56,6 +56,14 @@ api_url = https://libretranslate.de/translate
 # Get a free API key from https://www.themoviedb.org/settings/api
 enabled = false
 api_key = YOUR_TMDB_API_KEY_V3
+
+[critic]
+enabled = true
+service = ollama      # Currently only 'ollama' is supported
+model = gemma3:12b    # Uses the ollama model if not specified
+temperature = 0.1     # Lower temperature for more consistent evaluations
+min_score = 6.0       # Minimum acceptable score (0-10) for translations
+generate_report = true  # Generate a report of translation quality
 
 [agent_critic]
 enabled = false

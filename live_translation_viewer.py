@@ -65,8 +65,19 @@ def clear_screen():
     else:
         os.system('clear')
 
-def live_stream_translation_info(stage, original, translation, current_idx, total_lines, deepl_translation=None, critic_type=None):
-    """Display live translation information in a colorful, formatted way."""
+def display_translation_status(line_number, original, translations, current_result=None, first_pass=None, critic=None, final=None):
+    """
+    Display translation status for a single line in the requested format.
+    
+    Args:
+        line_number: The current line number being processed
+        original: The original text
+        translations: Dictionary of translations from different services
+        current_result: Current translation result (if any)
+        first_pass: First pass translation (if any)
+        critic: Critic-revised translation (if any)
+        final: Final translation (if any)
+    """
     # Define ANSI color codes
     RESET = "\033[0m"
     BOLD = "\033[1m"
@@ -83,47 +94,55 @@ def live_stream_translation_info(stage, original, translation, current_idx, tota
         # Fall back to plain text if color isn't supported
         RESET = BOLD = GREEN = BLUE = YELLOW = CYAN = MAGENTA = RED = ""
     
+    # Create a separator line
+    separator = f"{CYAN}{'-' * 60}{RESET}"
+    
+    # Print line header
+    print(separator)
+    print(f"Line {line_number}:")
+    print(f"  Original: \"{original}\"")
+    
+    # Print translations from different services
+    for service, translation in translations.items():
+        if translation:
+            service_name = service.capitalize()
+            print(f"  {service_name}: \"{translation}\"")
+    
+    # Print first pass translation if available
+    if first_pass:
+        print(f"  First pass: \"{first_pass}\"")
+    
+    # Print critic evaluation if available with (CHANGED) indication if it differs from first_pass
+    if critic:
+        critic_changed = critic != first_pass if first_pass else False
+        change_indicator = " (CHANGED)" if critic_changed else ""
+        print(f"  Critic: \"{critic}\"{change_indicator}")
+    
+    # Print final translation if available
+    if final:
+        print(f"  Final: \"{final}\"")
+    
+    print(separator)
+    sys.stdout.flush()
+
+def live_stream_translation_info(stage, original, translation, current_idx, total_lines, translations=None, first_pass=None, critic=None, final=None):
+    """Display live translation information in requested format."""
+    # Get dictionary of translations or create empty one
+    translations = translations or {}
+    
     # Clear screen for a clean display
     clear_screen()
     
-    # Create a more visible separator line with added text
-    separator = f"{CYAN}{'=' * 30} TRANSLATION PROCESS {'=' * 30}{RESET}"
-    sub_separator = f"{CYAN}{'-' * 80}{RESET}"
-    
-    # Print progress indicator
-    progress = f"{current_idx}/{total_lines}"
-    print(f"\n{separator}", flush=True)
-    print(f"{BOLD}{GREEN}[{progress}] STAGE: {stage.upper()}{RESET}", flush=True)
-    print(f"{sub_separator}", flush=True)
-    
-    # Print original text
-    print(f"{BOLD}Original Text:{RESET}", flush=True)
-    print(f"{BLUE}{original}{RESET}", flush=True)
-    
-    # Print DeepL translation if available
-    if deepl_translation and stage.upper() != "DEEPL TRANSLATION":
-        print(f"\n{BOLD}DeepL Translation:{RESET}", flush=True)
-        print(f"{YELLOW}{deepl_translation}{RESET}", flush=True)
-    
-    # Print current translation output with appropriate label
-    if translation:
-        if translation != "No changes":
-            label = "Translation"
-            if critic_type:
-                label += f" ({critic_type})"
-            print(f"\n{BOLD}{label}:{RESET}", flush=True)
-            print(f"{MAGENTA}{translation}{RESET}", flush=True)
-        else:
-            print(f"\n{BOLD}Result:{RESET} {RED}No changes made{RESET}", flush=True)
-    
-    # Print a visual confirmation that the step is complete
-    print(f"\n{sub_separator}", flush=True)
-    print(f"{BOLD}{GREEN}✓ {stage.upper()} COMPLETE{RESET}", flush=True)
-    
-    # Add a timestamp to show real-time progress
-    timestamp = time.strftime("%H:%M:%S")
-    print(f"{CYAN}[Timestamp: {timestamp}]{RESET}", flush=True)
-    print(f"{separator}\n", flush=True)
+    # Display translation status in the requested format
+    display_translation_status(
+        current_idx, 
+        original, 
+        translations,
+        translation,
+        first_pass,
+        critic,
+        final
+    )
     
     # Force flush stdout to ensure immediate display
     sys.stdout.flush()
@@ -166,7 +185,7 @@ def show_translation_comparison(original, stages, source_lang="", target_lang=""
         if text:  # Only show non-empty stages
             print(f"{BOLD}{stage_name.upper()}:{RESET}")
             # Use different colors for different stages
-            if "deepl" in stage_name.lower():
+            if "deepl" in stage_name.lower() or "google" in stage_name.lower():
                 print(f"{YELLOW}{text}{RESET}\n")
             elif "critic" in stage_name.lower():
                 print(f"{RED}{text}{RESET}\n")

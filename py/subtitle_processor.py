@@ -5,6 +5,32 @@ import json
 import logging
 import requests
 from typing import Dict, List, Optional, Tuple, Any
+import sys
+import importlib.util
+
+# Import live_translation_viewer if available
+try:
+    # First, try to import directly (if module is in path)
+    try:
+        from live_translation_viewer import display_translation_status
+    except ImportError:
+        # If that fails, try to import from parent directory
+        spec = importlib.util.spec_from_file_location(
+            "live_translation_viewer", 
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), "live_translation_viewer.py")
+        )
+        if spec and spec.loader:
+            live_translation_viewer = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(live_translation_viewer)
+            display_translation_status = live_translation_viewer.display_translation_status
+        else:
+            # Fallback display function if module can't be imported
+            def display_translation_status(line_number, original, translations, current_result=None, first_pass=None, critic=None, final=None):
+                print(f"Line {line_number}: \"{original}\" -> \"{final or current_result or ''}\"")
+except Exception as e:
+    # Fallback display function if any error occurs
+    def display_translation_status(line_number, original, translations, current_result=None, first_pass=None, critic=None, final=None):
+        print(f"Line {line_number}: \"{original}\" -> \"{final or current_result or ''}\"")
 
 # Language mapping dictionary
 LANGUAGE_MAPPING = {
@@ -201,58 +227,82 @@ class SubtitleProcessor:
     
     def call_ollama(self, server_url: str, endpoint_path: str, model: str, prompt: str, temperature: float = 0.2, cfg=None) -> str:
         """Call Ollama API for text generation."""
-        url = f"{server_url.rstrip('/')}{endpoint_path}"
+        url = f"{server_url.rstrip('/')}/{endpoint_path.lstrip('/')}"
 
-        # Create the basic payload without options first
+        # Start payload with mandatory fields
         payload = {
             "model": model,
             "prompt": prompt,
             "stream": False,
-            "options": {}
+            "options": {} # Initialize options dictionary
         }
 
-        # Only add parameters that are explicitly defined in the config
+        # Set default temperature initially
+        current_temperature = temperature
+
+        # Load options from config if available
         if cfg is not None and cfg.has_section("ollama"):
-            options = {}
-            if cfg.has_option("ollama", "temperature"):
-                temperature = cfg.getfloat("ollama", "temperature", fallback=temperature)
-            
-            # Model parameters
-            if cfg.has_option("ollama", "num_gpu"):
-                options["num_gpu"] = cfg.getint("ollama", "num_gpu", fallback=1)
-            if cfg.has_option("ollama", "num_thread"):
-                options["num_thread"] = cfg.getint("ollama", "num_thread", fallback=4)
-            if cfg.has_option("ollama", "num_ctx"):
-                options["num_ctx"] = cfg.getint("ollama", "num_ctx", fallback=2048)
-            
-            # Memory mapping options
-            if cfg.has_option("ollama", "use_mmap"):
-                options["use_mmap"] = cfg.getboolean("ollama", "use_mmap", fallback=True)
-            if cfg.has_option("ollama", "use_mlock"):
-                options["use_mlock"] = cfg.getboolean("ollama", "use_mlock", fallback=False)
-                
-            # Set temperature
-            options["temperature"] = temperature
-            
-            # Add options to payload if any were set
-            if options:
-                payload["options"] = options
+            # Override temperature if specified in config
+            current_temperature = cfg.getfloat("ollama", "temperature", fallback=temperature)
+
+            # Initialize options dict with the determined temperature
+            payload["options"]["temperature"] = current_temperature
+
+            # Add other parameters ONLY if they exist and have valid values in the config
+            optional_params = {
+                "num_gpu": "getint",
+                "num_thread": "getint",
+                "num_ctx": "getint",
+                "use_mmap": "getboolean",
+                "use_mlock": "getboolean"
+            }
+
+            for param, getter_method in optional_params.items():
+                if cfg.has_option("ollama", param):
+                    try:
+                        # Check if the value is actually set and not commented out
+                        value = cfg.get("ollama", param, fallback=None)
+                        if value is not None and str(value).strip() != "":
+                            # Use the appropriate getter method (getint or getboolean)
+                            getter = getattr(cfg, getter_method)
+                            value = getter("ollama", param)
+                            payload["options"][param] = value
+                            self.logger.debug(f"Adding Ollama option from config: {param} = {value}")
+                    except ValueError:
+                        self.logger.warning(f"Invalid value for '{param}' in config. Ignoring.")
+                    except Exception as e:
+                         self.logger.warning(f"Could not read Ollama option '{param}' from config: {e}. Ignoring.")
         else:
-            # If no config, just set the temperature
-            payload["options"] = {"temperature": temperature}
-        
+             # If no config or no [ollama] section, just set the default temperature
+             payload["options"]["temperature"] = current_temperature
+
+
+        # Log the final options being sent
+        options_list = ', '.join([f"{k}: {v}" for k, v in payload["options"].items()])
+        self.logger.debug(f"Calling Ollama: POST {url} | Model: {model} | Options: {options_list}")
+
+
         try:
-            self.logger.debug(f"Calling Ollama: POST {url} | Model: {model} | Temperature: {temperature}")
-            response = requests.post(url, json=payload, timeout=60)
+            # Increased timeout to 120 seconds to allow for longer processing times
+            response = requests.post(url, json=payload, timeout=120)
             response.raise_for_status()
             result = response.json()
-            
+
             # Ollama response has a 'response' field with the generated text
             if "response" in result:
                 return result["response"].strip()
             return ""
+        except requests.exceptions.Timeout:
+            self.logger.error(f"Ollama API request timed out after 120 seconds")
+            return ""
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Ollama API error: {e}")
+            # Log the response body if available for more details
+            try:
+                error_details = response.text
+                self.logger.error(f"Ollama API response body: {error_details}")
+            except:
+                pass # Ignore if response object doesn't exist or has no text
             return ""
     
     def sanitize_text(self, text: str) -> str:
@@ -261,7 +311,7 @@ class SubtitleProcessor:
         text = re.sub(r'<[^>]*>', '', text)
         text = re.sub(r'\[(.*?)\]', r'#BRACKET_OPEN#\1#BRACKET_CLOSE#', text)
         text = re.sub(r' +', ' ', text)
-        text = text.replace('\r\n', '\n').replace('\r', '\n')
+        text.replace('\r\n', '\n').replace('\r', '\n')
         return text.strip()
     
     def preprocess_subtitle(self, text: str) -> str:
@@ -288,8 +338,9 @@ class SubtitleProcessor:
         """
         Post-process translated text to restore formatting and fix common issues.
         """
-        # Restore brackets
-        text = text.replace('#BRACKET_OPEN#', '[').replace('#BRACKET_CLOSE#', ']')
+        # Restore brackets (case-insensitive)
+        text = re.sub(r'#BRACKET_OPEN#', '[', text, flags=re.IGNORECASE)
+        text = re.sub(r'#BRACKET_CLOSE#', ']', text, flags=re.IGNORECASE)
         
         # Fix common Danish punctuation issues
         text = text.replace(' ,', ',').replace(' .', '.')
@@ -312,113 +363,327 @@ class SubtitleProcessor:
         return text.strip()
     
     def translate_srt(self, input_path, output_path, cfg, progress_dict=None):
-        """
-        Translate an SRT subtitle file using the configured translation services.
-        
-        Args:
-            input_path: Path to the input SRT file
-            output_path: Path to save the translated SRT file
-            cfg: Configuration object
-            progress_dict: Optional dictionary to track translation progress
-        """
+        """Translate subtitle file with proper Ollama waiting and live status."""
         import pysrt
-        start_time = time.time()
+        from py.translation_service import TranslationService
         
-        # Initialize translation statistics
-        translation_stats = {
-            'source_language': cfg.get("general", "source_language", fallback="en"),
-            'target_language': cfg.get("general", "target_language", fallback="en"),
-            'total_lines': 0,
-            'standard_critic_enabled': cfg.has_section("agent_critic") and cfg.getboolean("agent_critic", "enabled", fallback=False),
-            'standard_critic_changes': 0,
-            'multi_critic_enabled': cfg.has_section("multi_critic") and cfg.getboolean("multi_critic", "enabled", fallback=False),
-            'translations': []
-        }
+        start_time = time.time() # Initialize overall start time
         
-        # Load the subtitle file
+        # Initialize progress history if needed
+        if progress_dict is not None and "processed_lines" not in progress_dict:
+            progress_dict["processed_lines"] = []
+
         try:
+            # Import display function - ensure this works first
+            try:
+                from live_translation_viewer import display_translation_status
+                has_display = True
+                self.logger.info("Live translation viewer imported successfully.")
+            except ImportError as e:
+                has_display = False
+                self.logger.warning(f"Could not import live_translation_viewer - live display disabled: {e}")
+
+            # Start processing
+            self.logger.info(f"Parsing subtitle file: {os.path.basename(input_path)}")
             subs = pysrt.open(input_path, encoding='utf-8')
-            self.logger.info(f"Loaded subtitle file '{os.path.basename(input_path)}' with {len(subs)} lines")
-            translation_stats['total_lines'] = len(subs)
-        except Exception as e:
-            self.logger.error(f"Error loading subtitle file: {e}")
-            if progress_dict is not None:
-                progress_dict["status"] = "error"
-                progress_dict["message"] = f"Error loading subtitle file: {e}"
-            return
-        
-        # Get source and target languages from config
-        src_lang = cfg.get("general", "source_language", fallback="en")
-        tgt_lang = cfg.get("general", "target_language", fallback="en")
-        
-        # Update progress dictionary if provided
-        if progress_dict is not None:
-            progress_dict["status"] = "translating"
-            progress_dict["total_lines"] = len(subs)
-            progress_dict["current_line"] = 0
-        
-        # Process each subtitle line
-        for i, sub in enumerate(subs):
-            # Skip empty lines or lines with only formatting
-            if not sub.text.strip() or sub.text.strip() == '&nbsp;':
-                continue
+            total_lines = len(subs)
+            self.logger.info(f"Parsed {total_lines} subtitle entries")
             
-            # Update progress
-            if progress_dict is not None:
-                progress_dict["current_line"] = i + 1
-                progress_dict["current"]["line_number"] = i + 1
-                progress_dict["current"]["original"] = sub.text
+            # Setup translation service
+            translation_service = TranslationService(cfg, self.logger)
             
-            # TODO: Implement the actual translation logic
-            # This would use the various call_* methods to translate each line
-            # For now, we'll just log the process
+            # Get languages
+            source_lang = cfg.get("general", "source_language", fallback="en")
+            target_lang = cfg.get("general", "target_language", fallback="da")
             
-            self.logger.info(f"Processing line {i+1}/{len(subs)}: {sub.text[:30]}...")
+            # Initialize critics if enabled
+            agent_critic_enabled = cfg.getboolean("agent_critic", "enabled", fallback=False)
+            critic_service = None
+            if agent_critic_enabled:
+                try:
+                    from py.critic_service import CriticService
+                    critic_service = CriticService(cfg, self.logger)
+                    self.logger.info("Agent Critic enabled and initialized")
+                except Exception as e:
+                    self.logger.error(f"Failed to initialize critic service: {e}")
             
-            # In a real implementation, we would:
-            # 1. Get translations from various services
-            # 2. Apply critic passes if enabled
-            # 3. Choose the best translation
-            # 4. Update the subtitle text
+            # Get context size from config
+            context_size_before = cfg.getint("general", "context_size_before", fallback=15)
+            context_size_after = cfg.getint("general", "context_size_after", fallback=15)
             
-            # For demo purposes, just add the original text with a target language marker
-            sub.text = f"[{tgt_lang}] {sub.text}"
-            
-            # Update processed lines history in progress dict
-            if progress_dict is not None:
-                line_record = {
-                    "line_number": i + 1,
-                    "original": sub.text,
-                    "final": sub.text  # In real implementation, this would be the translated text
+            # Process each subtitle line
+            for i, sub in enumerate(subs):
+                line_number = i + 1
+                line_start_time = time.time()  # Track per-line timing
+                
+                # Skip empty lines
+                if not sub.text.strip() or sub.text.strip() == '&nbsp;':
+                    continue
+                
+                original_text = self.preprocess_subtitle(sub.text)
+                
+                # Initialize data for this line
+                translations = {}
+                first_pass = None
+                critic_result = None
+                final_result = None
+                
+                # Initialize timing dict for this line
+                timing = {
+                    "start": time.time(),
+                    "preprocessing": 0,
+                    "first_pass": 0,
+                    "critic": 0,
+                    "total": 0
                 }
-                progress_dict["processed_lines"].append(line_record)
-        
-        # Save the translated subtitle file
-        subs.save(output_path, encoding='utf-8')
-        self.logger.info(f"Saved translated SRT to '{os.path.basename(output_path)}'")
-        
-        # Generate a translation report
-        report_path = os.path.join(os.path.dirname(output_path), "translation_report.txt")
-        self.generate_translation_report(translation_stats, report_path)
-        self.logger.info(f"Saved detailed translation report to {report_path}")
-        
-        # Calculate processing time
-        end_time = time.time()
-        translation_stats['processing_time'] = end_time - start_time
-        processing_time_seconds = end_time - start_time
-        processing_time_minutes = processing_time_seconds / 60
-        
-        # Print final statistics
-        self.logger.info("\nTRANSLATION STATISTICS:")
-        self.logger.info(f"- Total lines translated: {len(subs)}")
-        self.logger.info(f"- Total processing time: {processing_time_minutes:.2f} minutes ({processing_time_seconds:.2f} seconds)")
-        self.logger.info(f"- Average time per line: {processing_time_seconds/len(subs):.2f} seconds")
-        
-        # Update progress dictionary on completion
-        if progress_dict is not None:
-            progress_dict["status"] = "done"
-            progress_dict["message"] = f"Translation complete! {len(subs)} lines translated in {processing_time_minutes:.2f} minutes."
+                
+                # Update progress dictionary *before* translation starts for this line
+                if progress_dict is not None:
+                    progress_dict["current_line"] = line_number
+                    progress_dict["total_lines"] = total_lines # Ensure total lines is set
+                    progress_dict["filename"] = os.path.basename(input_path)
+                    if "current" not in progress_dict:
+                        progress_dict["current"] = {}
+                    progress_dict["current"].update({
+                        "line_number": line_number,
+                        "original": original_text,
+                        "suggestions": {},
+                        "first_pass": None,
+                        "standard_critic": None,
+                        "final": None,
+                        "timing": timing
+                    })
+                
+                # Build context from surrounding subtitles
+                context_before = []
+                for j in range(max(0, i - context_size_before), i):
+                    context_before.append(f"Line {j+1}: {subs[j].text}")
+                
+                context_after = []
+                for j in range(i + 1, min(len(subs), i + 1 + context_size_after)):
+                    context_after.append(f"Line {j+1}: {subs[j].text}")
+                
+                context_text = ""
+                if context_before:
+                    context_text += "PREVIOUS LINES:\n" + "\n".join(context_before) + "\n\n"
+                if context_after:
+                    context_text += "FOLLOWING LINES:\n" + "\n".join(context_after)
+                
+                # Record time before first pass translation
+                first_pass_start = time.time()
+                
+                # Pass context to translation service
+                translation_details = translation_service.translate(
+                    original_text, 
+                    source_lang, 
+                    target_lang,
+                    context=context_text
+                )
+                
+                # Calculate first pass timing
+                timing["first_pass"] = time.time() - first_pass_start
+                
+                # Extract results
+                translations = translation_details.get("collected_translations", {})
+                first_pass = translation_details.get("first_pass_text")
+                current_result = translation_details.get("final_text") # This is the result after the main translation logic
+                
+                # Update progress dict with collected translations and first pass
+                if progress_dict is not None:
+                    progress_dict["current"]["suggestions"] = translations
+                    progress_dict["current"]["first_pass"] = first_pass
+                    progress_dict["current"]["timing"]["first_pass"] = timing["first_pass"]
+
+                # Display initial status (original, suggestions, first pass) - Only if using live viewer
+                if has_display:
+                    display_translation_status(
+                        line_number, 
+                        original_text, 
+                        translations, 
+                        None, # current_result not shown yet
+                        first_pass
+                    )
+                # Fallback console print is moved to the end
+                
+                # Apply critic if enabled and we have a result
+                critic_result_str = None # Store critic's string result or None
+                critic_feedback = None # Store critic's feedback if available
+                critic_changed = False
+                
+                # Record critic start time
+                critic_start_time = time.time()
+                
+                if current_result and agent_critic_enabled and critic_service:
+                    self.logger.info("Applying critic to translation")
+                    critic_eval_result = critic_service.evaluate_translation(
+                        original_text, current_result, source_lang, target_lang
+                    )
+                    
+                    # Check if critic returned a dict with score and feedback
+                    if isinstance(critic_eval_result, dict):
+                        critic_feedback = critic_eval_result.get('feedback', 'No feedback provided.')
+                        # Check if critic provided a revised translation (optional feature, not standard)
+                        if 'revised_translation' in critic_eval_result:
+                             critic_result_str = critic_eval_result['revised_translation']
+                             critic_changed = critic_result_str != current_result
+                             self.logger.info(f"Critic suggested revision: {critic_result_str}")
+                        else:
+                             # Standard critic just provides score/feedback
+                             self.logger.info(f"Critic evaluation: Score {critic_eval_result.get('score', 'N/A')}, Feedback: {critic_feedback}")
+                             critic_result_str = None # No revision provided
+                             critic_changed = False
+                    else:
+                        # Handle unexpected critic result format
+                        self.logger.warning(f"Critic returned unexpected result format: {critic_eval_result}")
+                        critic_result_str = None
+                        critic_changed = False
+                        critic_feedback = f"Unexpected result: {critic_eval_result}"
+                    
+                    # Record critic timing
+                    timing["critic"] = time.time() - critic_start_time
+
+                    # Update progress dict with critic result, timing, and action
+                    if progress_dict is not None:
+                        progress_dict["current"]["standard_critic"] = critic_result_str
+                        progress_dict["current"]["critic_action"] = {
+                            "score": critic_eval_result.get('score') if isinstance(critic_eval_result, dict) else None,
+                            "feedback": critic_feedback,
+                            "changed": critic_changed,
+                            "timing": timing["critic"]
+                        }
+                        progress_dict["current"]["timing"]["critic"] = timing["critic"]
+                    
+                    # Display status after critic - Only if using live viewer
+                    if has_display:
+                        display_translation_status(
+                            line_number,
+                            original_text,
+                            translations,
+                            None, # current_result not shown yet
+                            first_pass,
+                            critic_result_str # Display the string result or None
+                        )
+                    # Fallback console print moved to the end
+                    
+                    # Use critic result only if it's a valid string and different
+                    if critic_result_str and critic_changed:
+                        current_result = critic_result_str # Update the main result
+                        self.logger.info("Using critic's revised translation.")
+                    elif critic_result_str:
+                         self.logger.info("Critic agreed or provided same translation.")
+                    # If critic_result_str is None or not changed, we keep the previous current_result
+                
+                # Final result is the current result after all processing
+                final_result = current_result
+                
+                # Calculate total time for this line
+                timing["total"] = time.time() - line_start_time
+                
+                # Update progress dict with final result and timing
+                if progress_dict is not None:
+                    progress_dict["current"]["final"] = final_result
+                    progress_dict["current"]["timing"]["total"] = timing["total"]
+                    
+                    # Add to processed lines history (limited to last 10)
+                    line_history_item = {
+                        "line_number": line_number,
+                        "original": original_text,
+                        "first_pass": first_pass,
+                        "critic": critic_result_str,
+                        "critic_changed": critic_changed,
+                        "final": final_result,
+                        "timing": {k: round(v, 2) for k, v in timing.items() if v > 0}  # Round timings for display
+                    }
+                    
+                    # Add to history and keep only last 10
+                    progress_dict["processed_lines"].append(line_history_item)
+                    if len(progress_dict["processed_lines"]) > 10:
+                        progress_dict["processed_lines"] = progress_dict["processed_lines"][-10:]
+                
+                # Display final status - Only if using live viewer
+                if has_display:
+                    display_translation_status(
+                        line_number,
+                        original_text,
+                        translations,
+                        None, # current_result not shown
+                        first_pass,
+                        critic_result_str, # Pass critic's string result
+                        final_result
+                    )
+                else: # Fallback console print - Consolidated output at the end
+                    separator = "-" * 60
+                    print(separator)
+                    print(f"Line {line_number}:")
+                    print(f"  Original: \"{original_text}\"")
+                    # Print collected translations
+                    for service_name, translation_text in translations.items():
+                        print(f"  {service_name}: \"{translation_text}\"")
+                    # Print first pass result (e.g., from Ollama final)
+                    if first_pass:
+                        print(f"  First pass: \"{first_pass}\" ({timing['first_pass']:.2f}s)")
+                    # Print critic feedback if available
+                    if critic_feedback:
+                        change_indicator = " (REVISED)" if critic_changed and critic_result_str else ""
+                        print(f"  Critic: \"{critic_feedback}\"{change_indicator} ({timing['critic']:.2f}s)")
+                        if critic_result_str and critic_changed:
+                            print(f"    -> Revision: \"{critic_result_str}\"")
+                    # Print final result
+                    if final_result:
+                        print(f"  Final: \"{final_result}\" (Total: {timing['total']:.2f}s)")
+                    print(separator) # Print separator at the end for fallback
+                
+                # Update subtitle text
+                if final_result:
+                    sub.text = self.postprocess_translation(final_result)
+                else:
+                    # If translation failed completely, keep original but log warning
+                    self.logger.warning(f"Translation failed for line {line_number}, keeping original text: {original_text}")
+                    sub.text = original_text # Keep original if final_result is None or empty
+
+            # Save translated subs
+            self.logger.info(f"Saving translated subtitles to {output_path}")
+            subs.save(output_path, encoding='utf-8')
+            self.logger.info(f"Saved translated subtitles to {output_path}")
+            
+            # Calculate overall process time
+            total_process_time = time.time() - start_time
+            
+            # Update final progress status
+            if progress_dict is not None:
+                progress_dict["status"] = "completed"
+                progress_dict["message"] = f"Translation completed for {os.path.basename(input_path)} in {total_process_time:.2f}s"
+                progress_dict["current_line"] = total_lines
+                progress_dict["total_process_time"] = total_process_time
+                # Store output path for reference
+                progress_dict["output_path"] = output_path
+
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error translating subtitle file {input_path}: {e}")
+            import traceback
+            self.logger.error(traceback.format_exc())
+            # Update progress status on error
+            if progress_dict is not None:
+                progress_dict["status"] = "failed"
+                progress_dict["message"] = f"Error translating subtitle: {e}"
+            return False
+        finally:
+            end_time = time.time()
+            # Check if start_time was defined (it should be now)
+            if 'start_time' in locals():
+                time_taken = f"{end_time - start_time:.2f}s"
+                self.logger.info(f"Translation process for {os.path.basename(input_path)} finished in {time_taken}.")
+            else:
+                self.logger.warning(f"Translation process for {os.path.basename(input_path)} finished, but start_time was not recorded.")
     
+    def _get_language_full_name(self, language_code):
+        """Get the full language name from a language code."""
+        # Reverse language mapping
+        reverse_mapping = {v: k.capitalize() for k, v in LANGUAGE_MAPPING.items()}
+        return reverse_mapping.get(language_code, language_code)
+
     def generate_translation_report(self, stats, output_path):
         """Generate a detailed translation report with comprehensive statistics."""
         with open(output_path, 'w', encoding='utf-8') as f:

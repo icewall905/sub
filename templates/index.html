@@ -22,29 +22,45 @@
                 <form id="upload-form" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="subtitle-file">Subtitle File:</label>
-                        <input type="file" id="subtitle-file" name="subtitle-file" accept=".srt,.vtt,.ass,.ssa">
+                        <input type="file" id="subtitle-file" name="file" accept=".srt">
                     </div>
                     
                     <div class="form-group">
                         <label for="source-language">Source Language:</label>
-                        <select id="source-language" name="source-language">
-                            {% for code, name in languages %}
-                            <option value="{{ code }}" {% if code == default_source %}selected{% endif %}>{{ name }}</option>
-                            {% endfor %}
+                        <select id="source-language" name="source_language">
+                            <option value="en">English</option>
+                            <!-- Other language options -->
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label for="target-language">Target Language:</label>
-                        <select id="target-language" name="target-language">
-                            {% for code, name in languages %}
-                            <option value="{{ code }}" {% if code == default_target %}selected{% endif %}>{{ name }}</option>
-                            {% endfor %}
+                        <select id="target-language" name="target_language">
+                            <option value="da">Danish</option>
+                            <!-- Other language options -->
                         </select>
                     </div>
                     
-                    <button type="submit" class="primary">Start Translation</button>
+                    <div class="submit-container">
+                        <button type="submit" class="upload-button">Upload & Translate</button>
+                    </div>
                 </form>
+            </div>
+            
+            <div class="card">
+                <h2>Bulk Conversion</h2>
+                <p>Translate multiple subtitle files at once by selecting a directory:</p>
+                <button id="browse-btn" class="secondary">Browse Directories</button>
+                <div id="bulk-translation-status" style="display: none;">
+                    <div class="progress-container">
+                        <div id="bulk-progress-bar" class="progress-bar"></div>
+                        <div id="bulk-progress-text" class="progress-text">0%</div>
+                    </div>
+                    <div id="bulk-status-message">Initializing bulk translation...</div>
+                    <div id="bulk-download-link" style="display: none; margin-top: 1em;">
+                        <a href="#" id="download-zip-link" class="button primary">Download All Translations</a>
+                    </div>
+                </div>
             </div>
             
             <div class="card">
@@ -77,6 +93,12 @@
                 <div id="progress-text">0%</div>
             </div>
             <div id="status-message">Initializing translation...</div>
+            <div id="live-status-container" style="margin-top: 20px; padding: 15px; background: #1a1a24; border-radius: 6px; border: 1px solid #444;">
+                <h3>Live Translation Status</h3>
+                <div id="live-status-display">
+                    <p>Waiting for translation to start...</p>
+                </div>
+            </div>
         </div>
         
         <div id="result-container" style="display: none;">
@@ -87,8 +109,34 @@
                 <button id="view-btn" class="secondary">View Translation</button>
             </div>
         </div>
+        
+        <!-- Add Subtitle Archive Section -->
+        <div class="card">
+            <h2>Subtitle Archive</h2>
+            <p>All translated subtitle files in your archive:</p>
+            <div id="subtitle-archive">
+                <p>Loading subtitle archive...</p>
+            </div>
+        </div>
     </div>
     
+    <!-- Directory Browser Modal -->
+    <div id="directory-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-dir">&times;</span>
+            <h2>Select Directory</h2>
+            <div id="directory-browser">
+                <div id="current-path"></div>
+                <ul id="directory-list"></ul>
+            </div>
+            <div class="modal-actions">
+                <button id="select-dir-btn" class="primary">Select</button>
+                <button id="cancel-dir-btn" class="secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Subtitle Preview Modal -->
     <div id="modal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -96,6 +144,20 @@
             <div id="subtitle-preview"></div>
         </div>
     </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                        <button class="close-flash">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
     
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>

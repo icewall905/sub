@@ -1,0 +1,479 @@
+import os
+import json
+import requests
+import time
+from typing import Dict, List, Any, Optional, Union
+
+class CriticService:
+    """
+    Service for evaluating the quality of translations using Ollama LLM models.
+    This service analyzes translation quality, provides scores, and generates
+    quality reports for subtitle translations.
+    """
+    
+    def __init__(self, config, logger):
+        """
+        Initialize the critic service.
+        
+        Args:
+            config: The configuration object from ConfigManager
+            logger: The application logger
+        """
+        self.config = config
+        self.logger = logger
+        
+        # Get critic configuration
+        # Read from 'agent_critic' section instead of 'critic'
+        self.enabled = config.getboolean('agent_critic', 'enabled', fallback=False)
+        self.service = config.get('agent_critic', 'service', fallback='ollama') # Assuming service might be defined here too
+        self.model = config.get('agent_critic', 'model', fallback=config.get('ollama', 'model', fallback='llama3')) # Read model from agent_critic first
+        self.temperature = config.getfloat('agent_critic', 'temperature', fallback=0.1)
+        self.min_score = config.getfloat('agent_critic', 'min_score', fallback=0.6) # Assuming min_score might be defined here
+        self.generate_report = config.getboolean('agent_critic', 'generate_report', fallback=False) # Assuming generate_report might be defined here
+        
+        # Get Ollama-specific configuration
+        self.ollama_server_url = config.get('ollama', 'server_url', fallback='http://localhost:11434')
+        self.ollama_endpoint = config.get('ollama', 'endpoint', fallback='/api/generate')
+        
+        # Remove leading slash from endpoint if present to avoid double slashes
+        if self.ollama_endpoint.startswith('/'):
+            self.ollama_endpoint = self.ollama_endpoint[1:]
+            
+        # Build the complete API URL
+        self.ollama_api_url = f"{self.ollama_server_url.rstrip('/')}/{self.ollama_endpoint}"
+        
+        # Performance parameters - properly handle commented-out options
+        if config.has_option('ollama', 'num_gpu'):
+            value = config.get('ollama', 'num_gpu', fallback=None)
+            if value is not None and str(value).strip() != "":
+                self.num_gpu = config.getint('ollama', 'num_gpu')
+            else:
+                self.num_gpu = None
+        else:
+            self.num_gpu = None
+
+        if config.has_option('ollama', 'num_thread'):
+            value = config.get('ollama', 'num_thread', fallback=None)
+            if value is not None and str(value).strip() != "":
+                self.num_thread = config.getint('ollama', 'num_thread')
+            else:
+                self.num_thread = None
+        else:
+            self.num_thread = None
+
+        if config.has_option('ollama', 'use_mmap'):
+            value = config.get('ollama', 'use_mmap', fallback=None)
+            if value is not None and str(value).strip() != "":
+                self.use_mmap = config.getboolean('ollama', 'use_mmap')
+            else:
+                self.use_mmap = None
+        else:
+            self.use_mmap = None
+
+        if config.has_option('ollama', 'use_mlock'):
+            value = config.get('ollama', 'use_mlock', fallback=None)
+            if value is not None and str(value).strip() != "":
+                self.use_mlock = config.getboolean('ollama', 'use_mlock')
+            else:
+                self.use_mlock = None
+        else:
+            self.use_mlock = None
+        
+        # Initialize cache for evaluation results
+        self.evaluation_cache = {}
+        
+        self.logger.info(f"CriticService initialized. Enabled: {self.enabled}, Service: {self.service}, Model: {self.model}")
+        self.logger.debug(f"Ollama API URL: {self.ollama_api_url}")
+    
+    def evaluate_translation(self, source_text: str, translated_text: str, source_lang: str, target_lang: str) -> Dict[str, Any]:
+        """
+        Evaluate the quality of a translation.
+        
+        Args:
+            source_text: The original text in the source language
+            translated_text: The translated text
+            source_lang: The source language code
+            target_lang: The target language code
+            
+        Returns:
+            Dictionary containing evaluation results including score and feedback
+        """
+        if not self.enabled:
+            return {"score": 1.0, "feedback": "Translation quality evaluation is disabled"}
+        
+        # Generate a cache key
+        cache_key = f"{source_lang}:{target_lang}:{hash(source_text)}:{hash(translated_text)}"
+        
+        # Check if we have this evaluation cached
+        if cache_key in self.evaluation_cache:
+            self.logger.debug(f"Using cached evaluation for translation")
+            return self.evaluation_cache[cache_key]
+        
+        try:
+            # Use the appropriate service for evaluation
+            if self.service == 'ollama':
+                result = self._evaluate_with_ollama(source_text, translated_text, source_lang, target_lang)
+            else:
+                self.logger.warning(f"Unsupported critic service: {self.service}, defaulting to basic evaluation")
+                result = self._basic_evaluation(source_text, translated_text)
+            
+            # Cache the result
+            self.evaluation_cache[cache_key] = result
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Error in translation evaluation: {e}")
+            return {"score": 0.5, "feedback": f"Error evaluating translation: {str(e)}"}
+    
+    def _evaluate_with_ollama(self, source_text: str, translated_text: str, source_lang: str, target_lang: str) -> Dict[str, Any]:
+        """
+        Evaluate translation quality using Ollama LLM.
+        
+        Args:
+            source_text: The original text in the source language
+            translated_text: The translated text
+            source_lang: The source language code
+            target_lang: The target language code
+            
+        Returns:
+            Dictionary with evaluation score and feedback
+        """
+        # Create language names from codes
+        source_lang_name = self._get_language_name(source_lang)
+        target_lang_name = self._get_language_name(target_lang)
+        
+        # Build the prompt for the LLM
+        prompt = f"""You are a translation critic and improver. Review this translation from {source_lang} to {target_lang}.
+
+Original text ({source_lang}): {source_text}
+
+Attempted translation ({target_lang}): {translated_text}
+
+Your task:
+1. Rate the translation quality on a scale of 1-10
+2. Identify any errors or issues in the translation
+3. MOST IMPORTANTLY: Provide a corrected/improved version of the translation
+
+Return your response in this JSON format:
+{{
+  "score": <number between 1 and 10>,
+  "feedback": "<your critique with specific improvement suggestions>",
+  "revised_translation": "<your corrected version of the translation>"
+}}
+
+Only return the JSON object, no other text.
+"""
+        
+        try:
+            # Build the API request
+            data = {
+                "model": self.model,
+                "prompt": prompt,
+                "stream": False,
+                "temperature": self.temperature,
+                "system": "You are an expert translation reviewer who evaluates translation quality."
+            }
+            
+            # Add performance parameters if they are set
+            options = {}
+            
+            # Only add options if they have actual values set (not None or empty)
+            for option in ["num_gpu", "num_thread"]:
+                value = getattr(self, option)
+                if value is not None and str(value).strip() != "":
+                    options[option] = value
+                    
+            for option in ["use_mmap", "use_mlock"]:
+                value = getattr(self, option)
+                if value is not None:
+                    options[option] = value
+            
+            if options:
+                data["options"] = options
+                
+            self.logger.debug(f"Sending evaluation request to Ollama for {self.model} at {self.ollama_api_url}")
+            
+            # Make the API call with retries
+            max_retries = 3
+            retry_delay = 2  # seconds
+            
+            for attempt in range(max_retries):
+                try:
+                    # Increase timeout for more complex evaluations
+                    response = requests.post(self.ollama_api_url, json=data, timeout=180)
+                    response.raise_for_status()
+                    
+                    # Parse the response
+                    result = response.json()
+                    response_text = result.get('response', '')
+                    
+                    # Extract the JSON part from the response
+                    # First, try to parse the response as JSON directly
+                    try:
+                        evaluation = json.loads(response_text)
+                    except json.JSONDecodeError:
+                        # If that fails, try to extract JSON-like content
+                        self.logger.debug("Couldn't parse response as JSON directly, trying to extract JSON object")
+                        try:
+                            json_str = self._extract_json_from_text(response_text)
+                            evaluation = json.loads(json_str)
+                        except (json.JSONDecodeError, ValueError):
+                            self.logger.warning(f"Failed to extract JSON from response: {response_text[:100]}...")
+                            # Fallback: create a basic result based on the text
+                            evaluation = self._analyze_non_json_response(response_text)
+                    
+                    # Ensure score is within bounds
+                    if 'score' in evaluation:
+                        evaluation['score'] = min(max(float(evaluation['score']), 0.0), 1.0)
+                    else:
+                        evaluation['score'] = 0.5
+                        
+                    if 'feedback' not in evaluation:
+                        evaluation['feedback'] = "No feedback provided by the evaluation model"
+                    
+                    self.logger.info(f"Translation evaluation result: Score {evaluation['score']:.2f}")
+                    self.logger.debug(f"Evaluation feedback: {evaluation['feedback']}")
+                    
+                    return evaluation
+                
+                except requests.exceptions.Timeout:
+                    self.logger.warning(f"Ollama API request timed out on attempt {attempt+1}")
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay)
+                        continue
+                    raise
+                except requests.RequestException as e:
+                    self.logger.error(f"Error making request to Ollama API: {e}")
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay)
+                        continue
+                    raise
+            
+            # If we get here, all retries failed
+            return {"score": 0.5, "feedback": "Failed to get evaluation after multiple attempts"}
+                
+        except requests.RequestException as e:
+            self.logger.error(f"Error making request to Ollama API: {e}")
+            return {"score": 0.5, "feedback": f"Error connecting to Ollama API: {str(e)}"}
+        except Exception as e:
+            self.logger.error(f"Unexpected error in Ollama evaluation: {e}")
+            return {"score": 0.5, "feedback": f"Error processing evaluation: {str(e)}"}
+    
+    def _extract_json_from_text(self, text: str) -> str:
+        """
+        Extract a JSON object from a text string.
+        
+        Args:
+            text: Text possibly containing a JSON object
+        
+        Returns:
+            JSON string extracted from the text
+        
+        Raises:
+            ValueError: If no valid JSON object is found
+        """
+        # Try to find content between curly braces
+        import re
+        json_match = re.search(r'(\{.*\})', text, re.DOTALL)
+        if json_match:
+            return json_match.group(1)
+        
+        # If no JSON object is found
+        raise ValueError("No JSON object found in response")
+    
+    def _analyze_non_json_response(self, text: str) -> Dict[str, Any]:
+        """
+        Create an evaluation result from non-JSON response by analysis.
+        
+        Args:
+            text: The response text to analyze
+        
+        Returns:
+            Dictionary with estimated score and feedback
+        """
+        # Look for numeric scores in the text
+        import re
+        
+        # Look for patterns like "score: 0.8" or "score of 0.8"
+        score_matches = re.findall(r'score:?\s*(\d+\.\d+|\d+)', text, re.IGNORECASE)
+        if score_matches:
+            try:
+                score = float(score_matches[0])
+                # Ensure score is between 0 and 1
+                if score > 1 and score <= 10:
+                    score = score / 10  # Convert 0-10 scale to 0-1
+                score = min(max(score, 0.0), 1.0)
+            except ValueError:
+                score = 0.5
+        else:
+            # Try to infer score from text sentiment
+            score = 0.5
+            positive_indicators = ['excellent', 'good', 'accurate', 'fluent', 'perfect']
+            negative_indicators = ['poor', 'bad', 'incorrect', 'error', 'issue', 'problem']
+            
+            positive_count = sum(1 for word in positive_indicators if word.lower() in text.lower())
+            negative_count = sum(1 for word in negative_indicators if word.lower() in text.lower())
+            
+            if positive_count > negative_count:
+                score = 0.7 + (0.3 * min(positive_count / 5, 1))
+            elif negative_count > positive_count:
+                score = 0.3 - (0.3 * min(negative_count / 5, 1))
+        
+        return {
+            "score": score,
+            "feedback": text[:200] + ('...' if len(text) > 200 else '')
+        }
+    
+    def _basic_evaluation(self, source_text: str, translated_text: str) -> Dict[str, Any]:
+        """
+        Basic evaluation method when no advanced service is available.
+        Uses simple heuristics to estimate translation quality.
+        
+        Args:
+            source_text: The original text
+            translated_text: The translated text
+            
+        Returns:
+            Dictionary with a basic quality score and generic feedback
+        """
+        # Very basic length-based check
+        source_length = len(source_text.split())
+        translated_length = len(translated_text.split())
+        
+        # Calculate length ratio - translations shouldn't be wildly different in length
+        if source_length == 0:
+            length_ratio = 1.0  # Avoid division by zero
+        else:
+            length_ratio = translated_length / source_length
+        
+        # Score based on length ratio
+        if 0.5 <= length_ratio <= 2.0:
+            score = 0.8  # Reasonable length ratio
+        elif 0.3 <= length_ratio <= 3.0:
+            score = 0.5  # Questionable length ratio
+        else:
+            score = 0.2  # Very suspicious length ratio
+        
+        feedback = f"Basic evaluation based on text length. Source has {source_length} words, translation has {translated_length} words."
+        
+        return {"score": score, "feedback": feedback}
+    
+    def _get_language_name(self, lang_code: str) -> str:
+        """
+        Convert a language code to a language name.
+        
+        Args:
+            lang_code: ISO language code (e.g., 'en', 'fr')
+            
+        Returns:
+            Full language name (e.g., 'English', 'French')
+        """
+        language_map = {
+            'en': 'English',
+            'es': 'Spanish',
+            'fr': 'French',
+            'de': 'German',
+            'it': 'Italian',
+            'pt': 'Portuguese',
+            'ru': 'Russian',
+            'ja': 'Japanese',
+            'ko': 'Korean',
+            'zh': 'Chinese',
+            'da': 'Danish',
+            'nl': 'Dutch',
+            'fi': 'Finnish',
+            'sv': 'Swedish',
+            'no': 'Norwegian',
+            'hi': 'Hindi'
+        }
+        
+        return language_map.get(lang_code.lower(), lang_code)
+    
+    def generate_quality_report(self, evaluations: List[Dict[str, Any]], source_lang: str, target_lang: str) -> str:
+        """
+        Generate a quality report based on a collection of evaluations.
+        
+        Args:
+            evaluations: List of evaluation results
+            source_lang: Source language code
+            target_lang: Target language code
+            
+        Returns:
+            Text report with quality statistics and insights
+        """
+        if not self.generate_report or not evaluations:
+            return ""
+        
+        # Calculate statistics
+        scores = [e.get('score', 0) for e in evaluations]
+        avg_score = sum(scores) / len(scores)
+        min_score = min(scores)
+        max_score = max(scores)
+        
+        # Count problematic translations (below minimum score threshold)
+        problematic = [e for e in evaluations if e.get('score', 0) < self.min_score]
+        
+        # Format the report
+        source_lang_name = self._get_language_name(source_lang)
+        target_lang_name = self._get_language_name(target_lang)
+        
+        report = f"""# Translation Quality Report
+* **Source Language**: {source_lang_name}
+* **Target Language**: {target_lang_name}
+* **Evaluated Segments**: {len(evaluations)}
+* **Average Quality Score**: {avg_score:.2f} / 1.00
+* **Quality Range**: {min_score:.2f} - {max_score:.2f}
+* **Problematic Segments**: {len(problematic)} ({len(problematic)/len(evaluations)*100:.1f}%)
+
+## Quality Assessment
+This report provides an automated assessment of translation quality using computational linguistic analysis.
+Scores close to 1.00 indicate high-quality translations that preserve the original meaning
+while maintaining natural language flow in the target language.
+
+"""
+        
+        # Add section with examples of issues if there are problematic translations
+        if problematic:
+            report += "\n## Problematic Translations\n"
+            # Include up to 5 examples of problematic translations
+            for i, example in enumerate(problematic[:5]):
+                report += f"\n### Example {i+1} (Score: {example.get('score', 0):.2f})\n"
+                report += f"**Source**: {example.get('source_text', 'N/A')}\n"
+                report += f"**Translation**: {example.get('translated_text', 'N/A')}\n"
+                report += f"**Feedback**: {example.get('feedback', 'No feedback available')}\n"
+        
+        # Add timestamp
+        report += f"\n\nReport generated: {time.strftime('%Y-%m-%d %H:%M:%S')}"
+        
+        return report
+    
+    def save_report_to_file(self, report: str, base_filename: str) -> str:
+        """
+        Save a translation quality report to a file.
+        
+        Args:
+            report: The report text
+            base_filename: Base name for the report file
+            
+        Returns:
+            Path to the saved report file
+        """
+        if not report:
+            return ""
+            
+        try:
+            # Determine the output filename
+            base_path = os.path.dirname(base_filename)
+            base_name = os.path.splitext(os.path.basename(base_filename))[0]
+            report_path = os.path.join(base_path, f"{base_name}_quality_report.txt")
+            
+            # Write the report to file
+            with open(report_path, 'w', encoding='utf-8') as f:
+                f.write(report)
+                
+            self.logger.info(f"Translation quality report saved to {report_path}")
+            return report_path
+            
+        except Exception as e:
+            self.logger.error(f"Error saving quality report: {e}")
+            return ""
