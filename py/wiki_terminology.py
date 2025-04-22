@@ -46,10 +46,13 @@ class WikiTerminologyService:
             "User-Agent": "SubtitleTranslator/1.1 (https://github.com/hnyg/sub)"
         }
         
-        # New Fandom search endpoints with fallbacks
+        # Updated Fandom search endpoints with fallbacks
         self.fandom_search_endpoints = [
-            "https://www.fandom.com/api/v1/Search/List",        # new (2023-)
-            "https://community.fandom.com/api/v1/Search/List",  # legacy (deprecated)
+            # new 2024‑present endpoint
+            "https://services.fandom.com/unified-search/community-search",
+            # fallback to the legacy hosts (still 404 but kept for completeness)
+            "https://www.fandom.com/api/v1/Search/List",
+            "https://community.fandom.com/api/v1/Search/List",
         ]
         
         self.category_names = ["Glossary", "Terminology", "Slang", "Dictionary", "Lexicon"]
@@ -157,8 +160,21 @@ class WikiTerminologyService:
         for base in self.fandom_search_endpoints:
             try:
                 self.logger.debug(f"Trying Fandom API endpoint: {base}")
+                
+                if "unified-search" in base:
+                    r = requests.get(base,
+                                   params={"query": title, "lang": "en"},
+                                   headers=self.headers, timeout=10)
+                    if r.ok:
+                        for item in r.json().get("results", []):
+                            url = item.get("url")
+                            if url:
+                                return url.rstrip("/")
+                    continue
+                
+                # Legacy API block for old endpoints
                 r = requests.get(base, params={"query": title, "limit": 8},
-                                headers=self.headers, timeout=10)
+                               headers=self.headers, timeout=10)
                 if r.status_code != 200:
                     self.logger.debug(f"Endpoint {base} returned status code {r.status_code}")
                     continue
@@ -192,7 +208,8 @@ class WikiTerminologyService:
             html = response.text
             soup = BeautifulSoup(html, "html.parser")
             
-            for a in soup.select("a.result__a"):
+            # Updated selector to match new DDG HTML structure
+            for a in soup.select("a.result__title, a[result]"):
                 href = a.get("href")
                 m = re.match(r"https?://([^.]+\.fandom\.com)/", href)
                 if m:
