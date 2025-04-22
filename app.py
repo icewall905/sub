@@ -910,14 +910,71 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         
         # Scan directory for SRT files
         srt_files = []
+        skipped_files = []
+        
         for root, _, files in os.walk(root_dir):
-            for file in files:
-                if file.lower().endswith('.srt'):
-                    srt_files.append(os.path.join(root, file))
+            # First gather all SRT files in the directory
+            all_srt_files = [os.path.join(root, f) for f in files if f.lower().endswith('.srt')]
+            
+            # Create a dictionary to track target language files
+            target_files = {}
+            
+            # Identify existing target language files
+            for file_path in all_srt_files:
+                file_name = os.path.basename(file_path)
+                base, ext = os.path.splitext(file_name)
+                
+                # Check if file contains target language code
+                target_patterns = [
+                    f'.{tgt_lang}.', f'.{tgt_lang}-', f'.{tgt_lang}_',
+                    f'{tgt_lang}.', f'-{tgt_lang}.', f'_{tgt_lang}.'
+                ]
+                
+                is_target_lang = any(pat in base.lower() for pat in target_patterns)
+                
+                if is_target_lang:
+                    # Extract the base name without language code to use as key
+                    # This is a simplified approach - might need refinement for complex naming
+                    clean_base = re.sub(r'[._-][a-z]{2}[._-]', '.', base.lower())
+                    target_files[clean_base] = file_path
+            
+            # Now check source language files and add only those without target version
+            for file_path in all_srt_files:
+                file_name = os.path.basename(file_path)
+                base, ext = os.path.splitext(file_name)
+                
+                # Check if file contains source language code
+                source_patterns = [
+                    f'.{src_lang}.', f'.{src_lang}-', f'.{src_lang}_',
+                    f'{src_lang}.', f'-{src_lang}.', f'_{src_lang}.'
+                ]
+                
+                is_source_lang = any(pat in base.lower() for pat in source_patterns)
+                
+                if is_source_lang:
+                    # Extract the base name without language code
+                    clean_base = re.sub(r'[._-][a-z]{2}[._-]', '.', base.lower())
+                    
+                    # Check if we already have a target language version
+                    if clean_base in target_files:
+                        logger.info(f"Skipping {file_name} - target language version already exists")
+                        skipped_files.append(file_path)
+                    else:
+                        logger.info(f"Adding {file_name} to translation queue")
+                        srt_files.append(file_path)
+                else:
+                    # If we can't determine the language from the filename, 
+                    # we'll assume it's a source language file
+                    logger.info(f"Adding {file_name} to translation queue (language not specified in filename)")
+                    srt_files.append(file_path)
         
         if not srt_files:
-            progress["status"] = "completed"
-            progress["message"] = f"No subtitle files found in {root_dir}"
+            if skipped_files:
+                progress["status"] = "completed"
+                progress["message"] = f"No new subtitle files to translate. {len(skipped_files)} files already have target language versions."
+            else:
+                progress["status"] = "completed"
+                progress["message"] = f"No subtitle files found in {root_dir}"
             # Save progress state to file after status change
             save_progress_state()
             return
@@ -928,6 +985,7 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         # Update progress
         progress["total_files"] = len(srt_files)
         progress["status"] = "translating"
+        progress["message"] = f"Found {len(srt_files)} files to translate. Skipped {len(skipped_files)} files that already have {tgt_lang} versions."
         # Save progress state to file after status change
         save_progress_state()
         
@@ -970,6 +1028,18 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                 output_path = os.path.join(temp_dir, translated_filename)
                 archive_path = os.path.join(app.config['UPLOAD_FOLDER'], translated_filename)
                 
+                # Check if the output file already exists in the archive
+                if os.path.exists(archive_path):
+                    logger.info(f"Output file {translated_filename} already exists in archive, skipping translation")
+                    # Copy the existing file to the temp directory for inclusion in the zip
+                    import shutil
+                    shutil.copy2(archive_path, output_path)
+                    translated_files.append(output_path)
+                    progress["done_files"] += 1
+                    progress["message"] = f"Skipped {file_name}: target version already exists in archive"
+                    save_progress_state()
+                    continue
+                
                 # Use the translate_srt method which handles detailed progress reporting
                 success = subtitle_processor.translate_srt(
                     srt_file,
@@ -1010,7 +1080,7 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             
             # Update progress
             progress["status"] = "completed"
-            progress["message"] = f"Translated {progress['done_files']} subtitle files"
+            progress["message"] = f"Translated {progress['done_files']} subtitle files. Skipped {len(skipped_files)} files that already had {tgt_lang} versions."
             progress["zip_path"] = zip_path
             # Save final progress state to file
             save_progress_state()
