@@ -577,43 +577,46 @@ def live_status():
     response_data = {"status": "idle"}
     
     if progress and isinstance(progress, dict):
-        # Copy basic progress information to response
+        # First, copy the basic progress information to response
         response_data["status"] = progress.get("status", "idle")
         response_data["filename"] = progress.get("current_file", "")
         response_data["current_line"] = progress.get("current_line", 0)
         response_data["total_lines"] = progress.get("total_lines", 0)
         
+        # Add the mode (bulk or single)
+        if "mode" in progress:
+            response_data["mode"] = progress.get("mode", "single")
+        
         # If there's detailed current line information, include it
         if "current" in progress and isinstance(progress["current"], dict):
-            current = progress["current"]
             # Include the entire current object for detailed line information
-            response_data["current"] = current
+            response_data["current"] = progress["current"]
             
             # Also include top-level fields for backwards compatibility
-            response_data["line_number"] = current.get("line_number", 0)
-            response_data["original"] = current.get("original", "")
-            response_data["first_pass"] = current.get("first_pass", "")
-            response_data["critic"] = current.get("standard_critic", "")
-            response_data["final"] = current.get("final", "")
+            response_data["line_number"] = progress["current"].get("line_number", 0)
+            response_data["original"] = progress["current"].get("original", "")
+            response_data["first_pass"] = progress["current"].get("first_pass", "")
+            response_data["critic"] = progress["current"].get("standard_critic", "")
+            response_data["final"] = progress["current"].get("final", "")
             
             # Add timing information if available
-            if "timing" in current:
-                response_data["timing"] = current.get("timing", {})
+            if "timing" in progress["current"]:
+                response_data["timing"] = progress["current"].get("timing", {})
             
             # If critic has changed the translation, indicate this in the response
-            if "standard_critic" in current and "first_pass" in current:
-                response_data["critic_changed"] = current["standard_critic"] != current["first_pass"]
+            if "standard_critic" in progress["current"] and "first_pass" in progress["current"]:
+                response_data["critic_changed"] = progress["current"]["standard_critic"] != progress["current"]["first_pass"]
                 
             # Add detail about what the critic did
-            if "critic_action" in current:
-                response_data["critic_action"] = current.get("critic_action", "")
+            if "critic_action" in progress["current"]:
+                response_data["critic_action"] = progress["current"].get("critic_action", "")
         
         # Add history of processed lines if available
         if "processed_lines" in progress:
             response_data["processed_lines"] = progress["processed_lines"]
-            
-        # Add debugging information
-        logger.debug(f"Live status response: {json.dumps(response_data, indent=2, default=str)}")
+        
+        # Log the constructed response for debugging
+        logger.debug(f"Live status response: {response_data}")
     
     return jsonify(response_data)
 
@@ -894,6 +897,10 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
     try:
         progress["status"] = "scanning"
         progress["message"] = f"Scanning {root_dir} for subtitle files..."
+        # Initialize the current field for line-by-line data
+        progress["current"] = {}
+        # Create empty processed_lines history
+        progress["processed_lines"] = []
         # Save progress state to file after status change
         save_progress_state()
         
@@ -917,7 +924,6 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         
         # Initialize translation components
         subtitle_processor = SubtitleProcessor(logger)
-        translation_service = TranslationService(config, logger)
         
         # Update progress
         progress["total_files"] = len(srt_files)
@@ -934,13 +940,13 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             file_name = os.path.basename(srt_file)
             progress["current_file"] = file_name
             progress["message"] = f"Translating {file_name} ({i+1}/{len(srt_files)})"
+            # Reset current and processed_lines for the new file
+            progress["current"] = {}
+            progress["processed_lines"] = []
             # Save progress state to file at the start of each file
             save_progress_state()
             
             try:
-                # Parse the subtitle file
-                subtitles = subtitle_processor.parse_file(srt_file)
-                
                 # Generate translated filename
                 base, ext = os.path.splitext(file_name)
                 
@@ -962,41 +968,29 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                 
                 translated_filename = secure_filename(f"{out_base}{ext}")
                 output_path = os.path.join(temp_dir, translated_filename)
-                
-                # Translate all subtitles
-                translated_subtitles = []
-                for j, subtitle in enumerate(subtitles):
-                    # Update progress details
-                    if j % 10 == 0:  # Update progress every 10 subtitles to reduce message frequency
-                        progress["message"] = f"Translating {file_name}: {j+1}/{len(subtitles)} lines"
-                        progress["current_line"] = j + 1
-                        progress["total_lines"] = len(subtitles)
-                        # Save progress state every 10 lines
-                        save_progress_state()
-                    
-                    # Translate text
-                    translated_text = translation_service.translate(
-                        subtitle['text'], 
-                        src_lang, 
-                        tgt_lang
-                    )
-                    
-                    # Add translated subtitle
-                    translated_subtitle = subtitle.copy()
-                    translated_subtitle['text'] = translated_text
-                    translated_subtitles.append(translated_subtitle)
-                
-                # Write translated file
-                subtitle_processor.write_file(output_path, translated_subtitles)
-                
-                # Also save a copy to the subs folder for archive
                 archive_path = os.path.join(app.config['UPLOAD_FOLDER'], translated_filename)
-                subtitle_processor.write_file(archive_path, translated_subtitles)
                 
-                translated_files.append(output_path)
-                progress["done_files"] += 1
-                # Save progress state after completing each file
-                save_progress_state()
+                # Use the translate_srt method which handles detailed progress reporting
+                success = subtitle_processor.translate_srt(
+                    srt_file,
+                    archive_path,
+                    config,
+                    progress_dict=progress  # Pass the progress dict for detailed tracking
+                )
+                
+                if success:
+                    # Copy the file to the temporary directory for the ZIP file
+                    import shutil
+                    shutil.copy2(archive_path, output_path)
+                    
+                    translated_files.append(output_path)
+                    progress["done_files"] += 1
+                    # Save progress state after completing each file
+                    save_progress_state()
+                else:
+                    logger.error(f"Failed to translate {file_name}")
+                    progress["message"] = f"Error translating {file_name}"
+                    save_progress_state()
                 
             except Exception as e:
                 error_msg = f"Error translating {file_name}: {str(e)}"
