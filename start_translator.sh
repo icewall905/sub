@@ -97,13 +97,18 @@ if [ ! -f "config.ini" ] && [ -f "config.ini.example" ]; then
     print_message "$GREEN" "Created config.ini. You may want to edit this file to customize settings."
 fi
 
-# Run the translator application
-print_message "$BLUE" "=========================================="
-print_message "$GREEN" "Starting Subtitle Translator..."
-print_message "$BLUE" "=========================================="
-print_message "$YELLOW" "If your browser doesn't open automatically, navigate to http://127.0.0.1:5000"
-print_message "$YELLOW" "Press Ctrl+C to stop the application."
-print_message "$BLUE" "=========================================="
+# Get server port from config.ini if possible
+PORT=5089
+if [ -f "config.ini" ]; then
+    # Extract port from config.ini using grep and cut
+    CONFIG_PORT=$(grep -E "^\s*port\s*=" config.ini | cut -d'=' -f2 | tr -d '[:space:]')
+    if [ ! -z "$CONFIG_PORT" ]; then
+        PORT=$CONFIG_PORT
+    fi
+fi
+
+# Just a simple setup message - the app.py will handle the full welcome message with correct port
+print_message "$GREEN" "Dependencies installed successfully."
 
 # Run the application (using the new app.py instead of the old file)
 $PYTHON app.py

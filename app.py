@@ -979,9 +979,17 @@ if __name__ == '__main__':
     
     # Get host and port from config
     config = config_manager.get_config()
-    host = config.get('webui', 'host', fallback='127.0.0.1')
-    port = config.getint('webui', 'port', fallback=5089)
+    host = config.get('general', 'host', fallback='127.0.0.1')
+    port = config.getint('general', 'port', fallback=5089)
     debug = config.getboolean('webui', 'debug', fallback=False)
+    
+    # Start the app with a more accurate welcome message
+    print("==========================================")
+    print("Starting Subtitle Translator...")
+    print("==========================================")
+    print(f"If your browser doesn't open automatically, navigate to http://{host}:{port}")
+    print("Press Ctrl+C to stop the application.")
+    print("==========================================")
     
     # Start the app
     app.run(host=host, port=port, debug=debug)
