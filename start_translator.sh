@@ -68,7 +68,7 @@ print_message "$YELLOW" "Activating virtual environment and checking dependencie
 source "$ACTIVATE_SCRIPT"
 
 # Check if required packages are installed
-REQUIRED_PACKAGES="Flask pysrt requests colorama beautifulsoup4"
+REQUIRED_PACKAGES="Flask pysrt requests colorama beautifulsoup4 mwparserfromhell"
 MISSING_PACKAGES=""
 
 for package in $REQUIRED_PACKAGES; do

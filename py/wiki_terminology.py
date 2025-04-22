@@ -16,6 +16,10 @@ import urllib.parse
 import argparse
 from collections import OrderedDict
 from bs4 import BeautifulSoup  # pip install beautifulsoup4
+import mwparserfromhell as mw
+
+DDG_LITE = "https://duckduckgo.com/lite/"
+THEMED_CATEGORIES = ["Mutes", "Packs", "Events", "Locations"]
 
 class WikiTerminologyService:
     """Service to extract show-specific terminology from fan wikis."""
@@ -37,7 +41,7 @@ class WikiTerminologyService:
         
         # Get configuration settings
         self.cache_expiry_days = config.getint("wiki_terminology", "cache_expiry_days", fallback=7)
-        self.max_terms = config.getint("wiki_terminology", "max_terms", fallback=20)  # Increased max terms for better coverage
+        self.max_terms = config.getint("wiki_terminology", "max_terms", fallback=15)  # Default to 15 terms
         
         # How long to cache wiki results (in seconds)
         self.cache_expiry = self.cache_expiry_days * 24 * 60 * 60
@@ -50,33 +54,27 @@ class WikiTerminologyService:
         self.fandom_search_endpoints = [
             # new 2024‑present endpoint
             "https://services.fandom.com/unified-search/community-search",
-            # fallback to the legacy hosts (still 404 but kept for completeness)
+            # fallback to the legacy hosts
             "https://www.fandom.com/api/v1/Search/List",
             "https://community.fandom.com/api/v1/Search/List",
         ]
         
-        # Expanded category names to search for
+        # Basic category names to search for
         self.category_names = [
-            "Glossary", "Terminology", "Slang", "Dictionary", "Lexicon", 
-            "Characters", "Species", "Locations", "Places", "Items", "Factions",
-            "Mutes", "Megamutes", "Concepts", "Technology"
+            "Glossary", "Terminology", "Slang", "Dictionary"
         ]
         
-        # Expanded regular expressions to match terminology entries in wiki pages
+        # Simple regular expressions to match terminology entries in wiki pages
         self.term_patterns = [
             # Bold term with colon/dash definitions
             re.compile(r"^[\*\#]\s*'''+\s*([^':\n]+?)\s*'''+\s*[:\-–]\s*(.+)", re.IGNORECASE),
-            # Bold terms in bullet lists
-            re.compile(r"^[\*\#]\s*'''+\s*([^'\n]+?)\s*'''+\s*[–-]?\s*(.+)", re.IGNORECASE),
-            # Terms in definition lists <dl><dt>Term</dt><dd>Definition</dd></dl>
+            # Terms in definition lists
             re.compile(r";\s*([^:\n]+?)\s*:\s*(.+)", re.IGNORECASE),
             # Terms in infobox templates
             re.compile(r"\|\s*([^=\n]+?)\s*=\s*(.+)", re.IGNORECASE),
-            # Bolded terms anywhere
-            re.compile(r"'''+\s*([^'\n]{2,30}?)\s*'''+\s*[–:-]?\s*(.+)", re.IGNORECASE)
         ]
         
-        self.logger.info("Wiki terminology service initialized")
+        self.logger.info(f"Wiki terminology service initialized (max terms: {self.max_terms})")
     
     def get_terminology(self, media_info):
         """Get terminology for a specific show or movie."""
@@ -97,10 +95,7 @@ class WikiTerminologyService:
         # Check cache first
         cache_file = os.path.join(self.cache_dir, f"{media_type}_{tmdb_id}_terminology.json")
         
-        # Force refresh for "Kipo and the Age of Wonderbeasts" to bypass any problematic cache
-        force_refresh = "kipo" in title.lower()
-        
-        if os.path.exists(cache_file) and not force_refresh:
+        if os.path.exists(cache_file):
             file_age = time.time() - os.path.getmtime(cache_file)
             
             # Use cached data if it's not too old
@@ -112,17 +107,12 @@ class WikiTerminologyService:
                 except Exception as e:
                     self.logger.warning(f"Error reading cache file: {e}")
         
-        # No valid cache or forced refresh, fetch new data
+        # No valid cache, fetch new data
         self.logger.info(f"Fetching terminology for {title} (ID: {tmdb_id})")
         
         try:
             # Check if there's a manual wiki override in config
             wiki_override = self.config.get("wiki_terminology", "manual_wiki_override", fallback=None)
-            
-            # For Kipo specifically, use the known wiki URL
-            if "kipo" in title.lower() and not wiki_override:
-                wiki_override = "https://kipo.fandom.com"
-                self.logger.info(f"Using hard-coded wiki URL for Kipo: {wiki_override}")
             
             # Find the wiki
             base = self.find_wiki_base(title, wiki_override)
@@ -135,14 +125,68 @@ class WikiTerminologyService:
             # Extract terminology from wiki pages
             full_glossary = OrderedDict()
             
-            # Extract terms from each page
+            # Look for a good summary first
+            summary = None
+            wiki_name = base.split("//")[1].split(".")[0]
+            
+            # Try to get summary from the main series page
             for page in pages:
+                # Prioritize pages that are likely to be the main series page
+                if page == wiki_name or page == wiki_name.title() or page.replace("_", " ") == wiki_name.replace("_", " "):
+                    summary_data = self.extract_summary(base, page)
+                    if summary_data and "Summary" in summary_data:
+                        summary = summary_data["Summary"]
+                        self.logger.info(f"Found summary from page '{page}'")
+                        # Add this as our first term
+                        full_glossary["Series Overview"] = summary
+                        break
+            
+            # If we don't have a summary yet, try other pages
+            if not summary and pages:
+                summary_data = self.extract_summary(base, pages[0])
+                if summary_data and "Summary" in summary_data:
+                    summary = summary_data["Summary"]
+                    self.logger.info(f"Found summary from page '{pages[0]}'")
+                    # Add this as our first term
+                    full_glossary["Series Overview"] = summary
+            
+            # Extract actual terminology terms (limited to avoid flooding)
+            terms_count = 0
+            
+            # First try to find a dedicated terminology page
+            for page in pages:
+                # Check if page name suggests it's a terminology/glossary page
+                if any(term.lower() in page.lower() for term in ["glossary", "terminology", "dictionary", "terms"]):
+                    page_terms = self.extract_terms(base, page)
+                    self.logger.debug(f"Extracted {len(page_terms)} terms from dedicated page '{page}'")
+                    
+                    # Add terms up to the limit
+                    for term, definition in page_terms.items():
+                        if term not in full_glossary and terms_count < self.max_terms - 1:
+                            full_glossary[term] = definition
+                            terms_count += 1
+                            self.logger.debug(f"Added wiki term {terms_count}/{self.max_terms-1}: {term}")
+            
+            # If we still need more terms, try other pages
+            for page in pages:
+                # Stop if we've already found enough terms
+                if terms_count >= self.max_terms - 1:  # -1 to account for the summary
+                    break
+                    
+                # Skip pages we've already processed
+                if any(term.lower() in page.lower() for term in ["glossary", "terminology", "dictionary", "terms"]):
+                    continue
+                    
                 try:
                     page_terms = self.extract_terms(base, page)
                     self.logger.debug(f"Extracted {len(page_terms)} terms from page '{page}'")
+                    
+                    # Add terms up to the limit
                     for term, definition in page_terms.items():
-                        full_glossary.setdefault(term, definition)
-                        self.logger.debug(f"Added wiki term: {term} = {definition}")
+                        if term not in full_glossary and terms_count < self.max_terms - 1:
+                            full_glossary[term] = definition
+                            terms_count += 1
+                            self.logger.debug(f"Added wiki term {terms_count}/{self.max_terms-1}: {term}")
                 except Exception as e:
                     self.logger.debug(f"Error extracting from page '{page}': {e}")
             
@@ -233,36 +277,24 @@ class WikiTerminologyService:
         
         return None
     
+    def safe_get(self, *args, **kwargs):
+        for attempt in range(3):
+            try:
+                return requests.get(*args, **kwargs)
+            except requests.RequestException:
+                time.sleep(0.1 * 2**attempt)
+        raise RuntimeError("Failed after 3 attempts")
+
     def _search_duckduckgo(self, title):
-        """Fall back to searching with DuckDuckGo."""
-        try:
-            self.logger.debug(f"Falling back to DuckDuckGo search for {title}")
-            q = f'{title} site:fandom.com "wiki"'
-            
-            response = requests.get(
-                "https://duckduckgo.com/html/",
-                params={"q": q}, 
-                headers=self.headers, 
-                timeout=10
-            )
-            
-            if response.status_code != 200:
-                self.logger.debug(f"DuckDuckGo returned status code {response.status_code}")
-                return None
-                
-            html = response.text
-            soup = BeautifulSoup(html, "html.parser")
-            
-            # Updated selector to match new DDG HTML structure
-            for a in soup.select("a.result__title, a[result]"):
-                href = a.get("href")
-                m = re.match(r"https?://([^.]+\.fandom\.com)/", href)
-                if m:
-                    return f"https://{m.group(1)}"
-                    
-        except Exception as e:
-            self.logger.debug(f"Error searching with DuckDuckGo: {e}")
-            
+        q = f'{title} site:fandom.com "wiki"'
+        for attempt in range(3):
+            try:
+                r = self.safe_get(DDG_LITE, params={'q': q}, headers=self.headers, timeout=10)
+                if r.ok:
+                    for link in re.findall(r'href="(https://[^"\s]+\.fandom\.com/[^"\s]+)"', r.text):
+                        return link.split("/wiki")[0]
+            except Exception:
+                time.sleep(0.1 * 2**attempt)
         return None
     
     def find_wiki_base(self, title, explicit=None):
@@ -290,87 +322,134 @@ class WikiTerminologyService:
         """Find potential pages that might contain terminology."""
         pages = set()
         
-        # 1) Categories like Terminology, Glossary, Slang…
-        for cat in self.category_names:
+        # Try to get the main series page first
+        try:
+            # Get the wiki name from the base URL (e.g., "kipo" from "kipo.fandom.com")
+            wiki_name = base.split("//")[1].split(".")[0]
+            self.logger.debug(f"Looking for series page with name: {wiki_name}")
+            
+            # Try to find the series page by the wiki name
+            try:
+                data = self.mediawiki_api(base, action="parse", page=wiki_name, prop="wikitext")
+                pages.add(wiki_name)
+                self.logger.debug(f"Found series page with name: {wiki_name}")
+            except Exception:
+                # Try with common variations
+                variations = [
+                    wiki_name.title(),  # capitalize first letter
+                    wiki_name.replace("-", " ").title(),  # replace hyphens with spaces
+                    wiki_name.replace("_", " ").title(),  # replace underscores with spaces
+                ]
+                
+                for variation in variations:
+                    try:
+                        data = self.mediawiki_api(base, action="parse", page=variation, prop="wikitext")
+                        pages.add(variation)
+                        self.logger.debug(f"Found series page with variation: {variation}")
+                        break
+                    except Exception:
+                        continue
+        except Exception as e:
+            self.logger.debug(f"Error getting series page: {e}")
+        
+        # Add glossary/terminology and themed categories
+        for cat in self.category_names + THEMED_CATEGORIES:
             try:
                 data = self.mediawiki_api(
                     base,
                     action="query",
                     list="categorymembers",
                     cmtitle=f"Category:{cat}",
-                    cmlimit="500",
+                    cmlimit="3",  # Reduced to just 3 for each category
                 )
                 pages.update(p["title"] for p in data.get("query", {}).get("categorymembers", []))
             except Exception as e:
                 self.logger.debug(f"Error getting category members for {cat}: {e}")
                 continue
                 
-        # 2) Full‑text search hits for terminology-related pages
-        search_terms = "|".join(self.category_names)
+        # Generic search for common terms (limited results)
+        search_terms = "glossary OR terminology OR dictionary"
         try:
             data = self.mediawiki_api(
                 base,
                 action="query",
                 list="search",
                 srsearch=search_terms,
-                srlimit="20",
+                srlimit="5",  # Reduced to just 5
             )
             pages.update(hit["title"] for hit in data.get("query", {}).get("search", []))
         except Exception as e:
             self.logger.debug(f"Error searching for terminology pages: {e}")
             
-        # 3) For Kipo, specifically search for pages likely to contain Mute information
-        if "kipo" in base.lower():
-            self.logger.info("Searching for Kipo-specific terminology pages")
-            kipo_terms = ["Mute", "Human", "Mega", "Burrow", "Surface", "Emilia", "Cure"]
-            for term in kipo_terms:
+        # Try to find the main page as fallback
+        try:
+            main_page_candidates = ["Main_Page", "Wiki"]
+            for title in main_page_candidates:
                 try:
-                    data = self.mediawiki_api(
-                        base,
-                        action="query", 
-                        list="search",
-                        srsearch=term,
-                        srlimit="5"
-                    )
-                    new_pages = [hit["title"] for hit in data.get("query", {}).get("search", [])]
-                    self.logger.debug(f"Found {len(new_pages)} pages for Kipo term '{term}': {new_pages}")
-                    pages.update(new_pages)
-                except Exception as e:
-                    self.logger.debug(f"Error searching for Kipo term '{term}': {e}")
+                    data = self.mediawiki_api(base, action="parse", page=title, prop="wikitext")
+                    pages.add(title)
+                    break
+                except Exception:
+                    continue
+        except Exception as e:
+            self.logger.debug(f"Error getting main page: {e}")
         
-        return pages
+        # Convert to list and limit to a reasonable number
+        return list(pages)[:10]  # Limit to 10 pages maximum
     
     def extract_terms(self, base, title):
         """Extract terminology from a wiki page."""
         try:
             data = self.mediawiki_api(base, action="parse", page=title, prop="wikitext")
             wikitext = data["parse"]["wikitext"]["*"]
+            code = mw.parse(wikitext)
             glossary = OrderedDict()
-            for line in wikitext.splitlines():
-                for pattern in self.term_patterns:
-                    m = pattern.search(line)  # Changed from match to search to catch patterns anywhere in the line
-                    if m:
-                        term = re.sub(r"\[\[|\]\]", "", m.group(1)).strip()
-                        definition = re.sub(r"\[\[|\]\]", "", m.group(2)).strip()
-                        
-                        # Filter criteria for terms and definitions
-                        if term and definition and len(term) < 50:
-                            # Only keep definitions that are relatively short (max 100 chars)
-                            if len(definition) <= 100:
-                                # Prioritize definitions that look like "X = Y" format
-                                if "=" in definition or ":" in definition or len(definition) < 50:
-                                    glossary.setdefault(term, definition)
-                                    self.logger.debug(f"Added concise wiki term: {term} = {definition}")
-                            # For longer definitions, try to extract just first sentence or phrase
-                            elif "." in definition[:100]:
-                                short_def = definition.split(".", 1)[0].strip() + "."
-                                if len(short_def) <= 100:
-                                    glossary.setdefault(term, short_def)
-                                    self.logger.debug(f"Added shortened wiki term: {term} = {short_def}")
+            
+            # Extract from templates (infoboxes, etc.)
+            for template in code.filter_templates():
+                for param in template.params:
+                    key = str(param.name).strip().lower()
+                    val = str(param.value).strip()
+                    if key in ("name", "term", "title") and val:
+                        for def_key in ("desc", "definition", "about", "description"):
+                            if template.has(def_key):
+                                glossary[val] = str(template.get(def_key).value).strip()
+            
+            # Extract from bullet/definition lists
+            for node in code.filter_text():
+                for line in str(node).splitlines():
+                    if ":" in line and len(line) < 100:
+                        term, definition = line.split(":", 1)
+                        if len(definition.strip()) < 100:
+                            glossary[term.strip()] = definition.strip()
+                    if len(glossary) >= self.max_terms:
+                        return glossary
+            
             return glossary
         except Exception as e:
             self.logger.debug(f"Error extracting terms from '{title}': {e}")
             return OrderedDict()
+    
+    def extract_summary(self, base, title):
+        """Extract a concise summary from a wiki page."""
+        try:
+            data = self.mediawiki_api(base, action="parse", page=title, prop="text", formatversion=2)
+            html = data["parse"]["text"]
+            intro = BeautifulSoup(html, "lxml").get_text(" ", strip=True)
+            
+            # If intro is too long, get first 2-3 sentences only
+            if len(intro) > 400:
+                sentences = re.split(r'(?<=[.!?])\s+', intro)
+                intro = " ".join(sentences[:3]) if sentences else intro[:400]
+            
+            if intro:
+                return {"Summary": intro}
+                
+            return {}
+            
+        except Exception as e:
+            self.logger.debug(f"Error extracting summary from '{title}': {e}")
+            return {}
         
 # Command-line interface for direct script usage
 if __name__ == "__main__":
