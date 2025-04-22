@@ -162,29 +162,46 @@ class WikiTerminologyService:
                 self.logger.debug(f"Trying Fandom API endpoint: {base}")
                 
                 if "unified-search" in base:
-                    r = requests.get(base,
-                                   params={"query": title, "lang": "en"},
-                                   headers=self.headers, timeout=10)
+                    # Use the new unified search endpoint format
+                    self.logger.debug(f"Using unified search API with query: {title}")
+                    r = requests.get(
+                        base,
+                        params={"query": title, "lang": "en"},
+                        headers=self.headers,
+                        timeout=10
+                    )
+                    
                     if r.ok:
-                        for item in r.json().get("results", []):
+                        data = r.json()
+                        self.logger.debug(f"Unified search response: {data.keys()}")
+                        for item in data.get("results", []):
                             url = item.get("url")
                             if url:
+                                self.logger.debug(f"Found wiki URL in unified search: {url}")
                                 return url.rstrip("/")
-                    continue
-                
-                # Legacy API block for old endpoints
-                r = requests.get(base, params={"query": title, "limit": 8},
-                               headers=self.headers, timeout=10)
-                if r.status_code != 200:
-                    self.logger.debug(f"Endpoint {base} returned status code {r.status_code}")
-                    continue
+                    else:
+                        self.logger.debug(f"Unified search endpoint returned status code {r.status_code}")
+                else:
+                    # Legacy API format
+                    r = requests.get(
+                        base,
+                        params={"query": title, "limit": 8},
+                        headers=self.headers,
+                        timeout=10
+                    )
                     
-                for item in r.json().get("items", []):
-                    m = re.match(r"https?://([^.]+\.fandom\.com)/", item["url"])
-                    if m:
-                        return f"https://{m.group(1)}"
+                    if r.status_code != 200:
+                        self.logger.debug(f"Endpoint {base} returned status code {r.status_code}")
+                        continue
+                        
+                    for item in r.json().get("items", []):
+                        m = re.match(r"https?://([^.]+\.fandom\.com)/", item["url"])
+                        if m:
+                            return f"https://{m.group(1)}"
             except requests.RequestException as e:
                 self.logger.debug(f"Error searching with Fandom API at {base}: {e}")
+            except Exception as e:
+                self.logger.debug(f"Unexpected error with {base}: {e}")
         
         return None
     
