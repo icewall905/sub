@@ -83,7 +83,10 @@ class WikiTerminologyService:
         # Check cache first
         cache_file = os.path.join(self.cache_dir, f"{media_type}_{tmdb_id}_terminology.json")
         
-        if os.path.exists(cache_file):
+        # Force refresh for "Kipo and the Age of Wonderbeasts" to bypass any problematic cache
+        force_refresh = "kipo" in title.lower()
+        
+        if os.path.exists(cache_file) and not force_refresh:
             file_age = time.time() - os.path.getmtime(cache_file)
             
             # Use cached data if it's not too old
@@ -95,12 +98,17 @@ class WikiTerminologyService:
                 except Exception as e:
                     self.logger.warning(f"Error reading cache file: {e}")
         
-        # No valid cache, fetch new data
+        # No valid cache or forced refresh, fetch new data
         self.logger.info(f"Fetching terminology for {title} (ID: {tmdb_id})")
         
         try:
             # Check if there's a manual wiki override in config
             wiki_override = self.config.get("wiki_terminology", "manual_wiki_override", fallback=None)
+            
+            # For Kipo specifically, use the known wiki URL
+            if "kipo" in title.lower() and not wiki_override:
+                wiki_override = "https://kipo.fandom.com"
+                self.logger.info(f"Using hard-coded wiki URL for Kipo: {wiki_override}")
             
             # Find the wiki
             base = self.find_wiki_base(title, wiki_override)
