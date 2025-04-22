@@ -361,7 +361,7 @@ class TranslationService:
         
         # --- Revert to reading endpoint from config, fallback to /api/generate --- 
         endpoint = self.config.get("ollama", "endpoint", fallback="/api/generate") 
-        url = f"{server_url.rstrip('/')}{endpoint}"
+        url = f"{server_url.rstrip('/')}/{endpoint.lstrip('/')}"
         # --- End endpoint change ---
         
         temperature = self.config.getfloat("general", "temperature", fallback=0.3)
@@ -382,42 +382,34 @@ class TranslationService:
         # --- End /api/generate payload ---
         
         # Add additional Ollama options if configured
-        self.logger.info("---- Ollama Options Debug ----")
-        self.logger.info(f"Direct .get('ollama', 'num_gpu') = '{self.config.get('ollama', 'num_gpu', fallback='NOT_FOUND')}'")
-        self.logger.info(f"has_option('ollama', 'num_gpu') = {self.config.has_option('ollama', 'num_gpu')}")
-        self.logger.info(f"All options in [ollama] section: {[opt for opt in self.config['ollama']]}")
-        self.logger.info("----------------------------")
-
-        # Now modify the options handling for even stricter checking:
         options = {}
-        for option in ["num_gpu", "num_thread"]:
-            try:
+        for option_name in ["num_gpu", "num_thread"]:
+            if self.config.has_option("ollama", option_name):
                 # Extra-strict check - only proceed if option exists AND has a non-empty value
-                if self.config.has_option("ollama", option):
-                    raw_value = self.config.get("ollama", option, fallback=None)
-                    if raw_value is not None and str(raw_value).strip() != "" and not str(raw_value).strip().startswith('#'):
-                        try:
-                            options[option] = int(raw_value)
-                            self.logger.info(f"✓ Adding {option}={raw_value} to Ollama request")
-                        except ValueError:
-                            self.logger.warning(f"× Invalid value for ollama.{option}, skipping")
-                    else:
-                        self.logger.info(f"× Not adding {option} - empty or commented out value: '{raw_value}'")
+                raw_value = self.config.get("ollama", option_name, fallback=None)
+                if raw_value is not None and str(raw_value).strip() != "" and not str(raw_value).strip().startswith('#'):
+                    try:
+                        options[option_name] = int(raw_value)
+                        self.logger.debug(f"Adding {option_name}={raw_value} to Ollama request")
+                    except ValueError:
+                        self.logger.warning(f"Invalid value for ollama.{option_name}, skipping")
                 else:
-                    self.logger.info(f"× Option {option} not found in config")
-            except Exception as e:
-                self.logger.error(f"Error processing option {option}: {e}")
-        for option in ["use_mmap", "use_mlock"]:
-            if self.config.has_option("ollama", option):
-                value = self.config.get("ollama", option, fallback=None)
+                    self.logger.debug(f"Not adding {option_name} - empty or commented out value: '{raw_value}'")
+            else:
+                self.logger.debug(f"Option {option_name} not found in config")
+                
+        for option_name in ["use_mmap", "use_mlock"]:
+            if self.config.has_option("ollama", option_name):
+                value = self.config.get("ollama", option_name, fallback=None)
                 if value is not None and str(value).strip() != "":
                     try:
-                        options[option] = self.config.getboolean("ollama", option)
-                        self.logger.debug(f"Adding {option}={value} to Ollama request")
+                        options[option_name] = self.config.getboolean("ollama", option_name)
+                        self.logger.debug(f"Adding {option_name}={value} to Ollama request")
                     except ValueError:
-                        self.logger.warning(f"Invalid value for ollama.{option}, skipping")
+                        self.logger.warning(f"Invalid value for ollama.{option_name}, skipping")
         if options:
             data["options"].update(options)
+            self.logger.debug(f"Sending Ollama options: {json.dumps(options)}")
         
         # Make request with retries
         max_retries = 3
@@ -428,8 +420,9 @@ class TranslationService:
                 self.logger.debug(f"Calling Ollama API with model {model} at URL {url} (attempt {attempt+1}/{max_retries})")
                 self.logger.debug(f"Request data: {json.dumps(data)}")
                 
-                # Increase timeout for large or complex translations
-                timeout = 180  # 3 minutes should be sufficient for most translations
+                # Increase timeout for large or complex translations (300 seconds = 5 minutes)
+                timeout = 300
+                self.logger.debug(f"Setting Ollama request timeout to {timeout} seconds")
                 response = requests.post(url, json=data, timeout=timeout)
                 
                 # Log response details for debugging
@@ -443,14 +436,11 @@ class TranslationService:
                 translated_text = ""
                 if "response" in result:
                     translated_text = result["response"].strip()
+                    self.logger.debug(f"Received Ollama translation response (len={len(translated_text)})")
                 # --- End /api/generate response parsing ---
                 
                 if translated_text:
                     # Clean up response - Ollama sometimes adds extra quotes or markdown
-                    translated_text = translated_text.strip(' "\'\n`')
-                    
-                    # Additional cleanup to remove common patterns that Ollama might add
-                    # Remove quotes, backticks, and markdown formatting
                     translated_text = translated_text.strip(' "\'\n`')
                     
                     # Remove potential prefixes that the model might add
@@ -473,7 +463,7 @@ class TranslationService:
                     return ""
                 
             except requests.exceptions.Timeout:
-                self.logger.warning(f"Ollama API request timed out on attempt {attempt+1}")
+                self.logger.warning(f"Ollama API request timed out after {timeout} seconds on attempt {attempt+1}")
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay)
                     continue
@@ -624,10 +614,10 @@ IMPORTANT: Return ONLY your translation of the text between the dotted lines. Do
             server_url = self.config.get("ollama", "server_url", fallback="http://localhost:11434")
             model = self.config.get("ollama", "model", fallback="")
             endpoint = self.config.get("ollama", "endpoint", fallback="/api/generate")
-            url = f"{server_url.rstrip('/')}{endpoint}"
+            url = f"{server_url.rstrip('/')}/{endpoint.lstrip('/')}"
             temperature = self.config.getfloat("general", "temperature", fallback=0.3)
             
-            # Create request data
+            # Create request data with only the essential parameters
             data = {
                 "model": model,
                 "prompt": prompt,
@@ -636,6 +626,38 @@ IMPORTANT: Return ONLY your translation of the text between the dotted lines. Do
                     "temperature": temperature
                 }
             }
+            
+            # Add additional Ollama performance options ONLY if they are explicitly set in config
+            # This ensures we don't send any default values that weren't in config.ini
+            options = {}
+            for option_name in ["num_gpu", "num_thread"]:
+                if self.config.has_option("ollama", option_name):
+                    # Verify the option is actually set and not commented out
+                    raw_value = self.config.get("ollama", option_name, fallback=None)
+                    if raw_value is not None and str(raw_value).strip() and not str(raw_value).strip().startswith('#'):
+                        try:
+                            # Only include numeric options with valid integer values
+                            options[option_name] = self.config.getint("ollama", option_name)
+                            self.logger.debug(f"Including Ollama option from config: {option_name}={options[option_name]}")
+                        except ValueError:
+                            self.logger.warning(f"Invalid value for Ollama option '{option_name}': {raw_value}")
+            
+            # Add boolean options with the same careful checking
+            for option_name in ["use_mmap", "use_mlock"]:
+                if self.config.has_option("ollama", option_name):
+                    raw_value = self.config.get("ollama", option_name, fallback=None)
+                    if raw_value is not None and str(raw_value).strip() and not str(raw_value).strip().startswith('#'):
+                        try:
+                            # Only include boolean options with valid values
+                            options[option_name] = self.config.getboolean("ollama", option_name)
+                            self.logger.debug(f"Including Ollama option from config: {option_name}={options[option_name]}")
+                        except ValueError:
+                            self.logger.warning(f"Invalid value for Ollama option '{option_name}': {raw_value}")
+            
+            # Only update the options in the request if we have valid options
+            if options:
+                data["options"].update(options)
+                self.logger.debug(f"Sending Ollama options: {json.dumps(options)}")
             
             # Make request with retry logic
             max_retries = 3

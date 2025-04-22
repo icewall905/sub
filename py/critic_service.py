@@ -152,7 +152,7 @@ Attempted translation ({target_lang}): {translated_text}
 Your task:
 1. Rate the translation quality on a scale of 1-10
 2. Identify any errors or issues in the translation
-3. MOST IMPORTANTLY: Provide a corrected/improved version of the translation
+3. MOST IMPORTANTLY: Provide a corrected/improved version of the translation (ONLY ONE DEFINITIVE REVISED VERSION)
 
 Return your response in this JSON format:
 {{
@@ -170,26 +170,43 @@ Only return the JSON object, no other text.
                 "model": self.model,
                 "prompt": prompt,
                 "stream": False,
-                "temperature": self.temperature,
-                "system": "You are an expert translation reviewer who evaluates translation quality."
+                "options": {
+                    "temperature": self.temperature
+                }
             }
             
-            # Add performance parameters if they are set
+            # Only add performance options if they are explicitly defined in the config
             options = {}
             
-            # Only add options if they have actual values set (not None or empty)
-            for option in ["num_gpu", "num_thread"]:
-                value = getattr(self, option)
-                if value is not None and str(value).strip() != "":
-                    options[option] = value
-                    
-            for option in ["use_mmap", "use_mlock"]:
-                value = getattr(self, option)
-                if value is not None:
-                    options[option] = value
+            # Process numeric options (num_gpu, num_thread)
+            for option_name in ["num_gpu", "num_thread"]:
+                if self.config.has_option("ollama", option_name):
+                    # Get the raw value and check if it's actually set and not commented out
+                    raw_value = self.config.get("ollama", option_name, fallback=None)
+                    if raw_value is not None and str(raw_value).strip() and not str(raw_value).strip().startswith('#'):
+                        try:
+                            # Only include options with valid integer values
+                            options[option_name] = self.config.getint("ollama", option_name)
+                            self.logger.debug(f"Including Ollama option in critic request: {option_name}={options[option_name]}")
+                        except ValueError:
+                            self.logger.warning(f"Invalid value for Ollama option '{option_name}': {raw_value}")
             
+            # Process boolean options (use_mmap, use_mlock)
+            for option_name in ["use_mmap", "use_mlock"]:
+                if self.config.has_option("ollama", option_name):
+                    raw_value = self.config.get("ollama", option_name, fallback=None)
+                    if raw_value is not None and str(raw_value).strip() and not str(raw_value).strip().startswith('#'):
+                        try:
+                            # Only include options with valid boolean values
+                            options[option_name] = self.config.getboolean("ollama", option_name)
+                            self.logger.debug(f"Including Ollama option in critic request: {option_name}={options[option_name]}")
+                        except ValueError:
+                            self.logger.warning(f"Invalid value for Ollama option '{option_name}': {raw_value}")
+            
+            # Add options to the request only if we found valid ones
             if options:
-                data["options"] = options
+                data["options"].update(options)
+                self.logger.debug(f"Sending Ollama critic options: {json.dumps(options)}")
                 
             self.logger.debug(f"Sending evaluation request to Ollama for {self.model} at {self.ollama_api_url}")
             
@@ -199,12 +216,13 @@ Only return the JSON object, no other text.
             
             for attempt in range(max_retries):
                 try:
-                    # Increase timeout for more complex evaluations
-                    response = requests.post(self.ollama_api_url, json=data, timeout=180)
+                    # Increase timeout for more complex evaluations (300 seconds = 5 minutes)
+                    response = requests.post(self.ollama_api_url, json=data, timeout=300)
                     response.raise_for_status()
                     
                     # Parse the response
                     result = response.json()
+                    self.logger.debug(f"Received Ollama critic response: {json.dumps(result)[:200]}...")
                     response_text = result.get('response', '')
                     
                     # Extract the JSON part from the response
@@ -224,6 +242,11 @@ Only return the JSON object, no other text.
                     
                     # Ensure score is within bounds
                     if 'score' in evaluation:
+                        # Score might be on 1-10 scale, convert to 0-1
+                        if evaluation['score'] > 1.0:
+                            normalized_score = float(evaluation['score']) / 10.0
+                            self.logger.debug(f"Normalizing score from {evaluation['score']} to {normalized_score}")
+                            evaluation['score'] = normalized_score
                         evaluation['score'] = min(max(float(evaluation['score']), 0.0), 1.0)
                     else:
                         evaluation['score'] = 0.5
@@ -252,11 +275,10 @@ Only return the JSON object, no other text.
             # If we get here, all retries failed
             return {"score": 0.5, "feedback": "Failed to get evaluation after multiple attempts"}
                 
-        except requests.RequestException as e:
-            self.logger.error(f"Error making request to Ollama API: {e}")
-            return {"score": 0.5, "feedback": f"Error connecting to Ollama API: {str(e)}"}
         except Exception as e:
-            self.logger.error(f"Unexpected error in Ollama evaluation: {e}")
+            self.logger.error(f"Error in Ollama evaluation: {str(e)}")
+            import traceback
+            self.logger.debug(f"Full error details: {traceback.format_exc()}")
             return {"score": 0.5, "feedback": f"Error processing evaluation: {str(e)}"}
     
     def _extract_json_from_text(self, text: str) -> str:
