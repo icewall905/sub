@@ -372,6 +372,14 @@ class SubtitleProcessor:
         # Initialize progress history if needed
         if progress_dict is not None and "processed_lines" not in progress_dict:
             progress_dict["processed_lines"] = []
+            
+        # Make sure current dict is initialized
+        if progress_dict is not None and "current" not in progress_dict:
+            progress_dict["current"] = {}
+            
+        # Log the progress dictionary structure at start
+        if progress_dict is not None:
+            self.logger.debug(f"Progress dict initialized: {json.dumps(progress_dict, default=str)}")
 
         try:
             # Import display function - ensure this works first
@@ -437,6 +445,18 @@ class SubtitleProcessor:
                 except Exception as e:
                     self.logger.error(f"Error fetching TMDB data: {str(e)}")
             
+            # Update global progress information before starting the line-by-line translation
+            if progress_dict is not None:
+                progress_dict["status"] = "translating"
+                progress_dict["current_file"] = os.path.basename(input_path)
+                progress_dict["total_lines"] = total_lines
+                progress_dict["current_line"] = 0
+                # Save progress state if there's a save function
+                if 'save_progress_state' in globals():
+                    save_progress_state()
+                # Manually log the progress dict structure
+                self.logger.debug(f"Progress dict before translation: {json.dumps(progress_dict, default=str)}")
+            
             # Process each subtitle line
             for i, sub in enumerate(subs):
                 line_number = i + 1
@@ -466,8 +486,7 @@ class SubtitleProcessor:
                 # Update progress dictionary *before* translation starts for this line
                 if progress_dict is not None:
                     progress_dict["current_line"] = line_number
-                    progress_dict["total_lines"] = total_lines # Ensure total lines is set
-                    progress_dict["filename"] = os.path.basename(input_path)
+                    progress_dict["status"] = "translating"  # Ensure status is set correctly
                     if "current" not in progress_dict:
                         progress_dict["current"] = {}
                     progress_dict["current"].update({
@@ -479,6 +498,11 @@ class SubtitleProcessor:
                         "final": None,
                         "timing": timing
                     })
+                    # Manually log the line's progress data - important for debugging
+                    self.logger.debug(f"Line {line_number} progress before translation: {json.dumps(progress_dict['current'], default=str)}")
+                    # Save progress state after updating if there's a save function
+                    if 'save_progress_state' in globals():
+                        save_progress_state()
                 
                 # Build context from surrounding subtitles
                 context_before = []
@@ -520,6 +544,11 @@ class SubtitleProcessor:
                     progress_dict["current"]["suggestions"] = translations
                     progress_dict["current"]["first_pass"] = first_pass
                     progress_dict["current"]["timing"]["first_pass"] = timing["first_pass"]
+                    # Save progress state after first pass if there's a save function
+                    if 'save_progress_state' in globals():
+                        save_progress_state()
+                    # Manually log the translation status after first pass
+                    self.logger.debug(f"Line {line_number} after first pass: {first_pass}")
 
                 # Display initial status (original, suggestions, first pass) - Only if using live viewer
                 if has_display:
@@ -571,7 +600,8 @@ class SubtitleProcessor:
 
                     # Update progress dict with critic result, timing, and action
                     if progress_dict is not None:
-                        progress_dict["current"]["standard_critic"] = critic_result_str
+                        progress_dict["current"]["standard_critic"] = critic_result_str or current_result  # Use current_result if critic didn't change
+                        progress_dict["current"]["critic_changed"] = critic_changed
                         progress_dict["current"]["critic_action"] = {
                             "score": critic_eval_result.get('score') if isinstance(critic_eval_result, dict) else None,
                             "feedback": critic_feedback,
@@ -579,6 +609,11 @@ class SubtitleProcessor:
                             "timing": timing["critic"]
                         }
                         progress_dict["current"]["timing"]["critic"] = timing["critic"]
+                        # Save progress state after critic if there's a save function
+                        if 'save_progress_state' in globals():
+                            save_progress_state()
+                        # Manually log the translation status after critic
+                        self.logger.debug(f"Line {line_number} after critic: {critic_result_str or current_result}")
                     
                     # Display status after critic - Only if using live viewer
                     if has_display:
@@ -626,6 +661,12 @@ class SubtitleProcessor:
                     progress_dict["processed_lines"].append(line_history_item)
                     if len(progress_dict["processed_lines"]) > 10:
                         progress_dict["processed_lines"] = progress_dict["processed_lines"][-10:]
+                    
+                    # Save progress state after line is complete if there's a save function
+                    if 'save_progress_state' in globals():
+                        save_progress_state()
+                    # Manually log the final translation status
+                    self.logger.debug(f"Line {line_number} complete translation: {final_result}")
                 
                 # Display final status - Only if using live viewer
                 if has_display:
@@ -684,6 +725,11 @@ class SubtitleProcessor:
                 progress_dict["total_process_time"] = total_process_time
                 # Store output path for reference
                 progress_dict["output_path"] = output_path
+                # Save final progress state if there's a save function
+                if 'save_progress_state' in globals():
+                    save_progress_state()
+                # Log final progress state
+                self.logger.debug(f"Translation complete. Final progress state: {json.dumps(progress_dict, default=str)}")
 
             return True
             

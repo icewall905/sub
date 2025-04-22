@@ -577,27 +577,24 @@ def live_status():
     response_data = {"status": "idle"}
     
     if progress and isinstance(progress, dict):
-        if "status" in progress:
-            response_data["status"] = progress["status"]
+        # Copy basic progress information to response
+        response_data["status"] = progress.get("status", "idle")
+        response_data["filename"] = progress.get("current_file", "")
+        response_data["current_line"] = progress.get("current_line", 0)
+        response_data["total_lines"] = progress.get("total_lines", 0)
         
-        # Add file and progress information
-        if "current_file" in progress:
-            response_data["filename"] = progress["current_file"]
-        if "current_line" in progress:
-            response_data["current_line"] = progress["current_line"]
-        if "total_lines" in progress:
-            response_data["total_lines"] = progress["total_lines"]
-            
+        # If there's detailed current line information, include it
         if "current" in progress and isinstance(progress["current"], dict):
             current = progress["current"]
-            response_data.update({
-                "line_number": current.get("line_number", 0),
-                "original": current.get("original", ""),
-                "translations": current.get("suggestions", {}),
-                "first_pass": current.get("first_pass", ""),
-                "critic": current.get("standard_critic", ""),
-                "final": current.get("final", "")
-            })
+            # Include the entire current object for detailed line information
+            response_data["current"] = current
+            
+            # Also include top-level fields for backwards compatibility
+            response_data["line_number"] = current.get("line_number", 0)
+            response_data["original"] = current.get("original", "")
+            response_data["first_pass"] = current.get("first_pass", "")
+            response_data["critic"] = current.get("standard_critic", "")
+            response_data["final"] = current.get("final", "")
             
             # Add timing information if available
             if "timing" in current:
@@ -614,6 +611,9 @@ def live_status():
         # Add history of processed lines if available
         if "processed_lines" in progress:
             response_data["processed_lines"] = progress["processed_lines"]
+            
+        # Add debugging information
+        logger.debug(f"Live status response: {json.dumps(response_data, indent=2, default=str)}")
     
     return jsonify(response_data)
 
