@@ -50,6 +50,9 @@ config_manager = ConfigManager(os.path.join(os.path.dirname(os.path.abspath(__fi
 # Translation jobs storage
 translation_jobs = {}
 
+# Progress status file path
+PROGRESS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'translation_progress.json')
+
 # Global variable for bulk translation progress tracking
 bulk_translation_progress = {
     "mode": "idle",
@@ -60,6 +63,34 @@ bulk_translation_progress = {
     "total_files": 0,
     "zip_path": ""
 }
+
+# Load saved progress state if it exists
+def load_progress_state():
+    global bulk_translation_progress
+    try:
+        if os.path.exists(PROGRESS_FILE):
+            with open(PROGRESS_FILE, 'r', encoding='utf-8') as f:
+                saved_progress = json.load(f)
+                if saved_progress.get("status") in ["processing", "scanning", "translating"]:
+                    # If the saved status shows an active process, set to failed
+                    # as the process was likely interrupted
+                    saved_progress["status"] = "failed"
+                    saved_progress["message"] = "Translation was interrupted. Please start again."
+                bulk_translation_progress = saved_progress
+                logger.info("Loaded saved translation progress state")
+    except Exception as e:
+        logger.error(f"Failed to load translation progress state: {e}")
+
+# Save current progress state to file
+def save_progress_state():
+    try:
+        with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(bulk_translation_progress, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"Failed to save translation progress state: {e}")
+
+# Initialize by loading any saved state
+load_progress_state()
 
 # Language mapping
 LANGUAGES = [
@@ -777,6 +808,9 @@ def process_translation(job_id):
             "job_id": job_id # Add job_id for reference
         })
         
+        # Save progress state to file
+        save_progress_state()
+        
         # Update job status in translation_jobs as well
         job['status'] = 'processing'
         job['message'] = 'Initializing...'
@@ -811,6 +845,9 @@ def process_translation(job_id):
             # Update global progress status to completed
             progress_dict["status"] = "completed"
             progress_dict["message"] = f"Translation completed for {job['original_filename']}"
+            
+            # Save final progress state to file
+            save_progress_state()
         else:
             raise Exception(progress_dict.get("message", "Translation failed in subtitle_processor"))
 
@@ -829,6 +866,9 @@ def process_translation(job_id):
         # Update global progress status to failed
         progress_dict["status"] = "failed"
         progress_dict["message"] = error_message
+        
+        # Save error state to file
+        save_progress_state()
     finally:
         # Optionally clear current details from global progress after a short delay
         # to allow the UI to fetch the final status
@@ -854,6 +894,8 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
     try:
         progress["status"] = "scanning"
         progress["message"] = f"Scanning {root_dir} for subtitle files..."
+        # Save progress state to file after status change
+        save_progress_state()
         
         # Get language settings
         src_lang = config.get("general", "source_language", fallback="en")
@@ -869,6 +911,8 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         if not srt_files:
             progress["status"] = "completed"
             progress["message"] = f"No subtitle files found in {root_dir}"
+            # Save progress state to file after status change
+            save_progress_state()
             return
         
         # Initialize translation components
@@ -878,6 +922,8 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         # Update progress
         progress["total_files"] = len(srt_files)
         progress["status"] = "translating"
+        # Save progress state to file after status change
+        save_progress_state()
         
         # Create a temporary directory for the translated files
         temp_dir = tempfile.mkdtemp(prefix="srt_translate_")
@@ -888,6 +934,8 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             file_name = os.path.basename(srt_file)
             progress["current_file"] = file_name
             progress["message"] = f"Translating {file_name} ({i+1}/{len(srt_files)})"
+            # Save progress state to file at the start of each file
+            save_progress_state()
             
             try:
                 # Parse the subtitle file
@@ -921,6 +969,10 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                     # Update progress details
                     if j % 10 == 0:  # Update progress every 10 subtitles to reduce message frequency
                         progress["message"] = f"Translating {file_name}: {j+1}/{len(subtitles)} lines"
+                        progress["current_line"] = j + 1
+                        progress["total_lines"] = len(subtitles)
+                        # Save progress state every 10 lines
+                        save_progress_state()
                     
                     # Translate text
                     translated_text = translation_service.translate(
@@ -943,11 +995,15 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                 
                 translated_files.append(output_path)
                 progress["done_files"] += 1
+                # Save progress state after completing each file
+                save_progress_state()
                 
             except Exception as e:
                 error_msg = f"Error translating {file_name}: {str(e)}"
                 logger.error(error_msg)
                 progress["message"] = error_msg
+                # Save progress state after error
+                save_progress_state()
                 # Continue with next file
         
         # Create ZIP file with all translated subtitles
@@ -962,15 +1018,21 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             progress["status"] = "completed"
             progress["message"] = f"Translated {progress['done_files']} subtitle files"
             progress["zip_path"] = zip_path
+            # Save final progress state to file
+            save_progress_state()
         else:
             progress["status"] = "completed"
             progress["message"] = "No files were successfully translated"
+            # Save final progress state to file
+            save_progress_state()
         
     except Exception as e:
         error_msg = f"Error during bulk translation: {str(e)}"
         logger.error(error_msg)
         progress["status"] = "failed"
         progress["message"] = error_msg
+        # Save error state to file
+        save_progress_state()
 
 if __name__ == '__main__':
     # Create default config if it doesn't exist

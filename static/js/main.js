@@ -8,6 +8,7 @@ let currentJobId = null; // Keep track of the current single translation job
 // Track expanded history items by their line_number
 let expandedHistoryItems = new Set();
 let browserVisible = false; // File Browser State Management
+let isTranslationActive = false; // Flag to track if a translation is running
 
 // Helper function to log debug messages
 function debug(message) {
@@ -17,6 +18,9 @@ function debug(message) {
 // --- Consolidated DOMContentLoaded Listener ---
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Document loaded, initializing...");
+
+    // Check for active translations as soon as page loads
+    checkForActiveTranslations();
 
     // Check if we have a saved state for the file browser visibility
     const savedState = localStorage.getItem('inlineFileBrowserVisible');
@@ -1302,5 +1306,83 @@ function updateBulkProgress() {
         })
         .catch(error => {
             console.error('Error updating progress:', error);
+        });
+}
+
+// Function to check for active translations when page loads
+function checkForActiveTranslations() {
+    console.log("Checking for active translations...");
+    
+    // Fetch the current progress state from the server
+    fetch('/api/progress')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Translation status check:", data);
+            
+            // Check if there's an active translation running
+            if (data.status === 'scanning' || data.status === 'processing' || data.status === 'translating') {
+                console.log("Active translation found:", data.status);
+                isTranslationActive = true;
+                
+                // Show the status container
+                const statusContainer = document.getElementById('status-container');
+                if (statusContainer) {
+                    statusContainer.style.display = 'block';
+                }
+                
+                // If it's a bulk translation, show bulk translation status
+                if (data.mode === 'bulk') {
+                    console.log("Active bulk translation found");
+                    const bulkStatus = document.getElementById('bulk-translation-status');
+                    if (bulkStatus) {
+                        bulkStatus.style.display = 'block';
+                    }
+                    
+                    // Start progress polling
+                    if (bulkProgressInterval) clearInterval(bulkProgressInterval);
+                    bulkProgressInterval = setInterval(checkBulkProgress, 2000);
+                }
+                
+                // Optionally display a message that we've reconnected to an active translation
+                const statusMessage = document.getElementById('status-message');
+                if (statusMessage) {
+                    statusMessage.textContent = "Reconnected to active translation: " + (data.message || data.status);
+                }
+                
+                // For single file jobs, store the job ID if available
+                if (data.mode === 'single' && data.job_id) {
+                    currentJobId = data.job_id;
+                    // Start job polling with the recovered job ID
+                    console.log(`Reconnected to translation job ${currentJobId}`);
+                    pollJobStatus(currentJobId);
+                }
+            } else if (data.status === 'completed') {
+                // Handle completed translation that wasn't acknowledged
+                console.log("Found completed translation:", data);
+                
+                // Show the result container
+                const resultContainer = document.getElementById('result-container');
+                const resultMessage = document.getElementById('result-message');
+                
+                if (resultContainer) resultContainer.style.display = 'block';
+                if (resultMessage) resultMessage.innerHTML = `<p>Translation completed: ${data.message || 'Translation completed successfully!'}</p>`;
+                
+                // Show download link if zip file is available for bulk translations
+                if (data.mode === 'bulk' && data.zip_path) {
+                    const bulkDownloadLink = document.getElementById('bulk-download-link');
+                    const downloadZipLink = document.getElementById('download-zip-link');
+                    
+                    if (bulkDownloadLink && downloadZipLink) {
+                        downloadZipLink.href = `/download-zip?temp=${encodeURIComponent(data.zip_path)}`;
+                        bulkDownloadLink.style.display = 'block';
+                    }
+                }
+                
+                // Refresh the subtitle archive list
+                loadSubtitleArchive();
+            }
+        })
+        .catch(error => {
+            console.error("Error checking for active translations:", error);
         });
 }
