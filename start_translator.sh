@@ -68,11 +68,11 @@ print_message "$YELLOW" "Activating virtual environment and checking dependencie
 source "$ACTIVATE_SCRIPT"
 
 # Check if required packages are installed
-REQUIRED_PACKAGES="Flask pysrt requests colorama"
+REQUIRED_PACKAGES="Flask pysrt requests colorama beautifulsoup4"
 MISSING_PACKAGES=""
 
 for package in $REQUIRED_PACKAGES; do
-    if ! $PYTHON -c "import $package" &>/dev/null; then
+    if ! $PYTHON -c "import ${package/beautifulsoup4/bs4}" &>/dev/null; then
         if [ -z "$MISSING_PACKAGES" ]; then
             MISSING_PACKAGES="$package"
         else

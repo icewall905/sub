@@ -57,6 +57,16 @@ api_url = https://libretranslate.de/translate
 enabled = false
 api_key = YOUR_TMDB_API_KEY_V3
 
+[wiki_terminology]
+# Enable/disable fetching terminology from fan wikis
+enabled = true
+# Number of days to cache terminology before refreshing
+cache_expiry_days = 7
+# Maximum number of terms to include in translation prompts
+max_terms = 10
+# Override wiki URL manually for shows where automatic detection fails
+# Example: manual_wiki_override = https://kipo.fandom.com
+
 [critic]
 enabled = true
 service = ollama      # Currently only 'ollama' is supported

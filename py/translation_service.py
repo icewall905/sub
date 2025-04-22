@@ -3,7 +3,9 @@ import json
 import time
 import logging
 import re
+import os
 from typing import Dict, Optional, Any
+from py.wiki_terminology import WikiTerminologyService
 
 class TranslationService:
     """
@@ -21,6 +23,9 @@ class TranslationService:
         """
         self.config = config
         self.logger = logger or logging.getLogger(__name__)
+        
+        # Initialize wiki terminology service
+        self.wiki_terminology = WikiTerminologyService(config, logger)
         
         # Language mapping for reference
         self.language_mapping = {
@@ -335,8 +340,29 @@ class TranslationService:
                 f"These subtitles are for: {media_info['title']}\n"
                 f"Plot summary: {media_info['overview']}\n"
                 f"Genre: {media_info['genres']}\n"
-                f"Main cast: {media_info['cast']}\n\n"
-                f"Consider this context from surrounding subtitles:\n\n"
+                f"Main cast: {media_info['cast']}\n"
+            )
+            
+            # Get and add wiki terminology if available
+            try:
+                terminology = self.wiki_terminology.get_terminology(media_info)
+                if terminology and terminology.get('terms'):
+                    terms = terminology['terms']
+                    max_terms = self.config.getint("wiki_terminology", "max_terms", fallback=10)
+                    
+                    if terms:
+                        prompt += f"\nIMPORTANT SHOW-SPECIFIC TERMINOLOGY:\n"
+                        prompt += f"The following terms have special meanings in this show and must be translated appropriately:\n"
+                        # Add up to max_terms terms
+                        for term in terms[:max_terms]:
+                            prompt += f"- {term['term']}: {term['definition']}\n"
+                        
+                        self.logger.info(f"Added {min(len(terms), max_terms)} wiki terminology entries to Ollama translation prompt")
+            except Exception as e:
+                self.logger.warning(f"Error adding wiki terminology to Ollama prompt: {e}")
+            
+            prompt += (
+                f"\nConsider this context from surrounding subtitles:\n\n"
                 f"CONTEXT:\n{context or 'No context available'}\n\n"
                 f"Translate this text: {text}\n\n"
                 f"Maintain the same formatting, tone, and meaning. Return ONLY the translated text."
@@ -350,7 +376,7 @@ class TranslationService:
             )
 
         # If context is available, add it:
-        if context:
+        if context and not media_info:
             prompt = (
                 f"You are an expert translator from {source_full} to {target_full}.\n"
                 f"Consider this context from surrounding subtitles:\n\n"
@@ -568,6 +594,26 @@ Season/Episode: S{media_info.get('season_number', 0):02d}E{media_info.get('episo
 Overview: {media_info.get('episode_overview', 'No description available')}
 Air Date: {media_info.get('air_date', 'Unknown')}
 """
+                
+                # Get and add wiki terminology if available
+                try:
+                    terminology = self.wiki_terminology.get_terminology(media_info)
+                    if terminology and terminology.get('terms'):
+                        terms = terminology['terms']
+                        max_terms = self.config.getint("wiki_terminology", "max_terms", fallback=10)
+                        
+                        if terms:
+                            prompt += f"""
+IMPORTANT SHOW-SPECIFIC TERMINOLOGY:
+The following terms have special meanings in this show and must be translated appropriately:
+"""
+                            # Add up to max_terms terms
+                            for term in terms[:max_terms]:
+                                prompt += f"- {term['term']}: {term['definition']}\n"
+                            
+                            self.logger.info(f"Added {min(len(terms), max_terms)} wiki terminology entries to translation prompt")
+                except Exception as e:
+                    self.logger.warning(f"Error adding wiki terminology to prompt: {e}")
 
             # Add context lines before if available
             if context_before and len(context_before) > 0:
