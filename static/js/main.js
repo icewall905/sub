@@ -336,85 +336,139 @@ function updateLiveStatusDisplay() {
 
             const statusContainer = document.getElementById('status-container'); // The overall container
 
-            // Determine if there's active translation data to show
-            // Use more specific checks based on expected data fields
-            const hasMeaningfulData = (data.line_number && data.line_number > 0) || data.first_pass || data.final || data.critic;
+            // Check if we have data from the current key or directly in the response
+            const hasMeaningfulDataInCurrent = data.current && 
+                ((data.current.line_number && data.current.line_number > 0) || 
+                 data.current.original || 
+                 data.current.first_pass || 
+                 data.current.final || 
+                 data.current.critic);
+
+            // Also check for data directly in the response (for backwards compatibility)
+            const hasMeaningfulDataDirect = (data.line_number && data.line_number > 0) || 
+                data.original || 
+                data.first_pass || 
+                data.final || 
+                data.critic;
+
+            // Use data from either source
+            const hasMeaningfulData = hasMeaningfulDataInCurrent || hasMeaningfulDataDirect;
+            
+            // Also check if we're in an active translation state based on status and optional flag
+            const isActiveTranslation = data.status === 'processing' || 
+                                      data.status === 'translating' || 
+                                      window.bulkTranslationActive === true;
 
             if (hasMeaningfulData) {
+                // If we have meaningful data, always show it regardless of where it came from
+                console.log("Found meaningful translation data, will display live status");
+                
                 // Ensure the main status container is visible
                 if (statusContainer && statusContainer.style.display === 'none') {
                     console.log("Forcing status container visible due to live data.");
                     statusContainer.style.display = 'block';
                 }
 
-                console.log("Attempting to build and display live status HTML..."); // Add log here
+                console.log("Building and displaying live status HTML..."); 
 
-                let statusHTML = `<div class="current-translation">`; // Use existing class if suitable
+                // Prepare variables to handle data from either current or direct
+                let original, firstPass, critic, criticChanged, final, lineNumber, totalLines, filename;
+                let timing = {};
+                
+                if (hasMeaningfulDataInCurrent) {
+                    // Use data from the current object
+                    original = data.current.original;
+                    firstPass = data.current.first_pass;
+                    critic = data.current.standard_critic;
+                    criticChanged = data.current.critic_changed;
+                    final = data.current.final;
+                    lineNumber = data.current.line_number;
+                    timing = data.current.timing || {};
+                } else {
+                    // Fall back to direct properties
+                    original = data.original;
+                    firstPass = data.first_pass;
+                    critic = data.critic;
+                    criticChanged = data.critic_changed;
+                    final = data.final;
+                    lineNumber = data.line_number;
+                    timing = data.timing || {};
+                }
+                
+                // Always use these from the top level
+                totalLines = data.total_lines;
+                filename = data.filename || data.current_file;
+                
+                let statusHTML = `<div class="current-translation">`; 
 
                 // Filename
-                if (data.filename) { 
-                    statusHTML += `<p><strong>File:</strong> ${data.filename}</p>`;
+                if (filename) { 
+                    statusHTML += `<p><strong>File:</strong> ${filename}</p>`;
                 }
 
                 // Progress (Line number / Total)
-                // Check if BOTH current_line and total_lines are valid numbers > 0
-                if (typeof data.current_line === 'number' && data.current_line > 0 &&
-                    typeof data.total_lines === 'number' && data.total_lines > 0)
+                if ((lineNumber > 0 || data.current_line > 0) && 
+                    (totalLines > 0 || data.total_lines > 0))
                 {
-                    statusHTML += `<p><strong>Progress:</strong> ${data.current_line} / ${data.total_lines} lines</p>`;
-                    const percent = Math.round((data.current_line / data.total_lines) * 100);
+                    const currentLine = lineNumber || data.current_line;
+                    const totalLinesCount = totalLines || data.total_lines;
+                    statusHTML += `<p><strong>Progress:</strong> ${currentLine} / ${totalLinesCount} lines</p>`;
+                    const percent = Math.round((currentLine / totalLinesCount) * 100);
                     statusHTML += `
                         <div class="progress-bar-container">
                             <div class="progress-bar" style="width: ${percent}%"></div>
                         </div>
                     `;
-                } else if (data.line_number > 0) {
+                } else if (lineNumber > 0 || data.current_line > 0) {
                      // Fallback to just showing the current line number if total isn't available yet
-                     statusHTML += `<p><strong>Processing Line:</strong> ${data.line_number}</p>`;
+                     statusHTML += `<p><strong>Processing Line:</strong> ${lineNumber || data.current_line}</p>`;
                 }
 
                 // Translation Details for current line
                 statusHTML += `<div class="translation-item current">`;
                 statusHTML += `<h3>Current Line</h3>`;
-                if (data.original) {
-                    statusHTML += `<p><strong>Original:</strong> ${data.original}</p>`;
+                
+                if (original) {
+                    statusHTML += `<p><strong>Original:</strong> ${original}</p>`;
                 }
-                if (data.first_pass) {
+                
+                if (firstPass) {
                     // Include timing if available
                     let timingInfo = '';
-                    if (data.timing && data.timing.first_pass) {
-                        timingInfo = ` <span class="timing">(${data.timing.first_pass.toFixed(2)}s)</span>`;
+                    if (timing.first_pass) {
+                        timingInfo = ` <span class="timing">(${timing.first_pass.toFixed(2)}s)</span>`;
                     }
-                    statusHTML += `<p><strong>First Pass:</strong> ${data.first_pass}${timingInfo}</p>`;
+                    statusHTML += `<p><strong>First Pass:</strong> ${firstPass}${timingInfo}</p>`;
                 }
                 
                 // Enhanced critic information
-                if (data.critic) {
+                if (critic) {
                     // Include timing and more details about what the critic did
                     let timingInfo = '';
                     let actionInfo = '';
                     
-                    if (data.timing && data.timing.critic) {
-                        timingInfo = ` <span class="timing">(${data.timing.critic.toFixed(2)}s)</span>`;
+                    if (timing.critic) {
+                        timingInfo = ` <span class="timing">(${timing.critic.toFixed(2)}s)</span>`;
                     }
                     
-                    if (data.critic_action) {
-                        if (data.critic_action.feedback) {
-                            actionInfo = `<div class="critic-feedback"><em>${data.critic_action.feedback}</em></div>`;
-                        }
+                    // Critic feedback if available
+                    if (data.critic_action && data.critic_action.feedback) {
+                        actionInfo = `<div class="critic-feedback"><em>${data.critic_action.feedback}</em></div>`;
+                    } else if (data.current && data.current.critic_action && data.current.critic_action.feedback) {
+                        actionInfo = `<div class="critic-feedback"><em>${data.current.critic_action.feedback}</em></div>`;
                     }
                     
-                    statusHTML += `<p><strong>Critic:</strong> ${data.critic} ${data.critic_changed ? '<span class="improved">(Improved)</span>' : ''}${timingInfo}</p>`;
+                    statusHTML += `<p><strong>Critic:</strong> ${critic} ${criticChanged ? '<span class="improved">(Improved)</span>' : ''}${timingInfo}</p>`;
                     statusHTML += actionInfo;
                 }
                 
                 // Display final only if it's different from critic or first_pass, or if they don't exist
-                const finalToShow = data.final || data.critic || data.first_pass;
+                const finalToShow = final || critic || firstPass;
                 if (finalToShow) {
                     // Include total timing if available
                     let timingInfo = '';
-                    if (data.timing && data.timing.total) {
-                        timingInfo = ` <span class="timing">(Total: ${data.timing.total.toFixed(2)}s)</span>`;
+                    if (timing.total) {
+                        timingInfo = ` <span class="timing">(Total: ${timing.total.toFixed(2)}s)</span>`;
                     }
                     statusHTML += `<p><strong>Current Best:</strong> ${finalToShow}${timingInfo}</p>`;
                 }
@@ -423,13 +477,17 @@ function updateLiveStatusDisplay() {
                 statusHTML += `</div>`; // End current-translation
 
                 // History Section - Enhanced to show more details
-                if (data.processed_lines && data.processed_lines.length > 0) {
+                const processedLines = data.processed_lines || 
+                                     (data.current && data.current.processed_lines) || 
+                                     [];
+                                     
+                if (processedLines.length > 0) {
                     statusHTML += `<div class="history-section">
                         <h3>Recent Translation History</h3>
                         <div class="history-container" id="history-container">`;
                     
                     // Show the history items in reverse order (newest first)
-                    data.processed_lines.slice().reverse().forEach((line, index) => {
+                    processedLines.slice().reverse().forEach((line, index) => {
                         // Get timing info if available
                         let timingInfo = '';
                         if (line.timing && line.timing.total) {
@@ -473,13 +531,13 @@ function updateLiveStatusDisplay() {
                 // Ensure the container itself is visible
                 liveStatusDisplay.style.display = 'block';
                 
-                console.log("Live status HTML updated."); // Confirm update
+                console.log("Live status HTML updated successfully"); 
 
-                // ** NEW CODE ** - Setup event handlers AFTER DOM is updated
+                // Setup event handlers AFTER DOM is updated
                 setupHistoryItemEventHandlers();
 
-            } else if (data.status === 'processing' && !hasMeaningfulData) {
-                 // If job is processing but no line data yet (e.g., initializing)
+            } else if (isActiveTranslation && !hasMeaningfulData) {
+                 // If job is active but we don't have line data yet (e.g., initializing)
                  if (statusContainer && statusContainer.style.display === 'none') {
                     statusContainer.style.display = 'block';
                  }
@@ -490,22 +548,15 @@ function updateLiveStatusDisplay() {
                 // If explicitly idle, completed, or failed according to live status
                 // Don't necessarily hide the container, pollJobStatus handles final state
                 // Just show a waiting message if no job is active
-                if (!currentJobId) { // Only show waiting if no job is supposed to be running
+                if (!currentJobId && !window.bulkTranslationActive) { 
                     liveStatusDisplay.innerHTML = `<p>Waiting for translation to start...</p>`;
-                    // Optionally hide the main status container if truly idle
-                    // if (statusContainer && data.status === 'idle') {
-                    //     statusContainer.style.display = 'none';
-                    // }
                 } else {
                     // If a job IS active but live status is idle/completed, maybe show "Waiting for next line..."
                      liveStatusDisplay.innerHTML = `<p>Waiting for next line data...</p>`;
                 }
-
             } else {
                  // Default case or unexpected data
-                 // console.log("Live status: No active data or idle.");
-                 // Keep the "Waiting..." message if no job is active
-                 if (!currentJobId) {
+                 if (!currentJobId && !window.bulkTranslationActive) {
                     liveStatusDisplay.innerHTML = `<p>Waiting for translation to start...</p>`;
                  }
             }
@@ -976,10 +1027,10 @@ function checkBulkProgress() {
         return;
     }
 
-
     fetch('/api/progress')
         .then(response => response.json())
         .then(data => {
+            console.log("Bulk progress check data:", data);
             bulkStatusMessage.textContent = data.message || 'Processing...';
 
             if (data.total_files > 0) {
@@ -991,9 +1042,23 @@ function checkBulkProgress() {
                  bulkProgressText.textContent = `0%`;
             }
 
+            // Force update of live translation status display if there's line-by-line data
+            if (data.current && data.current.original && data.current.line_number) {
+                // Set a flag to indicate bulk translation is active
+                window.bulkTranslationActive = true;
+                
+                // Force update of the live status display to show line-by-line progress
+                const liveStatusDisplay = document.getElementById('live-status-display');
+                if (liveStatusDisplay && liveStatusDisplay.innerHTML.includes('Waiting for translation to start')) {
+                    // If the display shows the waiting message but we have active translation data,
+                    // force an immediate update of the live status display
+                    updateLiveStatusDisplay();
+                }
+            }
 
             if (data.status === 'completed' || data.status === 'failed') {
                 if (bulkProgressInterval) clearInterval(bulkProgressInterval);
+                window.bulkTranslationActive = false;
 
                 if (data.status === 'completed') {
                      bulkProgressBar.style.width = '100%';
