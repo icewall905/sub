@@ -16,7 +16,7 @@ import uuid
 # Add the project root to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Import our modules
+# Import modules
 from py.config_manager import ConfigManager
 from py.subtitle_processor import SubtitleProcessor
 from py.translation_service import TranslationService
@@ -32,8 +32,17 @@ app.secret_key = os.urandom(24)  # Add secret key for flash messages
 # Ensure the upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Setup logging
-logger = setup_logger('app', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'translator.log'))
+# Initialize config first
+config_manager = ConfigManager(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))
+config = config_manager.get_config()
+ 
+# Setup logging with correct level based on debug_mode
+debug_mode = config.getboolean('general', 'debug_mode', fallback=False)
+log_level = logging.DEBUG if debug_mode else logging.INFO
+logger = setup_logger('app', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'translator.log'), level=log_level)
+
+if debug_mode:
+    logger.debug("Debug mode is enabled - full LLM prompts will be logged")
 
 # Initialize the configuration manager
 config_manager = ConfigManager(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))

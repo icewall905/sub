@@ -2,6 +2,7 @@ import requests
 import json
 import time
 import logging
+import re
 from typing import Dict, Optional, Any
 
 class TranslationService:
@@ -145,7 +146,11 @@ class TranslationService:
             if collected_translations:
                 self.logger.info(f"Collected {len(collected_translations)} translations. Using Ollama to make final decision.")
                 start_time = time.time()
-                ollama_final_result = self._translate_with_ollama_as_final(text, source_lang, target_lang, collected_translations)
+                ollama_final_result = self._translate_with_ollama_as_final(text, source_lang, target_lang, 
+                                                                          collected_translations,
+                                                                          context_before=context, 
+                                                                          context_after=context, 
+                                                                          media_info=media_info)
                 end_time = time.time()
                 
                 if ollama_final_result:
@@ -543,183 +548,318 @@ class TranslationService:
         reverse_mapping = {v: k for k, v in self.language_mapping.items()}
         return reverse_mapping.get(language_code.lower(), language_code)
 
-    def _translate_with_ollama_as_final(self, text: str, source_lang: str, target_lang: str, translations: dict) -> Optional[str]:
-        """
-        Use Ollama as the final translator by presenting it with translations from other services.
-        Returns the final translated text chosen or refined by Ollama, or None if failed.
-        """
-        if not translations:
-            self.logger.warning("No translations provided to Ollama as final translator, attempting direct Ollama translation.")
-            return self._translate_with_ollama(text, source_lang, target_lang)
-        
+    def _translate_with_ollama_as_final(self, text: str, source_lang: str, target_lang: str, translations: dict, context_before=None, context_after=None, media_info=None) -> Optional[str]:
         try:
-            server_url = self.config.get("ollama", "server_url", fallback="http://localhost:11434")
-            model = self.config.get("ollama", "model", fallback="") # Ensure model is fetched
-            if not model:
-                self.logger.error("Ollama model not configured for final translation.")
-                return None
+            # Improved prompt with clearer instructions and structure
+            prompt = f"""You are a subtitle translation expert. Your task is to translate ONLY the line marked as "TEXT TO TRANSLATE" below.
 
-            source_full = self._get_language_full_name(source_lang)
-            target_full = self._get_language_full_name(target_lang)
-            
-            prompt = f"""You are a subtitle translation expert. Your task is to choose the best translation or create an improved one.
-
-Original {source_full} text: {text}
-
-Available translations to {target_full}:
+IMPORTANT INSTRUCTIONS:
+- Translate ONLY the text marked "TEXT TO TRANSLATE" from {self._get_language_full_name(source_lang)} to {self._get_language_full_name(target_lang)}
+- Do NOT translate any of the context lines - they are for understanding the scene only
+- Return ONLY your final translation, without quotes, explanations, or notes
+- Maintain formatting (especially HTML tags if present)
 """
-            for service_name, translation in translations.items():
-                prompt += f"\n{service_name.upper()}: {translation}"
-            
+
+            # Add media info from TMDB if available
+            if media_info:
+                prompt += f"""
+MOVIE/SHOW INFORMATION:
+Title: {media_info.get('title', media_info.get('name', 'Unknown'))}
+Overview: {media_info.get('overview', 'No description available')}
+Genres: {media_info.get('genres', 'Unknown')}
+Cast: {media_info.get('cast', 'Unknown')}
+"""
+                # Add episode-specific information if available
+                if media_info.get('has_episode_data', False):
+                    prompt += f"""
+EPISODE INFORMATION:
+Title: {media_info.get('episode_title', 'Unknown')}
+Season/Episode: S{media_info.get('season_number', 0):02d}E{media_info.get('episode_number', 0):02d}
+Overview: {media_info.get('episode_overview', 'No description available')}
+Air Date: {media_info.get('air_date', 'Unknown')}
+"""
+
+            # Add context lines before if available
+            if context_before and len(context_before) > 0:
+                prompt += f"""
+CONTEXT (PREVIOUS LINES):
+{context_before}
+"""
+
+            # Add the line being translated with clear marking
             prompt += f"""
+-----------------------------------------------------
+TEXT TO TRANSLATE: {text}
+-----------------------------------------------------
+"""
 
-Please analyze these translations and provide the best possible {target_full} translation.
-Consider fluency, accuracy, and natural tone in the target language.
-Return ONLY the final translation without any explanations or other text.
+            # Add context lines after if available
+            if context_after and len(context_after) > 0:
+                prompt += f"""
+CONTEXT (FOLLOWING LINES):
+{context_after}
+"""
+
+            # Add available translations for reference
+            prompt += f"""
+AVAILABLE TRANSLATIONS:
 """
             
-            # --- Revert to reading endpoint from config, fallback to /api/generate --- 
-            endpoint = self.config.get("ollama", "endpoint", fallback="/api/generate") 
+            for service, translation in translations.items():
+                prompt += f"{service.upper()}: {translation}\n"
+
+            # Add final reminder
+            prompt += """
+IMPORTANT: Return ONLY your translation of the text between the dotted lines. Do not include explanations, notes, or the original text.
+"""
+
+            # Debug output
+            debug_mode = self.config.getboolean('general', 'debug_mode', fallback=False)
+            if debug_mode:
+                self.logger.debug(f"Sending request to Ollama final translator with prompt: {prompt}")
+            else:
+                self.logger.debug(f"Sending request to Ollama final translator with prompt: {prompt[:100]}...") # Log truncated prompt
+
+            # Now add the actual API call to Ollama (copying from _translate_with_ollama method)
+            server_url = self.config.get("ollama", "server_url", fallback="http://localhost:11434")
+            model = self.config.get("ollama", "model", fallback="")
+            endpoint = self.config.get("ollama", "endpoint", fallback="/api/generate")
             url = f"{server_url.rstrip('/')}{endpoint}"
-            # --- End endpoint change ---
-            
             temperature = self.config.getfloat("general", "temperature", fallback=0.3)
             
-            # --- Use /api/generate payload structure --- 
-            # Combine system-like instructions with the main prompt
-            system_instructions = "You are a professional translator. Choose or improve from the provided translations. Return only the final translation."
-            full_prompt = f"{system_instructions}\n\n{prompt}" # Use the prompt built earlier
-            
+            # Create request data
             data = {
                 "model": model,
-                "prompt": full_prompt, # Use 'prompt' key
+                "prompt": prompt,
                 "stream": False,
-                "options": {"temperature": temperature}
+                "options": {
+                    "temperature": temperature
+                }
             }
-            # --- End /api/generate payload ---
-
-            # Add additional Ollama options if configured
-            options = {}
-            for option in ["num_gpu", "num_thread"]:
-                if self.config.has_option("ollama", option):
-                    value = self.config.get("ollama", option, fallback=None)
-                    if value is not None and str(value).strip() != "":
-                        try:
-                            options[option] = int(value)
-                        except ValueError:
-                            self.logger.warning(f"Invalid value for ollama.{option}, skipping")
-            for option in ["use_mmap", "use_mlock"]:
-                if self.config.has_option("ollama", option):
-                    value = self.config.get("ollama", option, fallback=None)
-                    if value is not None and str(value).strip() != "":
-                        try:
-                            options[option] = self.config.getboolean("ollama", option)
-                        except ValueError:
-                            self.logger.warning(f"Invalid value for ollama.{option}, skipping")
-            if options:
-                data["options"].update(options)
-
-            self.logger.debug(f"Sending request to Ollama final translator with prompt: {prompt[:200]}...") # Log truncated prompt
             
+            # Make request with retry logic
             max_retries = 3
-            retry_delay = 2
-            timeout = 180
             
             for attempt in range(max_retries):
+                self.logger.info(f"Waiting for Ollama final response (attempt {attempt+1}/{max_retries})...")
                 try:
-                    # Log waiting message *once* per attempt using logger
-                    self.logger.info(f"Waiting for Ollama final response (attempt {attempt+1}/{max_retries})...")
-                    
-                    response = requests.post(url, json=data, timeout=timeout)
+                    response = requests.post(url, json=data, timeout=180)
                     self.logger.debug(f"Ollama final translator response status: {response.status_code}")
+                    
                     response.raise_for_status()
                     result = response.json()
                     
-                    # --- Parse /api/generate response structure --- 
-                    final_translation = ""
                     if "response" in result:
-                        final_translation = result["response"].strip(' "\'\n`')
-                    # --- End /api/generate response parsing ---
-
-                    if final_translation:
-                        # Remove potential prefixes that the model might add
-                        prefixes_to_remove = ["Translation:", "Translated text:", "Here's the translation:", "Final translation:"]
+                        translated_text = result["response"].strip()
+                        # Clean up response - removing quotes, prefixes, etc.
+                        translated_text = translated_text.strip(' "\'\n`')
+                        
+                        # Remove potential prefixes the model might add
+                        prefixes_to_remove = [
+                            "Translation:", 
+                            "Translated text:", 
+                            "Here's the translation:",
+                            "Final translation:"
+                        ]
                         for prefix in prefixes_to_remove:
-                            if final_translation.startswith(prefix):
-                                final_translation = final_translation[len(prefix):].strip()
-                        # Success log is handled in the main translate method
-                        return final_translation
-                    else:
-                        self.logger.warning(f"Ollama API (final) returned no translatable content in attempt {attempt+1}")
-                        if attempt < max_retries - 1: time.sleep(retry_delay)
-                        else: return None # Failed after retries
+                            if translated_text.lower().startswith(prefix.lower()):
+                                translated_text = translated_text[len(prefix):].strip()
+                        
+                        # Fix one-character-per-line issue with HTML tags
+                        if '\n' in translated_text and '<' in translated_text and '>' in translated_text:
+                            # More robust HTML tag detection 
+                            lines = translated_text.split('\n')
+                            # Check if a significant number of lines are single characters
+                            single_char_lines = sum(1 for line in lines if len(line.strip()) == 1)
+                            
+                            # If more than 30% of lines are single characters, or we detect a broken HTML tag
+                            if (single_char_lines / len(lines) > 0.3) or any('<' in ''.join(lines[:5]) and '>' in ''.join(lines) for i in range(len(lines))):
+                                translated_text = translated_text.replace('\n', '')
+                                self.logger.debug("Fixed multi-line HTML tag in translation")
+                        
+                        return translated_text
                     
-                except requests.exceptions.Timeout:
-                    self.logger.warning(f"Ollama API (final) request timed out on attempt {attempt+1}, retrying...")
-                    if attempt < max_retries - 1: time.sleep(retry_delay * (attempt + 1)) # Exponential backoff
-                    else: return None # Failed after retries
-                except requests.exceptions.RequestException as e:
-                    self.logger.error(f"Ollama API (final) request failed on attempt {attempt+1}: {str(e)}")
-                    if attempt < max_retries - 1: time.sleep(retry_delay)
-                    else: return None # Failed after retries
-                except json.JSONDecodeError as e:
-                    self.logger.error(f"Error parsing Ollama (final) response on attempt {attempt+1}: {str(e)}")
-                    if attempt < max_retries - 1: time.sleep(retry_delay)
-                    else: return None # Failed after retries
+                    self.logger.warning(f"Ollama final translator returned no translatable content in attempt {attempt+1}")
+                    time.sleep(2)  # Wait before retrying
+                    
+                except Exception as e:
+                    self.logger.error(f"Error in Ollama final translator attempt {attempt+1}: {str(e)}")
+                    if attempt < max_retries - 1:
+                        time.sleep(2)
             
-            self.logger.error("All Ollama final translation attempts failed")
             return None
-                
         except Exception as e:
             self.logger.error(f"Error using Ollama as final translator: {str(e)}")
             return None
 
-    def get_media_info(self, title, year=None, type="movie"):
-        """Get movie or TV show information from TMDB API."""
+    def get_media_info(self, title, year=None, original_filename=None, season=None, episode=None):
+        """Get movie or TV show information from TMDB API by trying both types.
+        
+        Args:
+            title: The title of the media
+            year: Optional year of release
+            original_filename: Original filename with potential season/episode info
+            season: Optional season number extracted from filename
+            episode: Optional episode number extracted from filename
+        """
         if not self.use_tmdb or not self.tmdb_api_key:
+            self.logger.warning("TMDB is disabled or API key not set")
             return None
             
         try:
-            # Search for the movie or TV show
-            search_url = f"https://api.themoviedb.org/3/search/{type}"
+            self.logger.debug(f"Searching TMDB for: '{title}' (Year: {year or 'Any'})")
+            
+            # First try as a TV show
+            tv_info = self._fetch_media_info(title, year, "tv")
+            if tv_info:
+                self.logger.info(f"Found TV show information for '{title}'")
+                
+                # Check if season/episode numbers were provided
+                # Use the explicit season/episode parameters if provided
+                if season and episode:
+                    self.logger.debug(f"Using provided season/episode: S{season:02d}E{episode:02d}")
+                    episode_info = self._fetch_episode_info(tv_info["tmdb_id"], season, episode)
+                    if episode_info:
+                        # Combine show and episode information
+                        tv_info.update(episode_info)
+                        self.logger.info(f"Enhanced TV info with episode data: S{season:02d}E{episode:02d} - {episode_info.get('episode_title', 'Unknown')}")
+                
+                return tv_info
+                
+            # If no TV show found, try as a movie
+            movie_info = self._fetch_media_info(title, year, "movie")
+            if movie_info:
+                self.logger.info(f"Found movie information for '{title}'")
+                return movie_info
+                
+            self.logger.warning(f"No TMDB results found for '{title}' as either TV show or movie")
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Error getting media info from TMDB: {str(e)}")
+            import traceback
+            self.logger.debug(f"TMDB error details: {traceback.format_exc()}")
+            return None
+            
+    def _fetch_media_info(self, title, year=None, media_type="movie"):
+        """Internal method to fetch media info from TMDB for a specific type."""
+        try:
+            self.logger.debug(f"Searching TMDB for '{title}' as {media_type}")
+            
+            # Search for the media item
+            search_url = f"https://api.themoviedb.org/3/search/{media_type}"
             params = {
                 "api_key": self.tmdb_api_key,
                 "query": title,
                 "language": self.tmdb_language
             }
             if year:
-                params["year"] = year
-                
+                params["year" if media_type == "movie" else "first_air_date_year"] = year
+            
+            self.logger.debug(f"TMDB API call: GET {search_url} with params: {params}")
             response = requests.get(search_url, params=params)
+            
+            # Log response status
+            self.logger.debug(f"TMDB {media_type} search response status: {response.status_code}")
+            
+            if response.status_code != 200:
+                self.logger.warning(f"TMDB {media_type} search failed: {response.status_code} - {response.text}")
+                return None
+                
             search_results = response.json()
             
+            # Log search results summary
+            result_count = len(search_results.get("results", []))
+            self.logger.debug(f"TMDB {media_type} search found {result_count} results")
+            
             if not search_results.get("results"):
+                self.logger.debug(f"No TMDB {media_type} results found for: {title}")
                 return None
                 
             # Get the first result
             media_id = search_results["results"][0]["id"]
+            result_title = search_results["results"][0].get("title" if media_type == "movie" else "name", "Unknown")
+            
+            # Log the selected result
+            self.logger.debug(f"Selected TMDB {media_type} result: ID {media_id}, Title: {result_title}")
             
             # Get detailed information
-            details_url = f"https://api.themoviedb.org/3/{type}/{media_id}"
+            details_url = f"https://api.themoviedb.org/3/{media_type}/{media_id}"
             details_params = {
                 "api_key": self.tmdb_api_key,
                 "language": self.tmdb_language,
                 "append_to_response": "credits"
             }
             
+            self.logger.debug(f"TMDB {media_type} details API call: GET {details_url}")
             details_response = requests.get(details_url, params=details_params)
+            
+            # Log details response status
+            self.logger.debug(f"TMDB {media_type} details response status: {details_response.status_code}")
+            
+            if details_response.status_code != 200:
+                self.logger.warning(f"TMDB {media_type} details fetch failed: {details_response.status_code} - {details_response.text}")
+                return None
+                
             details = details_response.json()
             
             # Build summary
             info = {
+                "type": media_type,
                 "title": details.get("title", details.get("name", "")),
                 "overview": details.get("overview", ""),
                 "genres": ", ".join([genre["name"] for genre in details.get("genres", [])]),
                 "release_date": details.get("release_date", details.get("first_air_date", "")),
-                "cast": ", ".join([cast["name"] for cast in details.get("credits", {}).get("cast", [])[:5]])
+                "cast": ", ".join([cast["name"] for cast in details.get("credits", {}).get("cast", [])[:5]]),
+                "id": media_id,  # Store the media ID with a consistent key name
+                "tmdb_id": media_id  # Also include the original key name for backward compatibility
             }
             
+            self.logger.info(f"Successfully retrieved TMDB data for '{info['title']}' ({media_type})")
+            self.logger.debug(f"TMDB data details: {json.dumps(info)}")
             return info
+            
         except Exception as e:
-            self.logger.error(f"Error getting media info from TMDB: {str(e)}")
+            self.logger.error(f"Error fetching {media_type} info from TMDB: {str(e)}")
+            return None
+
+    def _fetch_episode_info(self, tv_id, season_number, episode_number):
+        """Fetch details for a specific episode of a TV show."""
+        try:
+            self.logger.debug(f"Fetching episode info for TV ID {tv_id}, S{season_number:02d}E{episode_number:02d}")
+            
+            # API URL for episode information
+            url = f"https://api.themoviedb.org/3/tv/{tv_id}/season/{season_number}/episode/{episode_number}"
+            params = {
+                "api_key": self.tmdb_api_key,
+                "language": self.tmdb_language
+            }
+            
+            self.logger.debug(f"TMDB episode API call: GET {url}")
+            response = requests.get(url, params=params)
+            
+            # Log response status
+            self.logger.debug(f"TMDB episode info response status: {response.status_code}")
+            
+            if response.status_code != 200:
+                self.logger.warning(f"TMDB episode info fetch failed: {response.status_code} - {response.text}")
+                return None
+                
+            episode_data = response.json()
+            
+            # Extract relevant episode information
+            episode_info = {
+                "episode_title": episode_data.get("name", ""),
+                "episode_overview": episode_data.get("overview", ""),
+                "episode_number": episode_data.get("episode_number", 0),
+                "season_number": episode_data.get("season_number", 0),
+                "air_date": episode_data.get("air_date", ""),
+                "has_episode_data": True
+            }
+            
+            self.logger.info(f"Successfully retrieved episode data: '{episode_info['episode_title']}'")
+            return episode_info
+            
+        except Exception as e:
+            self.logger.error(f"Error fetching episode info: {str(e)}")
             return None

@@ -411,6 +411,32 @@ class SubtitleProcessor:
             context_size_before = cfg.getint("general", "context_size_before", fallback=15)
             context_size_after = cfg.getint("general", "context_size_after", fallback=15)
             
+            # Get TMDB information if enabled
+            media_info = None
+            if cfg.getboolean("tmdb", "enabled", fallback=False):
+                try:
+                    # Extract show/movie name from filename
+                    file_basename = os.path.basename(input_path)
+                    media_title = self.extract_item_name(file_basename)
+                    self.logger.info(f"Fetching TMDB data for: {media_title}")
+                    
+                    # Extract season and episode numbers if present
+                    season_num, episode_num = self.extract_season_episode(file_basename)
+                    if season_num and episode_num:
+                        self.logger.info(f"Detected S{season_num:02d}E{episode_num:02d} in filename")
+                    
+                    # Get media information from TMDB, passing the filename as well
+                    media_info = translation_service.get_media_info(media_title, original_filename=file_basename, 
+                                                                  season=season_num, episode=episode_num)
+                    if media_info:
+                        self.logger.info(f"TMDB data found for: {media_info.get('title', '')}")
+                        if media_info.get('has_episode_data', False):
+                            self.logger.info(f"Episode info found: {media_info.get('episode_title', 'Unknown')}")
+                    else:
+                        self.logger.warning(f"No TMDB data found for: {media_title}")
+                except Exception as e:
+                    self.logger.error(f"Error fetching TMDB data: {str(e)}")
+            
             # Process each subtitle line
             for i, sub in enumerate(subs):
                 line_number = i + 1
@@ -472,12 +498,13 @@ class SubtitleProcessor:
                 # Record time before first pass translation
                 first_pass_start = time.time()
                 
-                # Pass context to translation service
+                # Pass context and media_info to translation service
                 translation_details = translation_service.translate(
                     original_text, 
                     source_lang, 
                     target_lang,
-                    context=context_text
+                    context=context_text,
+                    media_info=media_info
                 )
                 
                 # Calculate first pass timing
@@ -708,12 +735,63 @@ class SubtitleProcessor:
             f.write("[This would show sample translations from the process]\n")
 
     def extract_item_name(self, filename: str) -> str:
-        """Extract a clean name from a subtitle filename."""
+        """Extract a clean name from a subtitle filename.
+        
+        This function attempts to extract show or movie names 
+        from common subtitle filename patterns.
+        
+        Args:
+            filename: The subtitle filename
+            
+        Returns:
+            A cleaned name suitable for TMDB search
+        """
+        # Common patterns for TV shows (S01E01) and movies (YEAR)
         _SERIES_RE = re.compile(r"^(?P<title>.+?)\.S\d{2}E\d{2}", re.I)
         _MOVIE_RE = re.compile(r"^(?P<title>.+?)\.(19|20)\d{2}")
-        base = os.path.splitext(filename)[0]
+        
+        # Strip file extension and directory path
+        base = os.path.basename(filename)
+        base = os.path.splitext(base)[0]
+        
+        # Try to match as a TV show first, then as a movie
         m = _SERIES_RE.match(base) or _MOVIE_RE.match(base)
-        return (m.group("title") if m else base).replace('.', ' ').strip()
+        
+        if m:
+            # Get the title from the match and clean it
+            # Replace both dots AND underscores with spaces
+            clean_name = m.group("title").replace('.', ' ').replace('_', ' ').strip()
+            self.logger.debug(f"Extracted media name '{clean_name}' from filename '{filename}'")
+            return clean_name
+        
+        # Fallback: just clean up the filename as best we can
+        # Replace both dots AND underscores with spaces
+        clean_name = base.replace('.', ' ').replace('_', ' ').split(' ')[0].strip()
+        self.logger.debug(f"No pattern match - using cleaned name '{clean_name}' from filename '{filename}'")
+        return clean_name
+
+    def extract_season_episode(self, filename: str) -> tuple:
+        """Extract season and episode numbers from a subtitle filename.
+        
+        Args:
+            filename: The subtitle filename
+            
+        Returns:
+            Tuple of (season_num, episode_num) or (None, None) if not found
+        """
+        # Look for common S01E01 pattern
+        season_episode_match = re.search(r'S(\d{1,2})E(\d{1,2})', filename, re.IGNORECASE)
+        
+        if season_episode_match:
+            season_num = int(season_episode_match.group(1))
+            episode_num = int(season_episode_match.group(2))
+            self.logger.debug(f"Extracted S{season_num:02d}E{episode_num:02d} from filename '{filename}'")
+            return (season_num, episode_num)
+        
+        # Alternative formats could be added here (e.g., "1x01", "Season 1 Episode 1")
+        
+        self.logger.debug(f"No season/episode pattern found in filename '{filename}'")
+        return (None, None)
         
     def scan_and_translate_directory(self, root_path: str, cfg=None, progress_dict=None):
         """
