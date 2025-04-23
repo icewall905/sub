@@ -908,65 +908,168 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         src_lang = config.get("general", "source_language", fallback="en")
         tgt_lang = config.get("general", "target_language", fallback="da")
         
-        # Scan directory for SRT files
+        # Find all subtitle files in the directory - including both .srt and .ass files
+        all_subtitle_files = []
+        for root, _, files in os.walk(root_dir):
+            for file in files:
+                if file.lower().endswith(('.srt', '.ass')):
+                    all_subtitle_files.append(os.path.join(root, file))
+        
+        logger.info(f"Found {len(all_subtitle_files)} total subtitle files (.srt and .ass) in {root_dir}")
+        
+        # Get source language code (convert full language name to ISO code if needed)
+        src_lang_code = src_lang.lower()
+        if src_lang_code in ["english", "danish", "spanish", "german", "french"]:
+            # Convert common language names to codes
+            lang_map = {"english": "en", "danish": "da", "spanish": "es", "german": "de", "french": "fr"}
+            src_lang_code = lang_map.get(src_lang_code, src_lang_code)
+            logger.debug(f"Converted source language '{src_lang}' to language code '{src_lang_code}'")
+        
+        # Do the same for target language
+        tgt_lang_code = tgt_lang.lower()
+        if tgt_lang_code in ["english", "danish", "spanish", "german", "french"]:
+            lang_map = {"english": "en", "danish": "da", "spanish": "es", "german": "de", "french": "fr"}
+            tgt_lang_code = lang_map.get(tgt_lang_code, tgt_lang_code)
+            logger.debug(f"Converted target language '{tgt_lang}' to language code '{tgt_lang_code}'")
+        
+        # Group files by their base name (removing language codes)
+        # This helps us identify which files already have translations
+        file_groups = {}
+        
+        # Various language code patterns that might appear in filenames
+        lang_patterns = [
+            # More specific patterns for complex subtitle filenames
+            r'\.([a-z]{2})\..*\.(srt|ass)$',    # matches .en.anything.srt or .en.anything.ass
+            r'\.([a-z]{2})\.(srt|ass)$',        # matches .en.srt or .en.ass
+            r'\.([a-z]{2})\.hi\.(srt|ass)$',    # matches .en.hi.srt specifically
+            r'\.([a-z]{2})-hi\.(srt|ass)$',     # matches .en-hi.srt
+            
+            # Inside filename patterns
+            r'\.([a-z]{2})\.(?!(srt|ass)$)',    # .en. followed by something other than srt/ass at the end
+            r'\.([a-z]{2})-(?!(srt|ass)$)',     # .en- followed by something
+            r'\.([a-z]{2})_(?!(srt|ass)$)',     # .en_ followed by something
+            r'_([a-z]{2})_',                    # _en_ (surrounded by underscores)
+            r'-([a-z]{2})-',                    # -en- (surrounded by hyphens)
+            
+            # Added for subtle variations
+            r'([a-z]{2})\.(?!(srt|ass)$)',      # en. (at the start of filename or after a separator)
+            r'([a-z]{2})-(?!(srt|ass)$)',       # en- (similar to above)
+            r'(?<![a-z])([a-z]{2})(?![a-z])'    # standalone en (if surrounded by non-letters)
+        ]
+        
+        # Track files that don't match any pattern
+        unmatched_files = []
+        
+        # This tracks which files we should skip based on language patterns
+        skip_these_files = []
+        
+        # Process each file and group them
+        for file_path in all_subtitle_files:
+            file_name = os.path.basename(file_path)
+            file_dir = os.path.dirname(file_path)
+            
+            # Critical fix: Special case for target language files with complex patterns
+            # This explicitly checks for target language files first and marks them for skipping
+            if f".{tgt_lang_code}." in file_name.lower():
+                logger.debug(f"Skipping file with target language code in filename: {file_name}")
+                skip_these_files.append(file_path)
+                continue
+                
+            # Try to extract language code from filename
+            detected_lang = None
+            matching_pattern = None
+            
+            for pattern in lang_patterns:
+                match = re.search(pattern, file_name.lower())
+                if match:
+                    detected_lang = match.group(1)
+                    matching_pattern = pattern
+                    logger.debug(f"Detected language '{detected_lang}' in file: {file_name} using pattern {pattern}")
+                    break
+            
+            # If we couldn't detect a language, track it but continue to next file
+            if not detected_lang:
+                unmatched_files.append(file_path)
+                logger.debug(f"No language detected in file: {file_name}")
+                continue
+            
+            # Skip if the language doesn't match either source or target language
+            if detected_lang != src_lang_code and detected_lang != tgt_lang_code:
+                logger.debug(f"Skipping file with non-relevant language '{detected_lang}': {file_name}")
+                continue
+                
+            # If it's a target language file, skip it immediately - we don't want to translate these
+            if detected_lang == tgt_lang_code:
+                logger.debug(f"Skipping file with target language code: {file_name}")
+                skip_these_files.append(file_path)
+                continue
+                
+            # Create a normalized base name for grouping related files
+            # For complex patterns, we'll use a more aggressive replacement approach
+            
+            # Start with filename as base
+            base_name = file_name.lower()
+            
+            # For files matching complex patterns like .en.hi.srt, remove the language code and any additional markers
+            if ".hi." in base_name or "-hi." in base_name:
+                # Remove language code with hi marker
+                base_name = re.sub(r'\.' + detected_lang + r'\.hi\.', '.*.hi.', base_name)
+                base_name = re.sub(r'\.' + detected_lang + r'-hi\.', '.*-hi.', base_name)
+            else:
+                # Standard replacements for other patterns
+                base_name = re.sub(r'\.' + detected_lang + r'\.', '.*.', base_name)
+                base_name = re.sub(r'\.' + detected_lang + r'-', '.*-', base_name)
+                base_name = re.sub(r'\.' + detected_lang + r'_', '.*_', base_name)
+                base_name = re.sub(r'_' + detected_lang + r'_', '_*_', base_name)
+                base_name = re.sub(r'-' + detected_lang + r'-', '-*-', base_name)
+                # For languages at the start of filename
+                base_name = re.sub(r'^' + detected_lang + r'\.', '*.', base_name)
+                base_name = re.sub(r'^' + detected_lang + r'-', '*-', base_name)
+            
+            # Use a combination of directory and base name as the group key
+            # This handles cases where the same filename appears in different directories
+            group_key = os.path.join(file_dir, base_name)
+            
+            if group_key not in file_groups:
+                file_groups[group_key] = {}
+            
+            file_groups[group_key][detected_lang] = file_path
+        
+        # Log summary of unmatched files
+        if unmatched_files:
+            logger.info(f"Found {len(unmatched_files)} files without detectable language code")
+            if len(unmatched_files) < 10:  # Only log details if there are a few files
+                for file_path in unmatched_files:
+                    logger.debug(f"Unmatched file: {os.path.basename(file_path)}")
+        
+        # Log summary of files we're skipping because they already have target language
+        if skip_these_files:
+            logger.info(f"Found {len(skip_these_files)} files that already have target language '{tgt_lang_code}'")
+            if len(skip_these_files) < 10:  # Only log details if there are a few files
+                for file_path in skip_these_files:
+                    logger.debug(f"Skipping target language file: {os.path.basename(file_path)}")
+        
+        # Now select files for translation (source lang exists, target lang doesn't)
         srt_files = []
         skipped_files = []
         
-        for root, _, files in os.walk(root_dir):
-            # First gather all SRT files in the directory
-            all_srt_files = [os.path.join(root, f) for f in files if f.lower().endswith('.srt')]
-            
-            # Create a dictionary to track target language files
-            target_files = {}
-            
-            # Identify existing target language files
-            for file_path in all_srt_files:
-                file_name = os.path.basename(file_path)
-                base, ext = os.path.splitext(file_name)
-                
-                # Check if file contains target language code
-                target_patterns = [
-                    f'.{tgt_lang}.', f'.{tgt_lang}-', f'.{tgt_lang}_',
-                    f'{tgt_lang}.', f'-{tgt_lang}.', f'_{tgt_lang}.'
-                ]
-                
-                is_target_lang = any(pat in base.lower() for pat in target_patterns)
-                
-                if is_target_lang:
-                    # Extract the base name without language code to use as key
-                    # This is a simplified approach - might need refinement for complex naming
-                    clean_base = re.sub(r'[._-][a-z]{2}[._-]', '.', base.lower())
-                    target_files[clean_base] = file_path
-            
-            # Now check source language files and add only those without target version
-            for file_path in all_srt_files:
-                file_name = os.path.basename(file_path)
-                base, ext = os.path.splitext(file_name)
-                
-                # Check if file contains source language code
-                source_patterns = [
-                    f'.{src_lang}.', f'.{src_lang}-', f'.{src_lang}_',
-                    f'{src_lang}.', f'-{src_lang}.', f'_{src_lang}.'
-                ]
-                
-                is_source_lang = any(pat in base.lower() for pat in source_patterns)
-                
-                if is_source_lang:
-                    # Extract the base name without language code
-                    clean_base = re.sub(r'[._-][a-z]{2}[._-]', '.', base.lower())
-                    
-                    # Check if we already have a target language version
-                    if clean_base in target_files:
-                        logger.info(f"Skipping {file_name} - target language version already exists")
-                        skipped_files.append(file_path)
-                    else:
-                        logger.info(f"Adding {file_name} to translation queue")
-                        srt_files.append(file_path)
+        for group_key, lang_files in file_groups.items():
+            # Check if we have a source language file but no target language file
+            if src_lang_code in lang_files and tgt_lang_code not in lang_files:
+                source_file = lang_files[src_lang_code]
+                # Double-check we haven't already flagged this file to skip
+                if source_file not in skip_these_files:
+                    logger.info(f"Adding {os.path.basename(lang_files[src_lang_code])} to translation queue")
+                    srt_files.append(lang_files[src_lang_code])
                 else:
-                    # If we can't determine the language from the filename, 
-                    # we'll assume it's a source language file
-                    logger.info(f"Adding {file_name} to translation queue (language not specified in filename)")
-                    srt_files.append(file_path)
+                    logger.info(f"Skipping {os.path.basename(lang_files[src_lang_code])} - flagged as target language file")
+                    skipped_files.append(lang_files[src_lang_code])
+            elif src_lang_code in lang_files and tgt_lang_code in lang_files:
+                logger.info(f"Skipping {os.path.basename(lang_files[src_lang_code])} - target version already exists: {os.path.basename(lang_files[tgt_lang_code])}")
+                skipped_files.append(lang_files[src_lang_code])
+            elif src_lang_code not in lang_files and tgt_lang_code in lang_files:
+                logger.debug(f"Skipping {os.path.basename(lang_files[tgt_lang_code])} - target only, no source")
+                # Not counted as skipped since we don't have a source file
         
         if not srt_files:
             if skipped_files:
