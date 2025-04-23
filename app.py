@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import logging
 import re
@@ -1173,6 +1174,16 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                     # Copy the file to the temporary directory for the ZIP file
                     import shutil
                     shutil.copy2(archive_path, output_path)
+                    
+                    # NEW CODE: Also save alongside the original file
+                    original_dir = os.path.dirname(srt_file)
+                    alongside_path = os.path.join(original_dir, translated_filename)
+                    try:
+                        # Copy the translated file to the original directory
+                        shutil.copy2(archive_path, alongside_path)
+                        logger.info(f"Also saved translation alongside original: {alongside_path}")
+                    except Exception as e:
+                        logger.error(f"Failed to save alongside original: {e}")
                     
                     translated_files.append(output_path)
                     progress["done_files"] += 1
