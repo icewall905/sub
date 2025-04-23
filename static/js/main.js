@@ -57,6 +57,12 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('file', fileInput.files[0]);
             formData.append('source_language', document.getElementById('source-language').value);
             formData.append('target_language', document.getElementById('target-language').value);
+            
+            // Collect special word meanings and add to the form data if any exist
+            const specialMeanings = collectSpecialMeanings();
+            if (specialMeanings.length > 0) {
+                formData.append('special_meanings', JSON.stringify(specialMeanings));
+            }
 
             const statusContainer = document.getElementById('status-container');
             if (statusContainer) {
@@ -1444,4 +1450,77 @@ function checkForActiveTranslations() {
         .catch(error => {
             console.error("Error checking for active translations:", error);
         });
+}
+
+// --- Special Meanings Section ---
+
+// Add event listener for the add meaning button
+document.addEventListener('DOMContentLoaded', function() {
+    const addMeaningBtn = document.getElementById('add-meaning-btn');
+    if (addMeaningBtn) {
+        addMeaningBtn.addEventListener('click', addSpecialMeaningRow);
+    }
+
+    // Setup remove buttons for existing rows
+    setupRemoveButtons();
+});
+
+// Function to add a new special meaning row
+function addSpecialMeaningRow() {
+    const container = document.getElementById('special-meanings-container');
+    
+    // Create new row
+    const newRow = document.createElement('div');
+    newRow.className = 'special-meaning-row';
+    
+    // Add input fields and remove button
+    newRow.innerHTML = `
+        <input type="text" class="word-input" placeholder="Word or phrase">
+        <input type="text" class="meaning-input" placeholder="Meaning/context">
+        <button type="button" class="remove-meaning-btn">×</button>
+    `;
+    
+    // Add the new row to the container
+    container.appendChild(newRow);
+    
+    // Setup the remove button for the new row
+    setupRemoveButtons();
+}
+
+// Function to set up all remove buttons
+function setupRemoveButtons() {
+    document.querySelectorAll('.remove-meaning-btn').forEach(button => {
+        // Remove existing event listeners to prevent duplicates
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        // Add new event listener
+        newButton.addEventListener('click', function() {
+            const row = this.parentNode;
+            row.remove();
+        });
+    });
+}
+
+// Function to collect all special meanings as an array of objects
+function collectSpecialMeanings() {
+    const specialMeanings = [];
+    const rows = document.querySelectorAll('.special-meaning-row');
+    
+    rows.forEach(row => {
+        const wordInput = row.querySelector('.word-input');
+        const meaningInput = row.querySelector('.meaning-input');
+        
+        if (wordInput && meaningInput) {
+            const word = wordInput.value.trim();
+            const meaning = meaningInput.value.trim();
+            
+            if (word && meaning) {
+                specialMeanings.push({ word, meaning });
+            }
+        }
+    });
+    
+    console.log('Collected special meanings:', specialMeanings);
+    return specialMeanings;
 }

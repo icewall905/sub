@@ -519,16 +519,24 @@ class SubtitleProcessor:
                 if context_after:
                     context_text += "FOLLOWING LINES:\n" + "\n".join(context_after)
                 
+                # Get special meanings from progress_dict if available
+                special_meanings = None
+                if progress_dict is not None and "special_meanings" in progress_dict:
+                    special_meanings = progress_dict["special_meanings"]
+                    if special_meanings:
+                        self.logger.info(f"Using {len(special_meanings)} special word meanings for translation")
+                
                 # Record time before first pass translation
                 first_pass_start = time.time()
                 
-                # Pass context and media_info to translation service
+                # Pass context, media_info, and special meanings to translation service
                 translation_details = translation_service.translate(
                     original_text, 
                     source_lang, 
                     target_lang,
                     context=context_text,
-                    media_info=media_info
+                    media_info=media_info,
+                    special_meanings=special_meanings  # Pass special meanings to translation service
                 )
                 
                 # Calculate first pass timing

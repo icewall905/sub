@@ -60,7 +60,7 @@ class TranslationService:
         language_name = language_name.lower().strip('"\' ')
         return self.language_mapping.get(language_name, language_name)
     
-    def translate(self, text: str, source_lang: str, target_lang: str, context=None, media_info=None) -> Dict[str, Any]:
+    def translate(self, text: str, source_lang: str, target_lang: str, context=None, media_info=None, special_meanings=None) -> Dict[str, Any]:
         """
         Translate text from source language to target language.
         Uses the configured translation services in order of priority.
@@ -71,6 +71,7 @@ class TranslationService:
             target_lang: Target language code
             context: Optional context text (surrounding subtitles)
             media_info: Optional media information from TMDB
+            special_meanings: Optional list of special word meanings defined by the user
             
         Returns:
             Dictionary containing:
@@ -316,7 +317,7 @@ class TranslationService:
             self.logger.error(f"OpenAI API request failed: {str(e)}")
             return ""
     
-    def _translate_with_ollama(self, text: str, source_lang: str, target_lang: str, context=None, media_info=None) -> str:
+    def _translate_with_ollama(self, text: str, source_lang: str, target_lang: str, context=None, media_info=None, special_meanings=None) -> str:
         """Translate text using local Ollama service."""
         if not self.config.has_section("ollama"):
             self.logger.warning("Ollama configuration not found")
@@ -369,6 +370,20 @@ class TranslationService:
                         self.logger.warning("Wiki terminology returned empty terms list")
             except Exception as e:
                 self.logger.error(f"Error adding wiki terminology to Ollama prompt: {str(e)}", exc_info=True)
+                
+            # Add user-defined special meanings if available
+            if special_meanings and len(special_meanings) > 0:
+                try:
+                    prompt += f"\nUSER-DEFINED SPECIAL MEANINGS:\n"
+                    prompt += f"The following terms have special meanings defined by the user and must be translated appropriately:\n"
+                    
+                    for meaning in special_meanings:
+                        if 'word' in meaning and 'meaning' in meaning:
+                            prompt += f"- {meaning['word']}: {meaning['meaning']}\n"
+                    
+                    self.logger.info(f"Added {len(special_meanings)} user-defined special meanings to Ollama translation prompt")
+                except Exception as e:
+                    self.logger.error(f"Error adding user-defined special meanings to Ollama prompt: {str(e)}")
             
             prompt += (
                 f"\nConsider this context from surrounding subtitles:\n\n"
@@ -636,6 +651,20 @@ Air Date: {media_info.get('air_date', 'Unknown')}
                         self.logger.warning("No wiki terminology found for this media")
                 except Exception as e:
                     self.logger.error(f"Error adding wiki terminology to prompt: {str(e)}", exc_info=True)
+                    
+            # Add user-defined special meanings if provided
+            if isinstance(translations, dict) and isinstance(translations.get('specialMeanings'), list):
+                special_meanings = translations.get('specialMeanings')
+                if len(special_meanings) > 0:
+                    prompt += f"""
+USER-DEFINED SPECIAL MEANINGS:
+The following terms have special meanings defined by the user and must be translated appropriately:
+"""
+                    for meaning in special_meanings:
+                        if isinstance(meaning, dict) and 'word' in meaning and 'meaning' in meaning:
+                            prompt += f"- {meaning['word']}: {meaning['meaning']}\n"
+                    
+                    self.logger.info(f"Added {len(special_meanings)} user-defined special meanings to Ollama prompt")
 
             # Add context lines before if available
             if context_before and len(context_before) > 0:

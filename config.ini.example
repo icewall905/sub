@@ -31,7 +31,7 @@ backup_count = 2
 enabled = true
 server_url = http://localhost:11434
 endpoint = /api/generate
-model = gemma3:12b
+model = gemma3:27b-it-qat
 # Performance settings for Ollama
 #num_gpu = 1      # Number of GPUs to use (increase for multi-GPU systems)
 #num_thread = 4   # Number of threads to use for computation

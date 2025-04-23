@@ -190,6 +190,15 @@ def translate_subtitle():
     source_language = request.form.get('source_language', config.get('general', 'source_language', fallback='en'))
     target_language = request.form.get('target_language', config.get('general', 'target_language', fallback='da'))
     
+    # Get special meanings if provided
+    special_meanings = []
+    if 'special_meanings' in request.form:
+        try:
+            special_meanings = json.loads(request.form.get('special_meanings'))
+            logger.info(f"Received {len(special_meanings)} special word meanings")
+        except json.JSONDecodeError:
+            logger.error("Failed to parse special meanings JSON")
+    
     # Generate a unique job ID
     job_id = str(uuid.uuid4())
     
@@ -217,7 +226,8 @@ def translate_subtitle():
             'progress': 0,
             'message': 'Translation queued',
             'start_time': time.time(),
-            'end_time': None
+            'end_time': None,
+            'special_meanings': special_meanings  # Add special meanings to the job
         }
         
         # Start translation in background thread
@@ -810,6 +820,13 @@ def process_translation(job_id):
             "current_line": 0,
             "job_id": job_id # Add job_id for reference
         })
+        
+        # Get special meanings if they were provided with the job
+        special_meanings = job.get('special_meanings', [])
+        if special_meanings:
+            logger.info(f"Job {job_id} includes {len(special_meanings)} special word meanings")
+            # Add special meanings to progress dict so they can be used by the translation service
+            progress_dict["special_meanings"] = special_meanings
         
         # Save progress state to file
         save_progress_state()
