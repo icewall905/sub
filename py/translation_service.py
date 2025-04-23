@@ -27,6 +27,9 @@ class TranslationService:
         # Initialize wiki terminology service
         self.wiki_terminology = WikiTerminologyService(config, logger)
         
+        # Initialize special meanings from file
+        self.special_meanings = self.load_special_meanings()
+        
         # Language mapping for reference
         self.language_mapping = {
             "english": "en",
@@ -88,6 +91,12 @@ class TranslationService:
             "collected_translations": {},
             "first_pass_text": None
         }
+
+        # If special_meanings weren't explicitly provided, use the ones loaded from file
+        if special_meanings is None:
+            special_meanings = self.special_meanings
+            if special_meanings:
+                self.logger.info(f"Using {len(special_meanings)} special meanings from file")
 
         # Check if Ollama is enabled and should be used as final translator
         ollama_enabled = self.config.getboolean("ollama", "enabled", fallback=False)
@@ -997,3 +1006,50 @@ IMPORTANT: Return ONLY your translation of the text between the dotted lines. Do
         except Exception as e:
             self.logger.error(f"Error fetching episode info: {str(e)}")
             return None
+
+    def load_special_meanings(self):
+        """
+        Load special word meanings from the JSON file.
+        
+        Returns:
+            List of dictionaries containing word meanings or empty list if file doesn't exist
+        """
+        meanings_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+                                    'files', 'meaning.json')
+        try:
+            if os.path.exists(meanings_file):
+                self.logger.info(f"Loading special meanings from {meanings_file}")
+                with open(meanings_file, 'r', encoding='utf-8') as f:
+                    meanings = json.load(f)
+                self.logger.info(f"Loaded {len(meanings)} special meanings from file")
+                return meanings
+            else:
+                self.logger.warning(f"Special meanings file not found: {meanings_file}")
+                return []
+        except Exception as e:
+            self.logger.error(f"Error loading special meanings: {str(e)}")
+            return []
+            
+    def save_special_meanings(self, meanings):
+        """
+        Save special word meanings to the JSON file.
+        
+        Args:
+            meanings: List of dictionaries containing word meanings
+        
+        Returns:
+            Boolean indicating success or failure
+        """
+        meanings_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+                                    'files', 'meaning.json')
+        try:
+            # Ensure the directory exists
+            os.makedirs(os.path.dirname(meanings_file), exist_ok=True)
+            
+            with open(meanings_file, 'w', encoding='utf-8') as f:
+                json.dump(meanings, f, ensure_ascii=False, indent=2)
+            self.logger.info(f"Saved {len(meanings)} special meanings to {meanings_file}")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error saving special meanings: {str(e)}")
+            return False
