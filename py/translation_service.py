@@ -443,7 +443,7 @@ class TranslationService:
         
         # Add additional Ollama options if configured
         options = {}
-        for option_name in ["num_gpu", "num_thread"]:
+        for option_name in ["num_gpu", "num_thread", "num_ctx"]:
             if self.config.has_option("ollama", option_name):
                 # Extra-strict check - only proceed if option exists AND has a non-empty value
                 raw_value = self.config.get("ollama", option_name, fallback=None)
@@ -751,7 +751,7 @@ IMPORTANT: Return ONLY your translation of the text between the dotted lines. Do
             # Add additional Ollama performance options ONLY if they are explicitly set in config
             # This ensures we don't send any default values that weren't in config.ini
             options = {}
-            for option_name in ["num_gpu", "num_thread"]:
+            for option_name in ["num_gpu", "num_thread", "num_ctx"]:
                 if self.config.has_option("ollama", option_name):
                     # Verify the option is actually set and not commented out
                     raw_value = self.config.get("ollama", option_name, fallback=None)
