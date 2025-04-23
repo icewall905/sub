@@ -26,6 +26,7 @@ file_enabled = true
 log_file = translator.log
 max_size_mb = 5
 backup_count = 2
+log_live_status = false # Set to true to enable detailed logging of live status responses
 
 [ollama]
 enabled = true

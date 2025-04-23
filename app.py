@@ -625,8 +625,9 @@ def live_status():
         if "processed_lines" in progress:
             response_data["processed_lines"] = progress["processed_lines"]
         
-        # Log the constructed response for debugging
-        logger.debug(f"Live status response: {response_data}")
+        # Only log the detailed response if log_live_status is enabled
+        if config.getboolean('logging', 'log_live_status', fallback=False):
+            logger.debug(f"Live status response: {response_data}")
     
     return jsonify(response_data)
 

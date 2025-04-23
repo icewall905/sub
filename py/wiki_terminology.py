@@ -180,16 +180,22 @@ class WikiTerminologyService:
         pages.add(wiki_name.replace("_", " ").title())
 
         # First prioritize themed (show-specific) categories
+        themed_pages = []
         for cat in THEMED_CATEGORIES:
             try:
                 data = self._mw(base, action="query", list="categorymembers",
                                 cmtitle=f"Category:{cat}", cmlimit="10")
-                themed_pages = [p["title"] for p in data["query"]["categorymembers"]]
+                cat_pages = [p["title"] for p in data["query"]["categorymembers"]]
                 # Prioritize these by adding them to the start of our pages list
-                pages.update(themed_pages)
-                self.logger.debug("Found %d pages in themed category %s", len(themed_pages), cat)
+                themed_pages.extend(cat_pages)
+                # Only log if there are actually pages in this category, to reduce log spam
+                if cat_pages:
+                    self.logger.debug("Found %d pages in themed category %s", len(cat_pages), cat)
             except Exception:
                 pass
+        
+        # Add themed pages to our set
+        pages.update(themed_pages)
 
         # Then add general glossary categories
         for cat in ["Glossary", "Terminology", "Slang", "Dictionary"]:
