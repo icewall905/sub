@@ -156,7 +156,8 @@ class TranslationService:
                                                                           collected_translations,
                                                                           context_before=context, 
                                                                           context_after=context, 
-                                                                          media_info=media_info)
+                                                                          media_info=media_info,
+                                                                          special_meanings=special_meanings)
                 end_time = time.time()
                 
                 if ollama_final_result:
@@ -588,7 +589,7 @@ class TranslationService:
         reverse_mapping = {v: k for k, v in self.language_mapping.items()}
         return reverse_mapping.get(language_code.lower(), language_code)
 
-    def _translate_with_ollama_as_final(self, text: str, source_lang: str, target_lang: str, translations: dict, context_before=None, context_after=None, media_info=None) -> Optional[str]:
+    def _translate_with_ollama_as_final(self, text: str, source_lang: str, target_lang: str, translations: dict, context_before=None, context_after=None, media_info=None, special_meanings=None) -> Optional[str]:
         try:
             # Improved prompt with clearer instructions and structure
             prompt = f"""You are a subtitle translation expert. Your task is to translate ONLY the line marked as "TEXT TO TRANSLATE" below.
@@ -653,7 +654,20 @@ Air Date: {media_info.get('air_date', 'Unknown')}
                     self.logger.error(f"Error adding wiki terminology to prompt: {str(e)}", exc_info=True)
                     
             # Add user-defined special meanings if provided
-            if isinstance(translations, dict) and isinstance(translations.get('specialMeanings'), list):
+            # Check if special_meanings was explicitly passed as a parameter
+            if special_meanings:
+                if isinstance(special_meanings, list) and len(special_meanings) > 0:
+                    prompt += f"""
+USER-DEFINED SPECIAL MEANINGS:
+The following terms have special meanings defined by the user and must be translated appropriately:
+"""
+                    for meaning in special_meanings:
+                        if isinstance(meaning, dict) and 'word' in meaning and 'meaning' in meaning:
+                            prompt += f"- {meaning['word']}: {meaning['meaning']}\n"
+                    
+                    self.logger.info(f"Added {len(special_meanings)} user-defined special meanings to Ollama prompt")
+            # Legacy format check - in case we still receive specialMeanings through the translations dictionary
+            elif isinstance(translations, dict) and isinstance(translations.get('specialMeanings'), list):
                 special_meanings = translations.get('specialMeanings')
                 if len(special_meanings) > 0:
                     prompt += f"""
@@ -664,7 +678,7 @@ The following terms have special meanings defined by the user and must be transl
                         if isinstance(meaning, dict) and 'word' in meaning and 'meaning' in meaning:
                             prompt += f"- {meaning['word']}: {meaning['meaning']}\n"
                     
-                    self.logger.info(f"Added {len(special_meanings)} user-defined special meanings to Ollama prompt")
+                    self.logger.info(f"Added {len(special_meanings)} user-defined special meanings to Ollama prompt (from translations dict)")
 
             # Add context lines before if available
             if context_before and len(context_before) > 0:
@@ -693,7 +707,8 @@ AVAILABLE TRANSLATIONS:
 """
             
             for service, translation in translations.items():
-                prompt += f"{service.upper()}: {translation}\n"
+                if service != 'specialMeanings':  # Skip the special meanings entry if it exists
+                    prompt += f"{service.upper()}: {translation}\n"
 
             # Add final reminder
             prompt += """
