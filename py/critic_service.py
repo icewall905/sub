@@ -60,6 +60,15 @@ class CriticService:
                 self.num_thread = None
         else:
             self.num_thread = None
+            
+        if config.has_option('ollama', 'num_ctx'):
+            value = config.get('ollama', 'num_ctx', fallback=None)
+            if value is not None and str(value).strip() != "":
+                self.num_ctx = config.getint('ollama', 'num_ctx')
+            else:
+                self.num_ctx = None
+        else:
+            self.num_ctx = None
 
         if config.has_option('ollama', 'use_mmap'):
             value = config.get('ollama', 'use_mmap', fallback=None)
@@ -178,8 +187,8 @@ Only return the JSON object, no other text.
             # Only add performance options if they are explicitly defined in the config
             options = {}
             
-            # Process numeric options (num_gpu, num_thread)
-            for option_name in ["num_gpu", "num_thread"]:
+            # Process numeric options (num_gpu, num_thread, num_ctx)
+            for option_name in ["num_gpu", "num_thread", "num_ctx"]:
                 if self.config.has_option("ollama", option_name):
                     # Get the raw value and check if it's actually set and not commented out
                     raw_value = self.config.get("ollama", option_name, fallback=None)
