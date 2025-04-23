@@ -1219,6 +1219,56 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         # Save error state to file
         save_progress_state()
 
+@app.route('/api/special_meanings', methods=['GET'])
+def api_special_meanings():
+    """API endpoint to get special word meanings from the file."""
+    try:
+        # Initialize translation service to load meanings
+        config = config_manager.get_config()
+        translation_service = TranslationService(config, logger)
+        
+        # Get meanings from the translation service
+        meanings = translation_service.special_meanings
+        if not meanings:
+            # Try to load directly from file as fallback
+            meanings_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files', 'meaning.json')
+            if os.path.exists(meanings_file):
+                with open(meanings_file, 'r', encoding='utf-8') as f:
+                    meanings = json.load(f)
+            else:
+                meanings = []
+                
+        logger.info(f"Retrieved {len(meanings)} special meanings from file")
+        return jsonify({"success": True, "meanings": meanings})
+    except Exception as e:
+        logger.error(f"Error retrieving special meanings: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/api/special_meanings', methods=['POST'])
+def api_update_special_meanings():
+    """API endpoint to update special word meanings in the file."""
+    try:
+        meanings = request.json.get('meanings', [])
+        
+        # Initialize translation service
+        config = config_manager.get_config()
+        translation_service = TranslationService(config, logger)
+        
+        # Save to file
+        success = translation_service.save_special_meanings(meanings)
+        
+        # Update the in-memory meanings
+        translation_service.special_meanings = meanings
+        
+        if success:
+            logger.info(f"Updated {len(meanings)} special meanings")
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "message": "Failed to save meanings"}), 500
+    except Exception as e:
+        logger.error(f"Error updating special meanings: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
 if __name__ == '__main__':
     # Create default config if it doesn't exist
     if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini')):

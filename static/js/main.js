@@ -19,6 +19,9 @@ function debug(message) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Document loaded, initializing...");
 
+    // Load special meanings from file first
+    loadSpecialMeaningsFromFile();
+
     // Check for active translations as soon as page loads
     checkForActiveTranslations();
 
@@ -1523,4 +1526,100 @@ function collectSpecialMeanings() {
     
     console.log('Collected special meanings:', specialMeanings);
     return specialMeanings;
+}
+
+// Function to load special meanings from the file when the page loads
+function loadSpecialMeaningsFromFile() {
+    console.log("Loading special meanings from file...");
+    
+    fetch('/api/special_meanings')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.meanings && data.meanings.length > 0) {
+                console.log(`Loaded ${data.meanings.length} special meanings from file:`, data.meanings);
+                
+                // Get the container element
+                const container = document.getElementById('special-meanings-container');
+                if (!container) {
+                    console.error("Special meanings container not found");
+                    return;
+                }
+                
+                // Clear existing rows
+                container.innerHTML = '';
+                
+                // Create a row for each meaning
+                data.meanings.forEach(meaning => {
+                    const row = document.createElement('div');
+                    row.className = 'special-meaning-row';
+                    
+                    row.innerHTML = `
+                        <input type="text" class="word-input" placeholder="Word or phrase" value="${escapeHtml(meaning.word)}">
+                        <input type="text" class="meaning-input" placeholder="Meaning/context" value="${escapeHtml(meaning.meaning)}">
+                        <button type="button" class="remove-meaning-btn">×</button>
+                    `;
+                    
+                    container.appendChild(row);
+                });
+                
+                // Set up the remove buttons for the newly created rows
+                setupRemoveButtons();
+                
+                // Add a save button if it doesn't exist
+                let saveBtn = document.getElementById('save-meanings-btn');
+                if (!saveBtn) {
+                    saveBtn = document.createElement('button');
+                    saveBtn.id = 'save-meanings-btn';
+                    saveBtn.className = 'primary';
+                    saveBtn.textContent = 'Save Meanings';
+                    saveBtn.addEventListener('click', saveSpecialMeanings);
+                    
+                    // Add it after the add meaning button
+                    const addBtn = document.getElementById('add-meaning-btn');
+                    if (addBtn && addBtn.parentNode) {
+                        addBtn.parentNode.insertBefore(saveBtn, addBtn.nextSibling);
+                    }
+                }
+            } else {
+                console.log("No special meanings found in file or error loading");
+            }
+        })
+        .catch(error => {
+            console.error("Error loading special meanings from file:", error);
+        });
+}
+
+// Function to save special meanings to the file
+function saveSpecialMeanings() {
+    const meanings = collectSpecialMeanings();
+    
+    fetch('/api/special_meanings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ meanings: meanings })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Saved ${meanings.length} special meanings to file`);
+        } else {
+            alert(`Error saving special meanings: ${data.message || 'Unknown error'}`);
+        }
+    })
+    .catch(error => {
+        console.error("Error saving special meanings:", error);
+        alert(`Error saving special meanings: ${error.message}`);
+    });
+}
+
+// Helper function to escape HTML to prevent XSS
+function escapeHtml(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
