@@ -33,6 +33,10 @@ app.secret_key = os.urandom(24)  # Add secret key for flash messages
 # Ensure the upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# Define the cache directory for temporary files
+CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache')
+os.makedirs(CACHE_DIR, exist_ok=True)  # Ensure the cache folder exists
+
 # Initialize config first
 config_manager = ConfigManager(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))
 config = config_manager.get_config()
@@ -175,76 +179,86 @@ def api_clear_log():
     return jsonify({'success': success})
 
 @app.route('/api/translate', methods=['POST'])
-def translate_subtitle():
-    # Debug information to help identify the issue
-    print("Request received: ", request.files)
-    print("Form data: ", request.form)
-    
-    if 'file' not in request.files:
-        return jsonify({"success": False, "message": "No file part"})
-    
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"success": False, "message": "No file selected"})
-    
-    # Get languages from form
-    source_language = request.form.get('source_language', config.get('general', 'source_language', fallback='en'))
-    target_language = request.form.get('target_language', config.get('general', 'target_language', fallback='da'))
-    
-    # Get special meanings if provided
-    special_meanings = []
-    if 'special_meanings' in request.form:
-        try:
-            special_meanings = json.loads(request.form.get('special_meanings'))
-            logger.info(f"Received {len(special_meanings)} special word meanings")
-        except json.JSONDecodeError:
-            logger.error("Failed to parse special meanings JSON")
-    
-    # Generate a unique job ID
-    job_id = str(uuid.uuid4())
-    
-    # Process the uploaded file
+def api_translate():
+    """Handle file upload and start translation."""
     try:
-        # Rest of your code...
-        # Secure the filename and save the file
-        filename = secure_filename(file.filename)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        base, ext = os.path.splitext(filename)
-        save_filename = f"{base}_{source_language}_to_{target_language}_{timestamp}{ext}"
-        save_path = os.path.join(app.config['UPLOAD_FOLDER'], save_filename)
-        file.save(save_path)
+        # Check if a host file path was provided instead of a file upload
+        host_file_path = request.form.get('host_file_path', '')
         
-        # Create translation job
-        translation_jobs[job_id] = {
-            'id': job_id,
-            'filename': save_filename,
-            'original_filename': filename,
-            'source_path': save_path,
-            'target_path': None,
-            'source_language': source_language,
-            'target_language': target_language,
-            'status': 'queued',
-            'progress': 0,
-            'message': 'Translation queued',
-            'start_time': time.time(),
-            'end_time': None,
-            'special_meanings': special_meanings  # Add special meanings to the job
-        }
+        if host_file_path:
+            # Validate the host file path for security
+            if not os.path.isfile(host_file_path):
+                return jsonify({"error": "Invalid file path or file does not exist"}), 400
+                
+            # Check if it's a subtitle file
+            if not host_file_path.lower().endswith(('.srt', '.ass', '.vtt')):
+                return jsonify({"error": "Only subtitle files (.srt, .ass, .vtt) are supported"}), 400
+                
+            # Get the filename without path
+            filename = os.path.basename(host_file_path)
+            
+            # Create a job ID based on the filename and timestamp
+            timestamp = int(time.time())
+            job_id = f"{timestamp}_{filename}"
+            
+            # Copy the file to the cache directory
+            cache_path = os.path.join(CACHE_DIR, filename)
+            shutil.copy2(host_file_path, cache_path)
+            logger.info(f"Using host file: {host_file_path}, copied to {cache_path}")
+            
+        else:
+            # Handle regular file upload
+            if 'file' not in request.files:
+                return jsonify({"error": "No file part in the request"}), 400
+                
+            file = request.files['file']
+            
+            if file.filename == '':
+                return jsonify({"error": "No file selected"}), 400
+                
+            if not allowed_file(file.filename):
+                return jsonify({"error": "File type not allowed. Only subtitle files (.srt, .ass, .vtt) are permitted"}), 400
+                
+            # Create a secure filename
+            filename = secure_filename(file.filename)
+            
+            # Create a job ID based on the filename and timestamp
+            timestamp = int(time.time())
+            job_id = f"{timestamp}_{filename}"
+            
+            # Save the file to the cache directory
+            cache_path = os.path.join(CACHE_DIR, filename)
+            file.save(cache_path)
+            logger.info(f"File uploaded: {filename}, saved to {cache_path}")
+
+        # Get language options
+        source_language = request.form.get('source_language', 'en')
+        target_language = request.form.get('target_language', 'da')
         
-        # Start translation in background thread
-        from threading import Thread
-        thread = Thread(target=process_translation, args=(job_id,))
-        thread.daemon = True
-        thread.start()
-        
+        # Process special meanings if provided
+        special_meanings = []
+        if 'special_meanings' in request.form:
+            try:
+                special_meanings = json.loads(request.form['special_meanings'])
+                logger.info(f"Special meanings provided: {len(special_meanings)} items")
+            except:
+                logger.warning("Failed to parse special meanings JSON")
+
+        # Start the translation in a background thread
+        threading.Thread(
+            target=process_translation,
+            args=(job_id, cache_path, filename, source_language, target_language, special_meanings)
+        ).start()
+
         return jsonify({
-            'success': True,
-            'job_id': job_id,
-            'message': 'Translation started'
+            "status": "success",
+            "message": "File uploaded and translation started",
+            "job_id": job_id
         })
+
     except Exception as e:
-        logger.error(f"Error processing translation: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)})
+        logger.exception("Error in file upload and translation")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/job_status/<job_id>')
 def api_job_status(job_id):
@@ -498,6 +512,66 @@ def api_browse_dirs():
         return jsonify({"error": "Permission denied accessing this directory"}), 403
     except Exception as e:
         logger.error(f"Error browsing directory {parent_path}: {str(e)}")
+        return jsonify({"error": f"Error accessing directory: {str(e)}"}), 500
+
+@app.route('/api/browse_files', methods=['GET'])
+def api_browse_files():
+    """API endpoint to list files in a directory for the host file browser."""
+    parent_path = request.args.get("path", "")
+    
+    # Default to system root directories if no path provided
+    if not parent_path:
+        if os.name == "nt":  # Windows
+            import string
+            # Get all drives
+            drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
+            return jsonify({
+                "files": [],
+                "directories": [{"name": d, "path": d} for d in drives],
+                "current_path": "",
+                "parent_path": ""
+            })
+        else:  # Unix-like
+            parent_path = "/"
+    
+    try:
+        # Security check: normalize path to prevent directory traversal
+        parent_path = os.path.normpath(parent_path)
+        
+        # Get the parent of the current directory for "up one level" functionality
+        parent_of_parent = os.path.dirname(parent_path) if parent_path != "/" else ""
+        
+        # List all items in the parent path
+        files = []
+        dirs = []
+        
+        if os.path.isdir(parent_path):
+            for item in os.listdir(parent_path):
+                full_path = os.path.join(parent_path, item)
+                
+                if os.path.isdir(full_path):
+                    dirs.append({"name": item, "path": full_path})
+                else:
+                    # Only include files with certain extensions
+                    if item.lower().endswith(('.srt', '.ass', '.vtt')):
+                        files.append({"name": item, "path": full_path})
+            
+            # Sort directories and files by name
+            dirs.sort(key=lambda x: x["name"].lower())
+            files.sort(key=lambda x: x["name"].lower())
+            
+            return jsonify({
+                "files": files,
+                "directories": dirs,
+                "current_path": parent_path,
+                "parent_path": parent_of_parent
+            })
+        else:
+            return jsonify({"error": "Not a valid directory"}), 400
+    except PermissionError:
+        return jsonify({"error": "Permission denied accessing this directory"}), 403
+    except Exception as e:
+        logger.error(f"Error browsing files in directory {parent_path}: {str(e)}")
         return jsonify({"error": f"Error accessing directory: {str(e)}"}), 500
 
 @app.route("/api/start-scan", methods=["POST"])
@@ -838,7 +912,7 @@ def process_translation(job_id):
         job['message'] = 'Initializing...'
         
         # Initialize subtitle processor
-        subtitle_processor = SubtitleProcessor(logger)
+        SubtitleProcessor(logger)
         
         # Get config
         config = config_manager.get_config()

@@ -1235,3 +1235,201 @@ small {
     color: #a6adc8;
     font-size: 0.85em;
 }
+
+/* Host file browser styles */
+.host-file-browser {
+    border: 1px solid #333;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    background-color: #1a1a24;
+}
+
+.host-file-browser .browser-header {
+    padding: 8px 12px;
+    background-color: #272733;
+    border-bottom: 1px solid #333;
+    font-size: 0.9em;
+}
+
+.host-file-browser .browser-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.host-file-browser .directory-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.host-file-browser .directory-list li {
+    padding: 8px 12px;
+    border-bottom: 1px solid #2d2d3a;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.host-file-browser .directory-list li:hover {
+    background-color: #2d2d3a;
+}
+
+.host-file-browser .directory-list li.file-item {
+    color: #89b4fa;
+}
+
+.host-file-browser .directory-list li.directory-item {
+    color: #a6e3a1;
+}
+
+.host-file-browser .directory-list li.directory-item::before {
+    content: '📁';
+    margin-right: 5px;
+}
+
+.host-file-browser .directory-list li.file-item::before {
+    content: '📄';
+    margin-right: 5px;
+}
+
+.host-file-browser .directory-list li.up-level::before {
+    content: '📂';
+    margin-right: 5px;
+}
+
+.host-file-browser .directory-list li.selected {
+    background-color: #374165;
+    font-weight: bold;
+}
+
+.selected-file-info {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #272733;
+    border-radius: 4px;
+    font-size: 0.9em;
+    border-left: 4px solid #89b4fa;
+}
+
+.upload-options {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.upload-options input[type="file"] {
+    flex: 1;
+}
+
+/* Host File Browser styles */
+.host-file-browser {
+    margin-top: 10px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    background-color: #1a1a1e;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.host-file-browser .browser-header {
+    padding: 8px 12px;
+    background-color: #2a2a32;
+    border-bottom: 1px solid #444;
+    color: #ddd;
+    font-size: 0.9em;
+}
+
+.host-file-browser .browser-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.host-file-browser .directory-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.host-file-browser .directory-list li {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.host-file-browser .directory-list li:hover {
+    background-color: #2a2a36;
+}
+
+.host-file-browser .directory-list .directory-item {
+    color: #4a9bff;
+}
+
+.host-file-browser .directory-list .file-item {
+    color: #ddd;
+}
+
+.host-file-browser .directory-list .dir-icon,
+.host-file-browser .directory-list .file-icon {
+    margin-right: 8px;
+}
+
+.host-file-browser .directory-list .error-message,
+.host-file-browser .directory-list .empty-message,
+.host-file-browser .directory-list .no-files-message,
+.host-file-browser .directory-list .loading {
+    color: #888;
+    cursor: default;
+    justify-content: center;
+    padding: 15px;
+}
+
+.host-file-browser .directory-list .error-message {
+    color: #e55;
+}
+
+/* Selected file info display */
+.selected-file-info {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #28283a;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.selected-file-info button.small {
+    border: none;
+    background: none;
+    color: #aaa;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.selected-file-info button.small:hover {
+    color: #fff;
+}
+
+/* Adjust upload options to better display the browse host files button */
+.upload-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+@media (min-width: 768px) {
+    .upload-options {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+#browse-host-file-btn {
+    white-space: nowrap;
+}

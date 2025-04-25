@@ -37,8 +37,24 @@
                     <form id="upload-form" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="subtitle-file">Single File Upload:</label>
-                            <input type="file" id="subtitle-file" name="file" accept=".srt">
+                            <div class="upload-options">
+                                <input type="file" id="subtitle-file" name="file" accept=".srt">
+                                <button type="button" id="browse-host-file-btn" class="secondary">Browse Host Files</button>
+                            </div>
+                            
+                            <!-- Host file browser (initially hidden) -->
+                            <div id="host-file-browser" class="host-file-browser" style="display: none;">
+                                <div class="browser-header">
+                                    <h3>Select a subtitle file from your system</h3>
+                                    <div id="host-current-path">Root</div>
+                                </div>
+                                <ul id="host-file-list" class="file-list"></ul>
+                            </div>
                         </div>
+                        
+                        <!-- Add a hidden input field to store the host file path -->
+                        <input type="hidden" id="host-file-path" name="host_file_path">
+                        <div id="selected-host-file" style="display: none; margin: 10px 0; padding: 5px; background: #f0f0f0; border-radius: 3px;"></div>
                         
                         <div class="language-options">
                             <div class="form-group">

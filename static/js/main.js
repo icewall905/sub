@@ -35,6 +35,51 @@ document.addEventListener('DOMContentLoaded', function() {
     if (browserVisible) {
         browseInlineDirectory('');
     }
+    
+    // --- Host File Browser Handling ---
+    const browseHostFileBtn = document.getElementById('browse-host-file-btn');
+    const hostFileBrowser = document.getElementById('host-file-browser');
+    
+    if (browseHostFileBtn) {
+        browseHostFileBtn.addEventListener('click', function() {
+            if (hostFileBrowser) {
+                // Toggle file browser visibility
+                if (hostFileBrowser.style.display === 'none') {
+                    hostFileBrowser.style.display = 'block';
+                    // Load files only if the list is empty
+                    const fileList = document.getElementById('host-file-list');
+                    if (fileList && (!fileList.children.length || fileList.innerHTML === '')) {
+                        browseHostFiles('');
+                    }
+                } else {
+                    hostFileBrowser.style.display = 'none';
+                }
+            }
+        });
+    }
+    
+    // Event delegation for the host file list
+    const hostFileList = document.getElementById('host-file-list');
+    if (hostFileList) {
+        hostFileList.addEventListener('click', function(event) {
+            const item = event.target.closest('li');
+            if (!item) return;
+            
+            if (item.classList.contains('directory-item')) {
+                // If directory, navigate into it
+                const path = item.dataset.path;
+                if (path) {
+                    browseHostFiles(path);
+                }
+            } else if (item.classList.contains('file-item')) {
+                // If file, select it
+                const filePath = item.dataset.path;
+                if (filePath) {
+                    selectHostFile(filePath, item.textContent);
+                }
+            }
+        });
+    }
 
     // --- Form Handling ---
     const uploadForm = document.getElementById('upload-form');
@@ -44,20 +89,27 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Form submitted, preparing to upload file");
 
             const fileInput = document.getElementById('subtitle-file');
-            if (!fileInput) {
-                console.error("File input element not found!");
-                return;
-            }
-            console.log("File input found:", fileInput.value);
+            const hostFilePath = document.getElementById('host-file-path').value;
 
-            if (!fileInput.files.length) {
+            // Check if we have either a file upload or a host file path
+            if (!fileInput.files.length && !hostFilePath) {
                 alert("Please select a subtitle file to translate");
                 return;
             }
-            console.log("Selected file:", fileInput.files[0].name);
+
+            console.log("Using host file path:", hostFilePath);
+            console.log("Selected file:", fileInput.files.length ? fileInput.files[0].name : "None (using host file)");
 
             const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
+            
+            // If we have a host file path, add it to the form data
+            if (hostFilePath) {
+                formData.append('host_file_path', hostFilePath);
+            } else {
+                // Otherwise use the file upload
+                formData.append('file', fileInput.files[0]);
+            }
+            
             formData.append('source_language', document.getElementById('source-language').value);
             formData.append('target_language', document.getElementById('target-language').value);
             
@@ -1622,4 +1674,111 @@ function escapeHtml(str) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+// --- Host File Browser Functions ---
+function browseHostFiles(path) {
+    console.log(`Browsing host files at path: ${path}`);
+    const hostFileList = document.getElementById('host-file-list');
+    
+    // Show loading indicator
+    if (hostFileList) {
+        hostFileList.innerHTML = '<li class="loading">Loading files...</li>';
+    }
+    
+    // Call the API to browse files
+    fetch(`/api/browse_files?path=${encodeURIComponent(path)}`)
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Error browsing files');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Got file browser data:", data);
+            
+            // Clear the list
+            hostFileList.innerHTML = '';
+            
+            // Add parent directory option if not at root
+            if (data.parent_path) {
+                const parentItem = document.createElement('li');
+                parentItem.className = 'directory-item up-level';
+                parentItem.innerHTML = '<span class="dir-icon">📁</span> <span class="dir-name">..</span>';
+                parentItem.dataset.path = data.parent_path;
+                hostFileList.appendChild(parentItem);
+            }
+            
+            // Add directories
+            if (data.directories && data.directories.length > 0) {
+                data.directories.forEach(dir => {
+                    const dirItem = document.createElement('li');
+                    dirItem.className = 'directory-item';
+                    dirItem.innerHTML = `<span class="dir-icon">📁</span> <span class="dir-name">${dir.name}</span>`;
+                    dirItem.dataset.path = dir.path;
+                    hostFileList.appendChild(dirItem);
+                });
+            }
+            
+            // Add files
+            if (data.files && data.files.length > 0) {
+                data.files.forEach(file => {
+                    const fileItem = document.createElement('li');
+                    fileItem.className = 'file-item';
+                    fileItem.innerHTML = `<span class="file-icon">📄</span> <span class="file-name">${file.name}</span>`;
+                    fileItem.dataset.path = file.path;
+                    hostFileList.appendChild(fileItem);
+                });
+            }
+            
+            // Show message if empty
+            if (!data.directories?.length && !data.files?.length) {
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'empty-message';
+                emptyItem.textContent = 'No subtitle files found in this directory';
+                hostFileList.appendChild(emptyItem);
+            }
+            
+            // Update current path display
+            const pathDisplay = document.getElementById('host-current-path');
+            if (pathDisplay) {
+                pathDisplay.textContent = data.current_path || 'Root';
+            }
+        })
+        .catch(error => {
+            console.error('Error browsing files:', error);
+            hostFileList.innerHTML = `<li class="error-message">${error.message}</li>`;
+        });
+}
+
+// Function to select a host file for translation
+function selectHostFile(filePath, fileName) {
+    console.log(`Selected host file: ${filePath}`);
+    
+    // Hide the file browser
+    const hostFileBrowser = document.getElementById('host-file-browser');
+    if (hostFileBrowser) {
+        hostFileBrowser.style.display = 'none';
+    }
+    
+    // Update the input field with the selected file path
+    const fileInput = document.getElementById('host-file-path');
+    if (fileInput) {
+        fileInput.value = filePath;
+    }
+    
+    // Update the selected file display
+    const selectedFileDisplay = document.getElementById('selected-host-file');
+    if (selectedFileDisplay) {
+        selectedFileDisplay.textContent = fileName || filePath.split('/').pop();
+        selectedFileDisplay.style.display = 'block';
+    }
+    
+    // If we have a form, update its action to use the host file
+    const form = document.getElementById('upload-form');
+    if (form) {
+        form.dataset.useHostFile = 'true';
+    }
 }

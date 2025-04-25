@@ -5,7 +5,6 @@ import logging
 import re
 import os
 from typing import Dict, Optional, Any
-from py.wiki_terminology import WikiTerminologyService
 
 class TranslationService:
     """
@@ -24,8 +23,17 @@ class TranslationService:
         self.config = config
         self.logger = logger or logging.getLogger(__name__)
         
-        # Initialize wiki terminology service
-        self.wiki_terminology = WikiTerminologyService(config, logger)
+        # Initialize wiki terminology service if enabled
+        self.wiki_terminology = None
+        try:
+            if config.has_section("wiki_terminology") and config.getboolean("wiki_terminology", "enabled", fallback=False):
+                from py.wiki_terminology import WikiTerminologyService
+                self.wiki_terminology = WikiTerminologyService(config, logger)
+                self.logger.info("Wiki terminology service initialized")
+            else:
+                self.logger.info("Wiki terminology service disabled or not configured")
+        except Exception as e:
+            self.logger.warning(f"Failed to initialize wiki terminology service: {str(e)}")
         
         # Initialize special meanings from file
         self.special_meanings = self.load_special_meanings()
@@ -356,28 +364,31 @@ class TranslationService:
             
             # Get and add wiki terminology if available
             try:
-                self.logger.info(f"Attempting to get wiki terminology for: {media_info.get('title', 'Unknown title')}")
-                terminology = self.wiki_terminology.get_terminology(media_info)
-                
-                if not terminology:
-                    self.logger.warning("Wiki terminology returned None - feature may be disabled or wiki not found")
-                elif not terminology.get('terms'):
-                    self.logger.warning(f"Wiki terminology found but no terms were extracted. Wiki URL: {terminology.get('wiki_url', 'Unknown')}")
-                else:
-                    terms = terminology['terms']
-                    max_terms = self.config.getint("wiki_terminology", "max_terms", fallback=10)
+                if self.wiki_terminology:
+                    self.logger.info(f"Attempting to get wiki terminology for: {media_info.get('title', 'Unknown title')}")
+                    terminology = self.wiki_terminology.get_terminology(media_info)
                     
-                    if terms:
-                        self.logger.info(f"Found {len(terms)} wiki terminology entries from {terminology.get('wiki_url', 'Unknown')}")
-                        prompt += f"\nIMPORTANT SHOW-SPECIFIC TERMINOLOGY:\n"
-                        prompt += f"The following terms have special meanings in this show and must be translated appropriately:\n"
-                        # Add up to max_terms terms
-                        for term in terms[:max_terms]:
-                            prompt += f"- {term['term']}: {term['definition']}\n"
-                        
-                        self.logger.info(f"Added {min(len(terms), max_terms)} wiki terminology entries to Ollama translation prompt")
+                    if not terminology:
+                        self.logger.warning("Wiki terminology returned None - feature may be disabled or wiki not found")
+                    elif not terminology.get('terms'):
+                        self.logger.warning(f"Wiki terminology found but no terms were extracted. Wiki URL: {terminology.get('wiki_url', 'Unknown')}")
                     else:
-                        self.logger.warning("Wiki terminology returned empty terms list")
+                        terms = terminology['terms']
+                        max_terms = self.config.getint("wiki_terminology", "max_terms", fallback=10)
+                        
+                        if terms:
+                            self.logger.info(f"Found {len(terms)} wiki terminology entries from {terminology.get('wiki_url', 'Unknown')}")
+                            prompt += f"\nIMPORTANT SHOW-SPECIFIC TERMINOLOGY:\n"
+                            prompt += f"The following terms have special meanings in this show and must be translated appropriately:\n"
+                            # Add up to max_terms terms
+                            for term in terms[:max_terms]:
+                                prompt += f"- {term['term']}: {term['definition']}\n"
+                            
+                            self.logger.info(f"Added {min(len(terms), max_terms)} wiki terminology entries to Ollama translation prompt")
+                        else:
+                            self.logger.warning("Wiki terminology returned empty terms list")
+                else:
+                    self.logger.debug("Wiki terminology service not initialized, skipping terminology lookup")
             except Exception as e:
                 self.logger.error(f"Error adding wiki terminology to Ollama prompt: {str(e)}", exc_info=True)
                 
@@ -632,33 +643,37 @@ Air Date: {media_info.get('air_date', 'Unknown')}
                 # Get and add wiki terminology if available
                 try:
                     self.logger.info(f"Attempting to get wiki terminology for: {media_info.get('title', 'Unknown title')}")
-                    terminology = self.wiki_terminology.get_terminology(media_info)
                     
-                    if terminology:
-                        # Always add wiki summary if available
-                        if terminology.get('wiki_summary'):
-                            wiki_summary = terminology.get('wiki_summary')
-                            prompt += f"\nSHOW WIKI SUMMARY:\n{wiki_summary}\n"
-                            self.logger.info(f"Added wiki summary from {terminology.get('wiki_url', 'Unknown')}")
+                    if self.wiki_terminology:
+                        terminology = self.wiki_terminology.get_terminology(media_info)
                         
-                        # Add terms if available
-                        if terminology.get('terms') and len(terminology.get('terms', [])) > 0:
-                            terms = terminology['terms']
-                            max_terms = self.config.getint("wiki_terminology", "max_terms", fallback=10)
+                        if terminology:
+                            # Always add wiki summary if available
+                            if terminology.get('wiki_summary'):
+                                wiki_summary = terminology.get('wiki_summary')
+                                prompt += f"\nSHOW WIKI SUMMARY:\n{wiki_summary}\n"
+                                self.logger.info(f"Added wiki summary from {terminology.get('wiki_url', 'Unknown')}")
                             
-                            prompt += f"\nIMPORTANT SHOW-SPECIFIC TERMINOLOGY:\n"
-                            prompt += f"The following terms have special meanings in this show and must be translated appropriately:\n"
-                            
-                            # Add up to max_terms terms
-                            for term in terms[:max_terms]:
-                                if isinstance(term, dict) and 'term' in term and 'definition' in term:
-                                    prompt += f"- {term['term']}: {term['definition']}\n"
-                            
-                            self.logger.info(f"Added {min(len(terms), max_terms)} wiki terminology entries to prompt")
+                            # Add terms if available
+                            if terminology.get('terms') and len(terminology.get('terms', [])) > 0:
+                                terms = terminology['terms']
+                                max_terms = self.config.getint("wiki_terminology", "max_terms", fallback=10)
+                                
+                                prompt += f"\nIMPORTANT SHOW-SPECIFIC TERMINOLOGY:\n"
+                                prompt += f"The following terms have special meanings in this show and must be translated appropriately:\n"
+                                
+                                # Add up to max_terms terms
+                                for term in terms[:max_terms]:
+                                    if isinstance(term, dict) and 'term' in term and 'definition' in term:
+                                        prompt += f"- {term['term']}: {term['definition']}\n"
+                                
+                                self.logger.info(f"Added {min(len(terms), max_terms)} wiki terminology entries to prompt")
+                            else:
+                                self.logger.warning(f"Wiki terminology found but no terms were extracted. Wiki URL: {terminology.get('wiki_url', 'Unknown')}")
                         else:
-                            self.logger.warning(f"Wiki terminology found but no terms were extracted. Wiki URL: {terminology.get('wiki_url', 'Unknown')}")
+                            self.logger.warning("No wiki terminology found for this media")
                     else:
-                        self.logger.warning("No wiki terminology found for this media")
+                        self.logger.debug("Wiki terminology service not initialized, skipping terminology lookup")
                 except Exception as e:
                     self.logger.error(f"Error adding wiki terminology to prompt: {str(e)}", exc_info=True)
                     
