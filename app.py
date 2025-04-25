@@ -972,6 +972,21 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             tgt_lang_code = lang_map.get(tgt_lang_code, tgt_lang_code)
             logger.debug(f"Converted target language '{tgt_lang}' to language code '{tgt_lang_code}'")
         
+        # Also handle potential 3-letter language codes in the embedded subtitles
+        src_lang_code_3letter = None
+        if src_lang_code == "en":
+            src_lang_code_3letter = "eng"
+        elif src_lang_code == "da":
+            src_lang_code_3letter = "dan"
+        elif src_lang_code == "es":
+            src_lang_code_3letter = "spa"
+        elif src_lang_code == "de":
+            src_lang_code_3letter = "deu" 
+        elif src_lang_code == "fr":
+            src_lang_code_3letter = "fre"
+            
+        logger.debug(f"Using source language code '{src_lang_code}' and 3-letter code '{src_lang_code_3letter}'")
+        
         # Process video files to extract embedded subtitles
         extracted_subtitle_files = []
         
@@ -990,6 +1005,17 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                 if extracted_files:
                     logger.info(f"Extracted {len(extracted_files)} subtitle files from {os.path.basename(video_file)}")
                     extracted_subtitle_files.extend(extracted_files)
+                    
+                    # Add extracted language information to each file for proper translation queue handling
+                    for extracted_file in extracted_files:
+                        # The filename should contain language info from the extraction process
+                        file_basename = os.path.basename(extracted_file)
+                        if src_lang_code in file_basename.lower() or (src_lang_code_3letter and src_lang_code_3letter in file_basename.lower()):
+                            logger.info(f"Marking extracted file as source language: {file_basename}")
+                        else:
+                            # If source language not in filename, check if it's in the extracted file's content
+                            # For now, trust the extraction process which should have properly detected languages
+                            logger.debug(f"Assuming extracted file is source language: {file_basename}")
                 else:
                     logger.info(f"No matching subtitles found in {os.path.basename(video_file)}")
             except Exception as e:
@@ -1011,22 +1037,22 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         # Various language code patterns that might appear in filenames
         lang_patterns = [
             # More specific patterns for complex subtitle filenames
-            r'\.([a-z]{2})\..*\.(srt|ass)$',    # matches .en.anything.srt or .en.anything.ass
-            r'\.([a-z]{2})\.(srt|ass)$',        # matches .en.srt or .en.ass
-            r'\.([a-z]{2})\.hi\.(srt|ass)$',    # matches .en.hi.srt specifically
-            r'\.([a-z]{2})-hi\.(srt|ass)$',     # matches .en-hi.srt
+            r'\.([a-z]{2,3})\..*\.(srt|ass)$',    # matches .en.anything.srt or .eng.anything.srt or .en.anything.ass
+            r'\.([a-z]{2,3})\.(srt|ass)$',        # matches .en.srt or .eng.srt or .en.ass
+            r'\.([a-z]{2,3})\.hi\.(srt|ass)$',    # matches .en.hi.srt specifically
+            r'\.([a-z]{2,3})-hi\.(srt|ass)$',     # matches .en-hi.srt
             
             # Inside filename patterns
-            r'\.([a-z]{2})\.(?!(srt|ass)$)',    # .en. followed by something other than srt/ass at the end
-            r'\.([a-z]{2})-(?!(srt|ass)$)',     # .en- followed by something
-            r'\.([a-z]{2})_(?!(srt|ass)$)',     # .en_ followed by something
-            r'_([a-z]{2})_',                    # _en_ (surrounded by underscores)
-            r'-([a-z]{2})-',                    # -en- (surrounded by hyphens)
+            r'\.([a-z]{2,3})\.(?!(srt|ass)$)',    # .en. or .eng. followed by something other than srt/ass at the end
+            r'\.([a-z]{2,3})-(?!(srt|ass)$)',     # .en- or .eng- followed by something
+            r'\.([a-z]{2,3})_(?!(srt|ass)$)',     # .en_ or .eng_ followed by something
+            r'_([a-z]{2,3})_',                    # _en_ or _eng_ (surrounded by underscores)
+            r'-([a-z]{2,3})-',                    # -en- or -eng- (surrounded by hyphens)
             
             # Added for subtle variations
-            r'([a-z]{2})\.(?!(srt|ass)$)',      # en. (at the start of filename or after a separator)
-            r'([a-z]{2})-(?!(srt|ass)$)',       # en- (similar to above)
-            r'(?<![a-z])([a-z]{2})(?![a-z])'    # standalone en (if surrounded by non-letters)
+            r'([a-z]{2,3})\.(?!(srt|ass)$)',      # en. or eng. (at the start of filename or after a separator)
+            r'([a-z]{2,3})-(?!(srt|ass)$)',       # en- or eng- (similar to above)
+            r'(?<![a-z])([a-z]{2,3})(?![a-z])'    # standalone en or eng (if surrounded by non-letters)
         ]
         
         # Track files that don't match any pattern
@@ -1039,6 +1065,48 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         for file_path in all_subtitle_files:
             file_name = os.path.basename(file_path)
             file_dir = os.path.dirname(file_path)
+            
+            # Check if this is one of our extracted subtitle files - handle them specially
+            is_extracted = file_path in extracted_subtitle_files
+            
+            # If this is an extracted file, apply special handling
+            if is_extracted:
+                # For extracted files, we can rely on the extraction process to have named files correctly
+                # They should be named with language code in format: filename.lang.streamX.title.srt
+                
+                # If it contains our source language, mark it for translation
+                if src_lang_code in file_name.lower() or (src_lang_code_3letter and src_lang_code_3letter in file_name.lower()):
+                    # Get the base part of the filename to use as a group key
+                    # For extracted files, just use the video filename part as base
+                    base_parts = file_name.split('.')
+                    if len(base_parts) > 2:
+                        base_name = '.'.join(base_parts[:-3])  # Remove lang, stream and extension
+                    else:
+                        base_name = base_parts[0]  # Just use the first part as base
+                        
+                    # Create a group key that differentiates extracted files from regular files
+                    group_key = f"extracted:{file_dir}/{base_name}"
+                    
+                    if group_key not in file_groups:
+                        file_groups[group_key] = {}
+                    
+                    # Store this as source language file
+                    file_groups[group_key][src_lang_code] = file_path
+                    logger.debug(f"Added extracted file to group '{group_key}' as source language: {file_name}")
+                    
+                # Skip any non-source language extracted files - we only want to translate source language
+                elif tgt_lang_code in file_name.lower() or (tgt_lang_code == "da" and "dan" in file_name.lower()):
+                    skip_these_files.append(file_path)
+                    logger.debug(f"Skipping extracted file with target language: {file_name}")
+                else:
+                    # For other languages, just skip them
+                    skip_these_files.append(file_path)
+                    logger.debug(f"Skipping extracted file with non-target language: {file_name}")
+                    
+                # Continue to next file after handling extracted file
+                continue
+            
+            # Standard processing for non-extracted files...
             
             # Critical fix: Special case for target language files with complex patterns
             # This explicitly checks for target language files first and marks them for skipping
@@ -1064,6 +1132,18 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                 unmatched_files.append(file_path)
                 logger.debug(f"No language detected in file: {file_name}")
                 continue
+            
+            # Check for 3-letter codes and convert them to 2-letter for consistency
+            if detected_lang == "eng":
+                detected_lang = "en"
+            elif detected_lang == "dan":
+                detected_lang = "da"
+            elif detected_lang == "spa":
+                detected_lang = "es"
+            elif detected_lang == "deu" or detected_lang == "ger":
+                detected_lang = "de"
+            elif detected_lang == "fre":
+                detected_lang = "fr"
             
             # Skip if the language doesn't match either source or target language
             if detected_lang != src_lang_code and detected_lang != tgt_lang_code:
@@ -1190,21 +1270,37 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                 # Generate translated filename
                 base, ext = os.path.splitext(file_name)
                 
-                # Try to replace language code in filename if it exists
-                out_base = base
-                replaced = False
-                patterns = [
-                    f'.{src_lang}.', f'.{src_lang}-', f'.{src_lang}_',
-                    f'{src_lang}.', f'-{src_lang}.', f'_{src_lang}.'
-                ]
-                for pat in patterns:
-                    if pat in base.lower():
-                        newpat = pat.replace(src_lang, tgt_lang)
-                        out_base = re.sub(pat, newpat, base, flags=re.IGNORECASE)
-                        replaced = True
-                        break
-                if not replaced:
-                    out_base = f"{base}.{tgt_lang}"
+                # Determine if this is an extracted file (extract from the path, not the filename)
+                is_extracted = srt_file in extracted_subtitle_files
+                
+                # Different filename handling for extracted vs regular files
+                if is_extracted:
+                    # For extracted files, replace the language code directly
+                    if src_lang_code in base.lower():
+                        out_base = base.replace(src_lang_code, tgt_lang_code)
+                    elif src_lang_code_3letter and src_lang_code_3letter in base.lower():
+                        # Handle 3-letter codes like 'eng' to 'dan'
+                        tgt_lang_code_3letter = "dan" if tgt_lang_code == "da" else tgt_lang_code 
+                        out_base = base.replace(src_lang_code_3letter, tgt_lang_code_3letter)
+                    else:
+                        # If can't find language code, just append target language
+                        out_base = f"{base}.{tgt_lang_code}"
+                else:
+                    # Try to replace language code in filename if it exists
+                    out_base = base
+                    replaced = False
+                    patterns = [
+                        f'.{src_lang}.', f'.{src_lang}-', f'.{src_lang}_',
+                        f'{src_lang}.', f'-{src_lang}.', f'_{src_lang}.'
+                    ]
+                    for pat in patterns:
+                        if pat in base.lower():
+                            newpat = pat.replace(src_lang, tgt_lang)
+                            out_base = re.sub(pat, newpat, base, flags=re.IGNORECASE)
+                            replaced = True
+                            break
+                    if not replaced:
+                        out_base = f"{base}.{tgt_lang}"
                 
                 translated_filename = secure_filename(f"{out_base}{ext}")
                 output_path = os.path.join(temp_dir, translated_filename)
