@@ -20,6 +20,87 @@ print_message() {
     echo -e "${color}${message}${NC}"
 }
 
+# Check and install system packages if missing
+install_system_package() {
+    local package_name=$1
+    
+    # Check if package is installed
+    if ! command -v "$package_name" &>/dev/null; then
+        print_message "$YELLOW" "$package_name not found. Attempting to install..."
+        
+        # Check for sudo access
+        local SUDO=""
+        if command -v sudo &>/dev/null && [ "$EUID" -ne 0 ]; then
+            SUDO="sudo"
+        fi
+        
+        # Try to install using the appropriate package manager
+        if command -v winget &>/dev/null; then
+            # Windows with winget
+            print_message "$YELLOW" "Installing using winget..."
+            case "$package_name" in
+                "ffmpeg")
+                    winget install -e --id Gyan.FFmpeg
+                    ;;
+                "python3")
+                    winget install -e --id Python.Python.3
+                    ;;
+                *)
+                    winget install -e "$package_name"
+                    ;;
+            esac
+            # Add to PATH if necessary for Windows installs
+            if [ "$package_name" = "ffmpeg" ] && ! command -v ffmpeg &>/dev/null; then
+                print_message "$YELLOW" "Adding FFmpeg to PATH for this session..."
+                # Common FFmpeg install locations on Windows
+                for path in "/c/ffmpeg/bin" "$PROGRAMFILES/FFmpeg/bin" "$LOCALAPPDATA/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-*-essentials_build/bin"; do
+                    if [ -d "$path" ]; then
+                        export PATH="$PATH:$path"
+                        break
+                    fi
+                done
+            fi
+        elif command -v apt-get &>/dev/null; then
+            print_message "$YELLOW" "Installing using apt-get..."
+            $SUDO apt-get update -qq
+            $SUDO apt-get install -y "$package_name"
+        elif command -v dnf &>/dev/null; then
+            print_message "$YELLOW" "Installing using dnf..."
+            $SUDO dnf install -y "$package_name"
+        elif command -v yum &>/dev/null; then
+            print_message "$YELLOW" "Installing using yum..."
+            $SUDO yum install -y "$package_name"
+        elif command -v pacman &>/dev/null; then
+            print_message "$YELLOW" "Installing using pacman..."
+            $SUDO pacman -S --noconfirm "$package_name"
+        elif command -v brew &>/dev/null; then
+            print_message "$YELLOW" "Installing using brew..."
+            brew install "$package_name"
+        else
+            print_message "$RED" "Could not find a supported package manager to install $package_name."
+            print_message "$RED" "Please install $package_name manually and run this script again."
+            exit 1
+        fi
+        
+        # Verify installation was successful
+        if command -v "$package_name" &>/dev/null; then
+            print_message "$GREEN" "$package_name was successfully installed."
+        else
+            print_message "$YELLOW" "Command '$package_name' not found after installation. This might be expected if it needs a PATH update or system restart."
+            # For Windows particularly, we might need to inform the user
+            if command -v winget &>/dev/null; then
+                print_message "$YELLOW" "On Windows, you may need to restart your terminal or system for PATH changes to take effect."
+                print_message "$YELLOW" "Attempting to continue, but you may need to restart and run this script again if there are errors."
+            else
+                print_message "$RED" "Failed to install $package_name. Please install it manually."
+                exit 1
+            fi
+        fi
+    else
+        print_message "$GREEN" "$package_name is already installed."
+    fi
+}
+
 # Script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
@@ -28,55 +109,15 @@ print_message "$BLUE" "=========================================="
 print_message "$BLUE" "  Subtitle Translator Setup Script"
 print_message "$BLUE" "=========================================="
 
-# Check for system dependencies (FFmpeg)
-check_ffmpeg() {
-    if ! command -v ffmpeg &>/dev/null; then
-        print_message "$YELLOW" "FFmpeg not found, which is required for extracting embedded subtitles."
-        
-        # Detect the package manager and suggest installation command
-        if command -v apt-get &>/dev/null; then
-            print_message "$YELLOW" "Please install FFmpeg using: sudo apt-get install ffmpeg"
-        elif command -v dnf &>/dev/null; then
-            print_message "$YELLOW" "Please install FFmpeg using: sudo dnf install ffmpeg"
-        elif command -v yum &>/dev/null; then
-            print_message "$YELLOW" "Please install FFmpeg using: sudo yum install ffmpeg"
-        elif command -v pacman &>/dev/null; then
-            print_message "$YELLOW" "Please install FFmpeg using: sudo pacman -S ffmpeg"
-        elif command -v brew &>/dev/null; then
-            print_message "$YELLOW" "Please install FFmpeg using: brew install ffmpeg"
-        else
-            print_message "$YELLOW" "Please install FFmpeg using your system's package manager."
-        fi
-        
-        # Ask user if they want to continue anyway
-        read -p "Continue without FFmpeg? Embedded subtitle extraction will not work. (y/n) " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_message "$RED" "Setup aborted. Please install FFmpeg and run the script again."
-            exit 1
-        fi
-        print_message "$YELLOW" "Continuing without FFmpeg. Embedded subtitle extraction will be disabled."
-    else
-        print_message "$GREEN" "FFmpeg is installed and available."
-        
-        # Check ffprobe as well (part of FFmpeg but sometimes installed separately)
-        if ! command -v ffprobe &>/dev/null; then
-            print_message "$YELLOW" "Warning: ffprobe not found. It's usually part of the FFmpeg package."
-            print_message "$YELLOW" "Embedded subtitle detection may be limited."
-        else
-            print_message "$GREEN" "ffprobe is installed and available."
-        fi
-    fi
-}
-
 # Check Python installation
 if command -v python3 &>/dev/null; then
     PYTHON="python3"
 elif command -v python &>/dev/null; then
     PYTHON="python"
 else
-    print_message "$RED" "Error: Python not found. Please install Python 3."
-    exit 1
+    print_message "$YELLOW" "Python 3 not found. Attempting to install..."
+    install_system_package "python3"
+    PYTHON="python3"
 fi
 
 # Get Python version
@@ -85,7 +126,32 @@ print_message "$GREEN" "Using Python $PY_VERSION"
 
 # Check system dependencies
 print_message "$YELLOW" "Checking system dependencies..."
-check_ffmpeg
+
+# Install FFmpeg and ffprobe if missing
+install_system_package "ffmpeg"
+
+# Check for ffprobe (sometimes separately packaged)
+if ! command -v ffprobe &>/dev/null; then
+    print_message "$YELLOW" "ffprobe not found. It's usually part of the FFmpeg package."
+    print_message "$YELLOW" "Attempting to install ffmpeg-tools or similar package..."
+    
+    if command -v apt-get &>/dev/null; then
+        sudo apt-get install -y ffmpeg
+    elif command -v dnf &>/dev/null; then
+        sudo dnf install -y ffmpeg-tools
+    elif command -v brew &>/dev/null; then
+        brew install ffmpeg
+    fi
+    
+    # Verify ffprobe is now available
+    if command -v ffprobe &>/dev/null; then
+        print_message "$GREEN" "ffprobe is now available."
+    else
+        print_message "$YELLOW" "Warning: ffprobe still not found. Embedded subtitle detection may be limited."
+    fi
+else
+    print_message "$GREEN" "ffprobe is already installed."
+fi
 
 # Environment directory
 VENV_DIR="venv_subtrans"
@@ -93,6 +159,19 @@ VENV_DIR="venv_subtrans"
 # Create virtual environment if it doesn't exist
 if [ ! -d "$VENV_DIR" ]; then
     print_message "$YELLOW" "Creating virtual environment in $VENV_DIR..."
+    
+    # Check if venv module is available
+    if ! $PYTHON -c "import venv" &>/dev/null; then
+        print_message "$YELLOW" "Python venv module not found. Attempting to install..."
+        if command -v apt-get &>/dev/null; then
+            sudo apt-get install -y python3-venv
+        elif command -v dnf &>/dev/null; then
+            sudo dnf install -y python3-venv
+        elif command -v brew &>/dev/null; then
+            brew install python
+        fi
+    fi
+    
     $PYTHON -m venv "$VENV_DIR"
     print_message "$GREEN" "Virtual environment created."
 else
@@ -111,6 +190,10 @@ fi
 # Activate the virtual environment and install dependencies
 print_message "$YELLOW" "Activating virtual environment and checking dependencies..."
 source "$ACTIVATE_SCRIPT"
+
+# Upgrade pip first
+print_message "$YELLOW" "Upgrading pip to latest version..."
+pip install --upgrade pip
 
 # Check if required packages are installed
 REQUIRED_PACKAGES="Flask pysrt requests colorama beautifulsoup4 mwparserfromhell"
@@ -132,7 +215,7 @@ if [ ! -z "$MISSING_PACKAGES" ]; then
     pip install $MISSING_PACKAGES
     print_message "$GREEN" "Dependencies installed successfully."
 else
-    print_message "$GREEN" "All required packages are already installed."
+    print_message "$GREEN" "All required Python packages are already installed."
 fi
 
 # Check if config.ini exists, create from example if not
@@ -153,9 +236,10 @@ if [ -f "config.ini" ]; then
 fi
 
 # Just a simple setup message - the app.py will handle the full welcome message with correct port
-print_message "$GREEN" "Dependencies installed successfully."
+print_message "$GREEN" "All dependencies installed successfully."
+print_message "$GREEN" "Starting Subtitle Translator application..."
 
-# Run the application (using the new app.py instead of the old file)
+# Run the application
 $PYTHON app.py
 
 # Deactivate virtual environment at exit
