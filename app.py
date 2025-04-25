@@ -875,8 +875,23 @@ def clear_log_file(log_file):
         logger.error(f"Error clearing log file {log_file}: {str(e)}")
         return False
 
-def process_translation(job_id):
+def process_translation(job_id, cache_path, filename, source_language, target_language, special_meanings):
     """Process a translation job, updating the global progress dictionary."""
+    # Create a job record if it doesn't exist already
+    if job_id not in translation_jobs:
+        translation_jobs[job_id] = {
+            'status': 'queued',
+            'source_path': cache_path,
+            'original_filename': filename,
+            'source_language': source_language,
+            'target_language': target_language,
+            'progress': 0,
+            'message': 'Queued for translation',
+            'start_time': time.time(),
+            'end_time': None,
+            'special_meanings': special_meanings
+        }
+    
     job = translation_jobs[job_id]
     logger.info(f"Starting translation job {job_id}: {job['original_filename']}")
     
@@ -912,7 +927,7 @@ def process_translation(job_id):
         job['message'] = 'Initializing...'
         
         # Initialize subtitle processor
-        SubtitleProcessor(logger)
+        subtitle_processor = SubtitleProcessor(logger)
         
         # Get config
         config = config_manager.get_config()
