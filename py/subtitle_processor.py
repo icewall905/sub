@@ -91,8 +91,43 @@ class SubtitleProcessor:
         # Ensure output directory exists
         os.makedirs(output_dir, exist_ok=True)
         
-        # Get subtitle streams info using ffprobe
+        # Use a more detailed ffprobe command that includes stream details
         try:
+            # First, get all subtitle streams regardless of language to see what's available
+            ffprobe_all_cmd = f"ffprobe -v quiet -print_format json -show_streams -select_streams s {shlex.quote(video_file_path)}"
+            self.logger.debug(f"Running ffprobe command: {ffprobe_all_cmd}")
+            
+            try:
+                ffprobe_all_output = subprocess.check_output(
+                    ffprobe_all_cmd, 
+                    shell=True, 
+                    stderr=subprocess.STDOUT
+                ).decode('utf-8')
+                
+                # Parse the output to get all subtitle streams
+                all_subtitles_info = json.loads(ffprobe_all_output)
+                
+                # Log total number of subtitle streams found
+                if 'streams' in all_subtitles_info and all_subtitles_info['streams']:
+                    stream_count = len(all_subtitles_info['streams'])
+                    self.logger.info(f"Found {stream_count} subtitle streams in the video file")
+                    
+                    # Log detail about each stream for diagnostic purposes
+                    for idx, stream in enumerate(all_subtitles_info['streams']):
+                        stream_idx = stream.get('index')
+                        stream_lang = stream.get('tags', {}).get('language', 'und')
+                        codec_name = stream.get('codec_name', 'unknown')
+                        title = stream.get('tags', {}).get('title', 'untitled')
+                        self.logger.debug(f"Stream {stream_idx}: lang={stream_lang}, codec={codec_name}, title={title}")
+                else:
+                    self.logger.info(f"No subtitle streams found in {os.path.basename(video_file_path)}")
+                    return []
+            except Exception as e:
+                self.logger.warning(f"Error getting all subtitle streams: {e}")
+                # Continue with the original command as fallback
+                pass
+            
+            # Original ffprobe command to get streams in the correct format
             ffprobe_cmd = f"ffprobe -v quiet -print_format json -show_streams -select_streams s {shlex.quote(video_file_path)}"
             self.logger.debug(f"Running ffprobe command: {ffprobe_cmd}")
             
@@ -112,61 +147,110 @@ class SubtitleProcessor:
             # Process each subtitle stream
             extracted_files = []
             
+            # Special case: if no source language specified, extract all subtitle streams
+            extract_all = source_lang_code is None or source_lang_code == ""
+            if extract_all:
+                self.logger.info("No source language specified. Extracting all subtitle streams.")
+            
             for idx, stream in enumerate(subtitle_info['streams']):
                 stream_idx = stream.get('index')
                 stream_lang = stream.get('tags', {}).get('language', 'und')
                 codec_name = stream.get('codec_name', 'unknown')
                 codec_type = stream.get('codec_type')
+                title = stream.get('tags', {}).get('title', 'No title')
                 
                 # Skip if not a subtitle stream
                 if codec_type != 'subtitle':
                     continue
-                    
+                
+                # Log more details about the stream
+                self.logger.debug(f"Processing subtitle stream {stream_idx}: language={stream_lang}, codec={codec_name}, title={title}")
+                
                 # Skip if we're filtering by source language and this doesn't match
-                if source_lang_code and stream_lang != source_lang_code:
+                # Also try to handle cases where language is 'und' (undefined) but might be the language we want
+                if not extract_all and stream_lang != source_lang_code and stream_lang != 'und':
                     self.logger.debug(f"Skipping subtitle stream {stream_idx} with language {stream_lang} (not matching source language {source_lang_code})")
                     continue
                 
                 # Format output filename
                 video_basename = os.path.basename(video_file_path)
                 video_name = os.path.splitext(video_basename)[0]
-                out_filename = f"{video_name}.{stream_lang}.stream{stream_idx}.srt"
+                # Include title in filename if available to help identify streams
+                title_suffix = f".{re.sub(r'[^\w\-\.]', '_', title)}" if title and title != "No title" else ""
+                out_filename = f"{video_name}.{stream_lang}.stream{stream_idx}{title_suffix}.srt"
                 out_path = os.path.join(output_dir, out_filename)
                 
                 # Choose extraction method based on codec
-                if codec_name in ['subrip', 'srt', 'ass', 'ssa']:
+                if codec_name in ['subrip', 'srt', 'ass', 'ssa', 'mov_text']:
                     # Direct extraction for text-based formats
                     extract_cmd = f"ffmpeg -i {shlex.quote(video_file_path)} -map 0:{stream_idx} -c:s srt {shlex.quote(out_path)} -y"
                 else:
-                    # OCR-based extraction for image-based subtitles (like dvdsub, dvbsub)
-                    # Note: This requires subtitleedit or ccextractor for better results
-                    # Basic ffmpeg extraction as fallback
+                    # Try the normal extraction first
                     extract_cmd = f"ffmpeg -i {shlex.quote(video_file_path)} -map 0:{stream_idx} -c:s srt {shlex.quote(out_path)} -y"
                 
                 self.logger.debug(f"Extracting subtitle stream {stream_idx} ({stream_lang}) with command: {extract_cmd}")
                 
                 try:
-                    subprocess.run(
+                    # Use a longer timeout for extraction process
+                    process = subprocess.run(
                         extract_cmd,
                         shell=True,
-                        check=True,
+                        check=False,  # Don't raise exception on non-zero return code
                         stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE
+                        stderr=subprocess.PIPE,
+                        timeout=60  # 60 second timeout
                     )
+                    
+                    # Log process output for debugging
+                    stdout = process.stdout.decode('utf-8', errors='ignore')
+                    stderr = process.stderr.decode('utf-8', errors='ignore')
+                    
+                    if process.returncode != 0:
+                        self.logger.warning(f"FFmpeg returned non-zero code {process.returncode} for stream {stream_idx}")
+                        self.logger.debug(f"FFmpeg stderr: {stderr}")
+                        
+                        # Try alternate extraction command for problematic codecs
+                        if codec_name in ['dvd_subtitle', 'dvbsub', 'hdmv_pgs_subtitle']:
+                            self.logger.info(f"Trying alternate extraction method for {codec_name} codec")
+                            # Use -txt_format text for image-based subtitles
+                            alt_extract_cmd = f"ffmpeg -i {shlex.quote(video_file_path)} -map 0:{stream_idx} -f srt {shlex.quote(out_path)} -y"
+                            
+                            alt_process = subprocess.run(
+                                alt_extract_cmd,
+                                shell=True,
+                                check=False,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                timeout=60
+                            )
+                            
+                            if alt_process.returncode != 0:
+                                self.logger.warning(f"Alternate extraction also failed with code {alt_process.returncode}")
                     
                     # Check if file was created and has content
                     if os.path.exists(out_path) and os.path.getsize(out_path) > 0:
-                        self.logger.info(f"Successfully extracted subtitles to {out_filename}")
-                        extracted_files.append(out_path)
+                        # Validate SRT file by checking for timestamps
+                        with open(out_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            content = f.read()
+                            # Basic check for SRT format: contains timestamps like 00:00:00,000 --> 00:00:00,000
+                            if re.search(r'\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}', content):
+                                self.logger.info(f"Successfully extracted subtitles to {out_filename}")
+                                extracted_files.append(out_path)
+                            else:
+                                self.logger.warning(f"Extracted file {out_filename} doesn't seem to be a valid SRT file")
+                                # Clean up invalid file
+                                os.remove(out_path)
                     else:
-                        self.logger.warning(f"Extraction produced empty file for stream {stream_idx}")
+                        self.logger.warning(f"Extraction produced empty or missing file for stream {stream_idx}")
                         # Clean up empty file if it exists
                         if os.path.exists(out_path):
                             os.remove(out_path)
                             
-                except subprocess.CalledProcessError as e:
+                except subprocess.TimeoutExpired:
+                    self.logger.error(f"Extraction timed out for stream {stream_idx}")
+                    continue
+                except Exception as e:
                     self.logger.error(f"Error extracting subtitle stream {stream_idx}: {e}")
-                    self.logger.error(f"STDERR: {e.stderr.decode('utf-8') if e.stderr else 'None'}")
                     continue
             
             return extracted_files
