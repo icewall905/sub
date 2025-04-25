@@ -927,14 +927,35 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         src_lang = config.get("general", "source_language", fallback="en")
         tgt_lang = config.get("general", "target_language", fallback="da")
         
+        # Initialize subtitle processor
+        from py.subtitle_processor import SubtitleProcessor
+        subtitle_processor = SubtitleProcessor(logger)
+        
         # Find all subtitle files in the directory - including both .srt and .ass files
         all_subtitle_files = []
+        all_video_files = []
+        
+        # Temporary directory for extracted subtitles
+        import tempfile
+        temp_extract_dir = tempfile.mkdtemp(prefix="subtitle_extracted_")
+        logger.info(f"Created temporary directory for extracted subtitles: {temp_extract_dir}")
+        
+        # First pass: Find all subtitle and video files
         for root, _, files in os.walk(root_dir):
             for file in files:
+                file_path = os.path.join(root, file)
                 if file.lower().endswith(('.srt', '.ass')):
-                    all_subtitle_files.append(os.path.join(root, file))
+                    all_subtitle_files.append(file_path)
+                elif subtitle_processor.is_video_file(file_path):
+                    all_video_files.append(file_path)
         
         logger.info(f"Found {len(all_subtitle_files)} total subtitle files (.srt and .ass) in {root_dir}")
+        logger.info(f"Found {len(all_video_files)} video files that may contain embedded subtitles")
+        
+        # Update progress to show we're extracting subtitles
+        progress["status"] = "extracting"
+        progress["message"] = f"Scanning {len(all_video_files)} video files for embedded subtitles..."
+        save_progress_state()
         
         # Get source language code (convert full language name to ISO code if needed)
         src_lang_code = src_lang.lower()
@@ -950,6 +971,38 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             lang_map = {"english": "en", "danish": "da", "spanish": "es", "german": "de", "french": "fr"}
             tgt_lang_code = lang_map.get(tgt_lang_code, tgt_lang_code)
             logger.debug(f"Converted target language '{tgt_lang}' to language code '{tgt_lang_code}'")
+        
+        # Process video files to extract embedded subtitles
+        extracted_subtitle_files = []
+        
+        for i, video_file in enumerate(all_video_files):
+            progress["message"] = f"Extracting subtitles from video file {i+1}/{len(all_video_files)}: {os.path.basename(video_file)}"
+            save_progress_state()
+            
+            try:
+                # Extract embedded subtitles matching source language
+                extracted_files = subtitle_processor.detect_and_extract_embedded_subtitles(
+                    video_file, 
+                    temp_extract_dir,
+                    src_lang_code
+                )
+                
+                if extracted_files:
+                    logger.info(f"Extracted {len(extracted_files)} subtitle files from {os.path.basename(video_file)}")
+                    extracted_subtitle_files.extend(extracted_files)
+                else:
+                    logger.info(f"No matching subtitles found in {os.path.basename(video_file)}")
+            except Exception as e:
+                logger.error(f"Error extracting subtitles from {os.path.basename(video_file)}: {e}")
+        
+        # Add extracted subtitle files to the main list
+        logger.info(f"Total extracted subtitle files: {len(extracted_subtitle_files)}")
+        all_subtitle_files.extend(extracted_subtitle_files)
+        
+        # Update progress status to show we're now processing the regular subtitle files
+        progress["status"] = "scanning"
+        progress["message"] = f"Processing {len(all_subtitle_files)} subtitle files..."
+        save_progress_state()
         
         # Group files by their base name (removing language codes)
         # This helps us identify which files already have translations
@@ -1099,6 +1152,13 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                 progress["message"] = f"No subtitle files found in {root_dir}"
             # Save progress state to file after status change
             save_progress_state()
+            # Cleanup temp directory
+            try:
+                import shutil
+                shutil.rmtree(temp_extract_dir)
+                logger.info(f"Cleaned up temporary extraction directory: {temp_extract_dir}")
+            except Exception as e:
+                logger.warning(f"Failed to clean up temporary directory {temp_extract_dir}: {e}")
             return
         
         # Initialize translation components
@@ -1222,6 +1282,19 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             # Save final progress state to file
             save_progress_state()
         
+        # Cleanup temp directories
+        try:
+            import shutil
+            shutil.rmtree(temp_extract_dir)
+            logger.info(f"Cleaned up temporary extraction directory: {temp_extract_dir}")
+            
+            # Only remove the temp_dir after we've created the zip file
+            if 'temp_dir' in locals():
+                shutil.rmtree(temp_dir)
+                logger.info(f"Cleaned up temporary translation directory: {temp_dir}")
+        except Exception as e:
+            logger.warning(f"Failed to clean up temporary directories: {e}")
+        
     except Exception as e:
         error_msg = f"Error during bulk translation: {str(e)}"
         logger.error(error_msg)
@@ -1229,6 +1302,16 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         progress["message"] = error_msg
         # Save error state to file
         save_progress_state()
+        
+        # Cleanup any temp directories even on error
+        try:
+            import shutil
+            if 'temp_extract_dir' in locals():
+                shutil.rmtree(temp_extract_dir)
+            if 'temp_dir' in locals():
+                shutil.rmtree(temp_dir)
+        except Exception as cleanup_err:
+            logger.warning(f"Failed to clean up temporary directories: {cleanup_err}")
 
 @app.route('/api/special_meanings', methods=['GET'])
 def api_special_meanings():

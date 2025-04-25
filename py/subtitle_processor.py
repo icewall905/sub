@@ -69,6 +69,136 @@ class SubtitleProcessor:
         language_name = language_name.lower().strip('"\' ')
         return LANGUAGE_MAPPING.get(language_name, language_name)
     
+    def detect_and_extract_embedded_subtitles(self, video_file_path: str, output_dir: str, 
+                                             source_lang_code: str = None) -> List[str]:
+        """
+        Detect and extract embedded subtitles from a video file.
+        
+        Args:
+            video_file_path: Path to the video file
+            output_dir: Directory to save extracted subtitle files
+            source_lang_code: Source language code to filter subtitles (optional)
+            
+        Returns:
+            List of paths to extracted subtitle files
+        """
+        import subprocess
+        import shlex
+        import re
+        
+        self.logger.info(f"Detecting embedded subtitles in: {os.path.basename(video_file_path)}")
+        
+        # Ensure output directory exists
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Get subtitle streams info using ffprobe
+        try:
+            ffprobe_cmd = f"ffprobe -v quiet -print_format json -show_streams -select_streams s {shlex.quote(video_file_path)}"
+            self.logger.debug(f"Running ffprobe command: {ffprobe_cmd}")
+            
+            ffprobe_output = subprocess.check_output(
+                ffprobe_cmd, 
+                shell=True, 
+                stderr=subprocess.STDOUT
+            ).decode('utf-8')
+            
+            subtitle_info = json.loads(ffprobe_output)
+            
+            # Check if we have subtitle streams
+            if 'streams' not in subtitle_info or not subtitle_info['streams']:
+                self.logger.info(f"No embedded subtitles found in {os.path.basename(video_file_path)}")
+                return []
+                
+            # Process each subtitle stream
+            extracted_files = []
+            
+            for idx, stream in enumerate(subtitle_info['streams']):
+                stream_idx = stream.get('index')
+                stream_lang = stream.get('tags', {}).get('language', 'und')
+                codec_name = stream.get('codec_name', 'unknown')
+                codec_type = stream.get('codec_type')
+                
+                # Skip if not a subtitle stream
+                if codec_type != 'subtitle':
+                    continue
+                    
+                # Skip if we're filtering by source language and this doesn't match
+                if source_lang_code and stream_lang != source_lang_code:
+                    self.logger.debug(f"Skipping subtitle stream {stream_idx} with language {stream_lang} (not matching source language {source_lang_code})")
+                    continue
+                
+                # Format output filename
+                video_basename = os.path.basename(video_file_path)
+                video_name = os.path.splitext(video_basename)[0]
+                out_filename = f"{video_name}.{stream_lang}.stream{stream_idx}.srt"
+                out_path = os.path.join(output_dir, out_filename)
+                
+                # Choose extraction method based on codec
+                if codec_name in ['subrip', 'srt', 'ass', 'ssa']:
+                    # Direct extraction for text-based formats
+                    extract_cmd = f"ffmpeg -i {shlex.quote(video_file_path)} -map 0:{stream_idx} -c:s srt {shlex.quote(out_path)} -y"
+                else:
+                    # OCR-based extraction for image-based subtitles (like dvdsub, dvbsub)
+                    # Note: This requires subtitleedit or ccextractor for better results
+                    # Basic ffmpeg extraction as fallback
+                    extract_cmd = f"ffmpeg -i {shlex.quote(video_file_path)} -map 0:{stream_idx} -c:s srt {shlex.quote(out_path)} -y"
+                
+                self.logger.debug(f"Extracting subtitle stream {stream_idx} ({stream_lang}) with command: {extract_cmd}")
+                
+                try:
+                    subprocess.run(
+                        extract_cmd,
+                        shell=True,
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE
+                    )
+                    
+                    # Check if file was created and has content
+                    if os.path.exists(out_path) and os.path.getsize(out_path) > 0:
+                        self.logger.info(f"Successfully extracted subtitles to {out_filename}")
+                        extracted_files.append(out_path)
+                    else:
+                        self.logger.warning(f"Extraction produced empty file for stream {stream_idx}")
+                        # Clean up empty file if it exists
+                        if os.path.exists(out_path):
+                            os.remove(out_path)
+                            
+                except subprocess.CalledProcessError as e:
+                    self.logger.error(f"Error extracting subtitle stream {stream_idx}: {e}")
+                    self.logger.error(f"STDERR: {e.stderr.decode('utf-8') if e.stderr else 'None'}")
+                    continue
+            
+            return extracted_files
+            
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"Error detecting subtitle streams: {e}")
+            return []
+        except json.JSONDecodeError as e:
+            self.logger.error(f"Error parsing ffprobe output: {e}")
+            return []
+        except Exception as e:
+            self.logger.error(f"Unexpected error in subtitle detection: {e}")
+            return []
+    
+    def is_video_file(self, file_path: str) -> bool:
+        """
+        Check if a file is a video file based on its extension.
+        
+        Args:
+            file_path: Path to the file
+            
+        Returns:
+            True if it's a video file, False otherwise
+        """
+        video_extensions = {
+            '.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', 
+            '.m4v', '.mpg', '.mpeg', '.3gp', '.ts', '.mts', '.m2ts'
+        }
+        
+        _, ext = os.path.splitext(file_path.lower())
+        return ext in video_extensions
+
     def call_translation_service_with_retry(self, translate_func, *args, max_retries=3, 
                                            base_delay=2, service_name=None, **kwargs) -> str:
         """
