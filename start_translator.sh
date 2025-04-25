@@ -28,6 +28,47 @@ print_message "$BLUE" "=========================================="
 print_message "$BLUE" "  Subtitle Translator Setup Script"
 print_message "$BLUE" "=========================================="
 
+# Check for system dependencies (FFmpeg)
+check_ffmpeg() {
+    if ! command -v ffmpeg &>/dev/null; then
+        print_message "$YELLOW" "FFmpeg not found, which is required for extracting embedded subtitles."
+        
+        # Detect the package manager and suggest installation command
+        if command -v apt-get &>/dev/null; then
+            print_message "$YELLOW" "Please install FFmpeg using: sudo apt-get install ffmpeg"
+        elif command -v dnf &>/dev/null; then
+            print_message "$YELLOW" "Please install FFmpeg using: sudo dnf install ffmpeg"
+        elif command -v yum &>/dev/null; then
+            print_message "$YELLOW" "Please install FFmpeg using: sudo yum install ffmpeg"
+        elif command -v pacman &>/dev/null; then
+            print_message "$YELLOW" "Please install FFmpeg using: sudo pacman -S ffmpeg"
+        elif command -v brew &>/dev/null; then
+            print_message "$YELLOW" "Please install FFmpeg using: brew install ffmpeg"
+        else
+            print_message "$YELLOW" "Please install FFmpeg using your system's package manager."
+        fi
+        
+        # Ask user if they want to continue anyway
+        read -p "Continue without FFmpeg? Embedded subtitle extraction will not work. (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_message "$RED" "Setup aborted. Please install FFmpeg and run the script again."
+            exit 1
+        fi
+        print_message "$YELLOW" "Continuing without FFmpeg. Embedded subtitle extraction will be disabled."
+    else
+        print_message "$GREEN" "FFmpeg is installed and available."
+        
+        # Check ffprobe as well (part of FFmpeg but sometimes installed separately)
+        if ! command -v ffprobe &>/dev/null; then
+            print_message "$YELLOW" "Warning: ffprobe not found. It's usually part of the FFmpeg package."
+            print_message "$YELLOW" "Embedded subtitle detection may be limited."
+        else
+            print_message "$GREEN" "ffprobe is installed and available."
+        fi
+    fi
+}
+
 # Check Python installation
 if command -v python3 &>/dev/null; then
     PYTHON="python3"
@@ -41,6 +82,10 @@ fi
 # Get Python version
 PY_VERSION=$($PYTHON --version | cut -d' ' -f2)
 print_message "$GREEN" "Using Python $PY_VERSION"
+
+# Check system dependencies
+print_message "$YELLOW" "Checking system dependencies..."
+check_ffmpeg
 
 # Environment directory
 VENV_DIR="venv_subtrans"
