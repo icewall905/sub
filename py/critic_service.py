@@ -6,7 +6,7 @@ from typing import Dict, List, Any, Optional, Union
 
 class CriticService:
     """
-    Service for evaluating the quality of translations using Ollama LLM models.
+    Service for evaluating the quality of translations using local LLM services (Ollama or LM Studio).
     This service analyzes translation quality, provides scores, and generates
     quality reports for subtitle translations.
     """
@@ -25,11 +25,30 @@ class CriticService:
         # Get critic configuration
         # Read from 'agent_critic' section instead of 'critic'
         self.enabled = config.getboolean('agent_critic', 'enabled', fallback=False)
-        self.service = config.get('agent_critic', 'service', fallback='ollama') # Assuming service might be defined here too
+        self.service = config.get('agent_critic', 'service', fallback='auto') # Default to auto-detect
         self.model = config.get('agent_critic', 'model', fallback=config.get('ollama', 'model', fallback='llama3')) # Read model from agent_critic first
         self.temperature = config.getfloat('agent_critic', 'temperature', fallback=0.1)
         self.min_score = config.getfloat('agent_critic', 'min_score', fallback=0.6) # Assuming min_score might be defined here
         self.generate_report = config.getboolean('agent_critic', 'generate_report', fallback=False) # Assuming generate_report might be defined here
+        
+        # Check for LM Studio configuration
+        self.lmstudio_enabled = config.has_section('lmstudio') and config.getboolean('lmstudio', 'enabled', fallback=False)
+        
+        # Auto-detect which service to use based on config if set to 'auto'
+        if self.service == 'auto':
+            if self.lmstudio_enabled:
+                self.service = 'lmstudio'
+                self.logger.info("Auto-detected LM Studio as the critic service")
+            else:
+                self.service = 'ollama'
+                self.logger.info("Auto-detected Ollama as the critic service")
+        
+        # Get LM Studio-specific configuration if enabled
+        if self.lmstudio_enabled or self.service == 'lmstudio':
+            self.lmstudio_server_url = config.get('lmstudio', 'server_url', fallback='http://localhost:1234')
+            self.lmstudio_model = config.get('lmstudio', 'model', fallback=self.model)
+            # Build the complete API URL for LM Studio
+            self.lmstudio_api_url = f"{self.lmstudio_server_url.rstrip('/')}/v1/chat/completions"
         
         # Get Ollama-specific configuration
         self.ollama_server_url = config.get('ollama', 'server_url', fallback='http://localhost:11434')
@@ -92,7 +111,10 @@ class CriticService:
         self.evaluation_cache = {}
         
         self.logger.info(f"CriticService initialized. Enabled: {self.enabled}, Service: {self.service}, Model: {self.model}")
-        self.logger.debug(f"Ollama API URL: {self.ollama_api_url}")
+        if self.service == 'ollama':
+            self.logger.debug(f"Ollama API URL: {self.ollama_api_url}")
+        elif self.service == 'lmstudio':
+            self.logger.debug(f"LM Studio API URL: {self.lmstudio_api_url}")
     
     def evaluate_translation(self, source_text: str, translated_text: str, source_lang: str, target_lang: str) -> Dict[str, Any]:
         """
@@ -122,6 +144,8 @@ class CriticService:
             # Use the appropriate service for evaluation
             if self.service == 'ollama':
                 result = self._evaluate_with_ollama(source_text, translated_text, source_lang, target_lang)
+            elif self.service == 'lmstudio':
+                result = self._evaluate_with_lmstudio(source_text, translated_text, source_lang, target_lang)
             else:
                 self.logger.warning(f"Unsupported critic service: {self.service}, defaulting to basic evaluation")
                 result = self._basic_evaluation(source_text, translated_text)
@@ -133,6 +157,144 @@ class CriticService:
         except Exception as e:
             self.logger.error(f"Error in translation evaluation: {e}")
             return {"score": 0.5, "feedback": f"Error evaluating translation: {str(e)}"}
+    
+    def _evaluate_with_lmstudio(self, source_text: str, translated_text: str, source_lang: str, target_lang: str) -> Dict[str, Any]:
+        """
+        Evaluate translation quality using LM Studio's OpenAI-compatible API.
+        
+        Args:
+            source_text: The original text in the source language
+            translated_text: The translated text
+            source_lang: The source language code
+            target_lang: The target language code
+            
+        Returns:
+            Dictionary with evaluation score and feedback
+        """
+        # Create language names from codes
+        source_lang_name = self._get_language_name(source_lang)
+        target_lang_name = self._get_language_name(target_lang)
+        
+        # Build the system message
+        system_message = f"""You are a translation critic and improver. Your task is to review translations from {source_lang_name} to {target_lang_name} and provide detailed feedback."""
+        
+        # Build the user message
+        user_message = f"""Review this translation:
+
+Original text ({source_lang_name}): {source_text}
+
+Attempted translation ({target_lang_name}): {translated_text}
+
+Your task:
+1. Rate the translation quality on a scale of 1-10
+2. Identify any errors or issues in the translation
+3. MOST IMPORTANTLY: Provide a corrected/improved version of the translation (ONLY ONE DEFINITIVE REVISED VERSION)
+
+Return your response in this JSON format:
+{{
+  "score": <number between 1 and 10>,
+  "feedback": "<your critique with specific improvement suggestions>",
+  "revised_translation": "<your corrected version of the translation>"
+}}
+
+Only return the JSON object, no other text."""
+        
+        try:
+            # Prepare request payload in OpenAI Chat Completions format
+            headers = {
+                "Content-Type": "application/json"
+            }
+            
+            temperature = self.config.getfloat("lmstudio", "temperature", fallback=self.temperature)
+            
+            data = {
+                "model": self.lmstudio_model,
+                "messages": [
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": user_message}
+                ],
+                "temperature": temperature,
+                "max_tokens": self.config.getint("lmstudio", "context_length", fallback=4096),
+                "stream": False
+            }
+            
+            # Make request with retries
+            max_retries = 3
+            retry_delay = 2  # seconds
+            
+            for attempt in range(max_retries):
+                try:
+                    self.logger.debug(f"Sending evaluation request to LM Studio for {self.lmstudio_model} at {self.lmstudio_api_url}")
+                    
+                    # Increase timeout for more complex evaluations (300 seconds = 5 minutes)
+                    response = requests.post(self.lmstudio_api_url, json=data, headers=headers, timeout=300)
+                    response.raise_for_status()
+                    
+                    # Parse the response
+                    result = response.json()
+                    self.logger.debug(f"Received LM Studio critic response: {json.dumps(result)[:200]}...")
+                    
+                    # Extract the response content from the OpenAI API format
+                    if "choices" in result and len(result["choices"]) > 0:
+                        response_text = result["choices"][0]["message"]["content"].strip()
+                        
+                        # Extract the JSON part from the response
+                        try:
+                            evaluation = json.loads(response_text)
+                        except json.JSONDecodeError:
+                            # If that fails, try to extract JSON-like content
+                            self.logger.debug("Couldn't parse response as JSON directly, trying to extract JSON object")
+                            try:
+                                json_str = self._extract_json_from_text(response_text)
+                                evaluation = json.loads(json_str)
+                            except (json.JSONDecodeError, ValueError):
+                                self.logger.warning(f"Failed to extract JSON from response: {response_text[:100]}...")
+                                # Fallback: create a basic result based on the text
+                                evaluation = self._analyze_non_json_response(response_text)
+                        
+                        # Ensure score is within bounds
+                        if 'score' in evaluation:
+                            # Score might be on 1-10 scale, convert to 0-1
+                            if evaluation['score'] > 1.0:
+                                normalized_score = float(evaluation['score']) / 10.0
+                                self.logger.debug(f"Normalizing score from {evaluation['score']} to {normalized_score}")
+                                evaluation['score'] = normalized_score
+                            evaluation['score'] = min(max(float(evaluation['score']), 0.0), 1.0)
+                        else:
+                            evaluation['score'] = 0.5
+                            
+                        if 'feedback' not in evaluation:
+                            evaluation['feedback'] = "No feedback provided by the evaluation model"
+                        
+                        self.logger.info(f"Translation evaluation result: Score {evaluation['score']:.2f}")
+                        self.logger.debug(f"Evaluation feedback: {evaluation['feedback']}")
+                        
+                        return evaluation
+                    else:
+                        self.logger.warning(f"LM Studio API returned unexpected response format on attempt {attempt+1}")
+                        if attempt < max_retries - 1:
+                            time.sleep(retry_delay)
+                            continue
+                
+                except requests.exceptions.Timeout:
+                    self.logger.warning(f"LM Studio API request timed out on attempt {attempt+1}")
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay)
+                        continue
+                except requests.RequestException as e:
+                    self.logger.error(f"Error making request to LM Studio API: {e}")
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay)
+                        continue
+            
+            # If we get here, all retries failed
+            return {"score": 0.5, "feedback": "Failed to get evaluation from LM Studio after multiple attempts"}
+                
+        except Exception as e:
+            self.logger.error(f"Error in LM Studio evaluation: {str(e)}")
+            import traceback
+            self.logger.debug(f"Full error details: {traceback.format_exc()}")
+            return {"score": 0.5, "feedback": f"Error processing evaluation: {str(e)}"}
     
     def _evaluate_with_ollama(self, source_text: str, translated_text: str, source_lang: str, target_lang: str) -> Dict[str, Any]:
         """
