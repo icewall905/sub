@@ -336,7 +336,176 @@ class TranslationService:
             return ""
     
     def _translate_with_ollama(self, text: str, source_lang: str, target_lang: str, context=None, media_info=None, special_meanings=None) -> str:
-        """Translate text using local Ollama service."""
+        """Translate text using local Ollama service or LM Studio."""
+        # Check if LM Studio is enabled
+        lmstudio_enabled = self.config.has_section("lmstudio") and self.config.getboolean("lmstudio", "enabled", fallback=False)
+        
+        if lmstudio_enabled:
+            self.logger.info("Using LM Studio for translation")
+            return self._translate_with_lmstudio(text, source_lang, target_lang, context, media_info, special_meanings)
+        else:
+            # Check if Ollama is enabled
+            if not self.config.has_section("ollama"):
+                self.logger.warning("Neither Ollama nor LM Studio configuration found")
+                return ""
+                
+            ollama_enabled = self.config.getboolean("ollama", "enabled", fallback=True)
+            if not ollama_enabled:
+                self.logger.warning("Both Ollama and LM Studio are disabled")
+                return ""
+                
+            self.logger.info("Using Ollama for translation")
+            return self._translate_with_ollama_original(text, source_lang, target_lang, context, media_info, special_meanings)
+            
+    def _translate_with_lmstudio(self, text: str, source_lang: str, target_lang: str, context=None, media_info=None, special_meanings=None) -> str:
+        """Translate text using LM Studio's OpenAI-compatible API."""
+        server_url = self.config.get("lmstudio", "server_url", fallback="http://localhost:1234")
+        model = self.config.get("lmstudio", "model", fallback="")
+        
+        if not model:
+            self.logger.warning("LM Studio model not configured")
+            return ""
+        
+        # Get full language names for clearer prompt
+        source_full = self._get_language_full_name(source_lang)
+        target_full = self._get_language_full_name(target_lang)
+        
+        # Create system message with instructions
+        system_message = f"You are an expert translator from {source_full} to {target_full}. "
+        
+        # Add media info if available
+        if media_info:
+            system_message += f"These subtitles are for: {media_info['title']}. "
+            system_message += f"Plot summary: {media_info['overview']}. "
+            system_message += f"Genre: {media_info['genres']}. "
+            system_message += f"Main cast: {media_info['cast']}. "
+        
+        # Add wiki terminology to system message if available
+        try:
+            if self.wiki_terminology and media_info:
+                self.logger.info(f"Attempting to get wiki terminology for: {media_info.get('title', 'Unknown title')}")
+                terminology = self.wiki_terminology.get_terminology(media_info)
+                
+                if terminology and terminology.get('terms'):
+                    terms = terminology['terms']
+                    max_terms = self.config.getint("wiki_terminology", "max_terms", fallback=10)
+                    
+                    if terms:
+                        system_message += "IMPORTANT SHOW-SPECIFIC TERMINOLOGY: "
+                        for term in terms[:max_terms]:
+                            system_message += f"'{term['term']}' means '{term['definition']}'. "
+                        
+                        self.logger.info(f"Added {min(len(terms), max_terms)} wiki terminology entries to LM Studio system message")
+        except Exception as e:
+            self.logger.error(f"Error adding wiki terminology to LM Studio prompt: {str(e)}", exc_info=True)
+        
+        # Add user-defined special meanings if available
+        if special_meanings and len(special_meanings) > 0:
+            try:
+                system_message += "USER-DEFINED SPECIAL MEANINGS: "
+                for meaning in special_meanings:
+                    if 'word' in meaning and 'meaning' in meaning:
+                        system_message += f"'{meaning['word']}' means '{meaning['meaning']}'. "
+                
+                self.logger.info(f"Added {len(special_meanings)} user-defined special meanings to LM Studio system message")
+            except Exception as e:
+                self.logger.error(f"Error adding user-defined special meanings to LM Studio prompt: {str(e)}")
+        
+        # Create user message with text to translate and context
+        user_message = f"Translate this text from {source_full} to {target_full}: {text}"
+        if context:
+            user_message += f"\n\nContext from surrounding subtitles:\n{context}"
+        
+        # Prepare request payload in OpenAI Chat Completions format
+        url = f"{server_url.rstrip('/')}/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        temperature = self.config.getfloat("lmstudio", "temperature", fallback=0.7)
+        
+        data = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            "temperature": temperature,
+            "max_tokens": self.config.getint("lmstudio", "context_length", fallback=4096),
+            "stream": False
+        }
+        
+        # Make request with retries
+        max_retries = self.config.getint("translation", "max_retries", fallback=3)
+        retry_delay = self.config.getint("translation", "base_delay", fallback=2)
+        
+        for attempt in range(max_retries):
+            try:
+                self.logger.debug(f"Calling LM Studio API with model {model} (attempt {attempt+1}/{max_retries})")
+                
+                # Increase timeout for large or complex translations (300 seconds = 5 minutes)
+                timeout = 300
+                response = requests.post(url, json=data, headers=headers, timeout=timeout)
+                
+                # Log response details for debugging
+                self.logger.debug(f"LM Studio response status: {response.status_code}")
+                
+                response.raise_for_status()
+                result = response.json()
+                
+                # Extract translation from the response
+                if "choices" in result and len(result["choices"]) > 0:
+                    translated_text = result["choices"][0]["message"]["content"].strip()
+                    
+                    self.logger.debug(f"Received LM Studio translation response (len={len(translated_text)})")
+                    
+                    if translated_text:
+                        # Clean up response - remove extra quotes or markdown
+                        translated_text = translated_text.strip(' "\'\n`')
+                        
+                        # Remove potential prefixes that the model might add
+                        prefixes_to_remove = [
+                            "Translation:", 
+                            "Translated text:", 
+                            "Here's the translation:"
+                        ]
+                        for prefix in prefixes_to_remove:
+                            if translated_text.startswith(prefix):
+                                translated_text = translated_text[len(prefix):].strip()
+                        
+                        self.logger.debug(f"LM Studio translation successful: {translated_text[:50]}...")
+                        return translated_text
+                
+                self.logger.warning(f"LM Studio API returned no translatable content in attempt {attempt+1}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                return ""
+                
+            except requests.exceptions.Timeout:
+                self.logger.warning(f"LM Studio API request timed out after {timeout} seconds on attempt {attempt+1}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                return ""
+            except requests.exceptions.RequestException as e:
+                self.logger.error(f"LM Studio API request failed on attempt {attempt+1}: {str(e)}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                return ""
+            except json.JSONDecodeError as e:
+                self.logger.error(f"Error parsing LM Studio response on attempt {attempt+1}: {str(e)}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                return ""
+        
+        self.logger.error("All LM Studio translation attempts failed")
+        return ""
+        
+    def _translate_with_ollama_original(self, text: str, source_lang: str, target_lang: str, context=None, media_info=None, special_meanings=None) -> str:
+        """Original method to translate text using local Ollama service."""
         if not self.config.has_section("ollama"):
             self.logger.warning("Ollama configuration not found")
             return ""
@@ -391,7 +560,7 @@ class TranslationService:
                     self.logger.debug("Wiki terminology service not initialized, skipping terminology lookup")
             except Exception as e:
                 self.logger.error(f"Error adding wiki terminology to Ollama prompt: {str(e)}", exc_info=True)
-                
+            
             # Add user-defined special meanings if available
             if special_meanings and len(special_meanings) > 0:
                 try:
