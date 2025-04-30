@@ -2,6 +2,7 @@ import os
 import json
 import requests
 import time
+import re
 from typing import Dict, List, Any, Optional, Union
 
 class CriticService:
