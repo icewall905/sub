@@ -25,7 +25,7 @@ class CriticService:
         # Get critic configuration
         # Read from 'agent_critic' section instead of 'critic'
         self.enabled = config.getboolean('agent_critic', 'enabled', fallback=False)
-        self.service = config.get('agent_critic', 'service', fallback='auto') # Default to auto-detect
+        self.service = config.get('agent_critic', 'service', fallback='ollama')  # Default to ollama instead of auto
         self.model = config.get('agent_critic', 'model', fallback=config.get('ollama', 'model', fallback='llama3')) # Read model from agent_critic first
         self.temperature = config.getfloat('agent_critic', 'temperature', fallback=0.1)
         self.min_score = config.getfloat('agent_critic', 'min_score', fallback=0.6) # Assuming min_score might be defined here
@@ -34,7 +34,7 @@ class CriticService:
         # Check for LM Studio configuration
         self.lmstudio_enabled = config.has_section('lmstudio') and config.getboolean('lmstudio', 'enabled', fallback=False)
         
-        # Auto-detect which service to use based on config if set to 'auto'
+        # Only auto-detect if explicitly set to 'auto'
         if self.service == 'auto':
             if self.lmstudio_enabled:
                 self.service = 'lmstudio'

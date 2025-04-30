@@ -78,7 +78,7 @@ max_terms = 10
 
 [critic]
 enabled = true
-service = ollama      # Currently only 'ollama' is supported
+service = ollama      # Currently only 'ollama' and 'lmstudio' is supported
 model = gemma3:12b    # Uses the ollama model if not specified
 temperature = 0.1     # Lower temperature for more consistent evaluations
 min_score = 6.0       # Minimum acceptable score (0-10) for translations
