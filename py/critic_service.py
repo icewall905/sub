@@ -396,6 +396,9 @@ Only return the JSON object, no other text.
                     self.logger.debug(f"Received Ollama critic response: {json.dumps(result)[:200]}...")
                     response_text = result.get('response', '')
                     
+                    # Apply think tags filter to remove thinking content
+                    response_text = self.remove_think_tags(response_text)
+                    
                     # Extract the JSON part from the response
                     # First, try to parse the response as JSON directly
                     try:
@@ -670,3 +673,27 @@ while maintaining natural language flow in the target language.
         except Exception as e:
             self.logger.error(f"Error saving quality report: {e}")
             return ""
+
+    def remove_think_tags(self, text: str) -> str:
+        """
+        Remove content between <think> and </think> tags.
+        This allows models to include their thinking process without it showing up in the final output.
+        
+        Args:
+            text: The text to process
+            
+        Returns:
+            Text with the thinking content removed
+        """
+        if not text:
+            return ""
+            
+        # Use regex to remove anything between <think> and </think> tags, including the tags
+        cleaned_text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+        
+        # If debug mode is enabled, log when thinking content was removed
+        debug_mode = self.config.getboolean('agent_critic', 'debug', fallback=False)
+        if debug_mode and text != cleaned_text:
+            self.logger.debug(f"Removed thinking content from critic response (original length: {len(text)}, new length: {len(cleaned_text)})")
+            
+        return cleaned_text.strip()

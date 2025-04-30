@@ -677,6 +677,9 @@ class TranslationService:
                 if "response" in result:
                     translated_text = result["response"].strip()
                     self.logger.debug(f"Received Ollama translation response (len={len(translated_text)})")
+                    
+                    # Apply think tags filter to remove thinking content
+                    translated_text = self.remove_think_tags(translated_text)
                 # --- End /api/generate response parsing ---
                 
                 if translated_text:
@@ -978,6 +981,10 @@ IMPORTANT: Return ONLY your translation of the text between the dotted lines. Do
                     
                     if "response" in result:
                         translated_text = result["response"].strip()
+                        
+                        # Apply think tags filter to remove thinking content
+                        translated_text = self.remove_think_tags(translated_text)
+                        
                         # Clean up response - removing quotes, prefixes, etc.
                         translated_text = translated_text.strip(' "\'\n`')
                         
@@ -1237,3 +1244,27 @@ IMPORTANT: Return ONLY your translation of the text between the dotted lines. Do
         except Exception as e:
             self.logger.error(f"Error saving special meanings: {str(e)}")
             return False
+
+    def remove_think_tags(self, text: str) -> str:
+        """
+        Remove content between <think> and </think> tags.
+        This allows models to include their thinking process without it showing up in the final output.
+        
+        Args:
+            text: The text to process
+            
+        Returns:
+            Text with the thinking content removed
+        """
+        if not text:
+            return ""
+            
+        # Use regex to remove anything between <think> and </think> tags, including the tags
+        cleaned_text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+        
+        # If debug mode is enabled, log when thinking content was removed
+        debug_mode = self.config.getboolean('general', 'debug_mode', fallback=False)
+        if debug_mode and text != cleaned_text:
+            self.logger.debug(f"Removed thinking content from response (original length: {len(text)}, new length: {len(cleaned_text)})")
+            
+        return cleaned_text.strip()
