@@ -649,61 +649,32 @@ def download_zip():
 
 @app.route('/api/live_status')
 def live_status():
-    """API endpoint to get the current live translation status."""
-    # Get translation progress from the existing progress tracker
-    progress_response = get_progress()
+    """API endpoint to get the current live translation status.
+    This now primarily relies on bulk_translation_progress which is updated by all job types.
+    """
+    # bulk_translation_progress is the global dictionary
+    # Ensure a consistent structure for the response
+    response_data = {
+        "mode": bulk_translation_progress.get("mode", "idle"),
+        "status": bulk_translation_progress.get("status", "idle"),
+        "message": bulk_translation_progress.get("message", "System is idle."),
+        "filename": bulk_translation_progress.get("current_file", ""),
+        "percent": bulk_translation_progress.get("percent", 0), # Percent is now directly in bulk_translation_progress
+        "job_id": bulk_translation_progress.get("job_id"), # job_id is useful for all modes
+        "current_line": bulk_translation_progress.get("current_line", 0),
+        "total_lines": bulk_translation_progress.get("total_lines", 0),
+        "done_files": bulk_translation_progress.get("done_files", 0),
+        "total_files": bulk_translation_progress.get("total_files", 0),
+        "current": bulk_translation_progress.get("current", {}),
+        "processed_lines": bulk_translation_progress.get("processed_lines", [])
+    }
     
-    # Convert the response to a dictionary if it's a Response object
-    if hasattr(progress_response, 'get_json'):
-        progress = progress_response.get_json()
-    else:
-        progress = progress_response
-    
-    # Build response with detailed translation information
-    response_data = {"status": "idle"}
-    
-    if progress and isinstance(progress, dict):
-        # First, copy the basic progress information to response
-        response_data["status"] = progress.get("status", "idle")
-        response_data["filename"] = progress.get("current_file", "")
-        response_data["current_line"] = progress.get("current_line", 0)
-        response_data["total_lines"] = progress.get("total_lines", 0)
-        
-        # Add the mode (bulk or single)
-        if "mode" in progress:
-            response_data["mode"] = progress.get("mode", "single")
-        
-        # If there's detailed current line information, include it
-        if "current" in progress and isinstance(progress["current"], dict):
-            # Include the entire current object for detailed line information
-            response_data["current"] = progress["current"]
-            
-            # Also include top-level fields for backwards compatibility
-            response_data["line_number"] = progress["current"].get("line_number", 0)
-            response_data["original"] = progress["current"].get("original", "")
-            response_data["first_pass"] = progress["current"].get("first_pass", "")
-            response_data["critic"] = progress["current"].get("standard_critic", "")
-            response_data["final"] = progress["current"].get("final", "")
-            
-            # Add timing information if available
-            if "timing" in progress["current"]:
-                response_data["timing"] = progress["current"].get("timing", {})
-            
-            # If critic has changed the translation, indicate this in the response
-            if "standard_critic" in progress["current"] and "first_pass" in progress["current"]:
-                response_data["critic_changed"] = progress["current"]["standard_critic"] != progress["current"]["first_pass"]
-                
-            # Add detail about what the critic did
-            if "critic_action" in progress["current"]:
-                response_data["critic_action"] = progress["current"].get("critic_action", "")
-        
-        # Add history of processed lines if available
-        if "processed_lines" in progress:
-            response_data["processed_lines"] = progress["processed_lines"]
-        
-        # Only log the detailed response if log_live_status is enabled
-        if config.getboolean('logging', 'log_live_status', fallback=False):
-            logger.debug(f"Live status response: {response_data}")
+    # No mode-specific logic needed here anymore if bulk_translation_progress is always up-to-date.
+    # The background threads (process_translation, process_video_transcription, scan_and_translate_directory)
+    # are responsible for keeping bulk_translation_progress accurate.
+
+    if config.getboolean('logging', 'log_live_status', fallback=False):
+        logger.debug(f"Live status API response: {json.dumps(response_data)}")
     
     return jsonify(response_data)
 
@@ -831,18 +802,34 @@ def format_file_size(size_bytes):
 # Helper functions
 
 def get_recent_translations():
-    """Get list of recent translations."""
+    """Get list of recent translations and transcriptions."""
     recent_files = []
     for job_id, job in translation_jobs.items():
-        if job['status'] == 'completed':
-            recent_files.append({
+        # Ensure job is completed and has an end_time before processing
+        if job.get('status') == 'completed' and job.get('end_time') is not None:
+            entry = {
                 'id': job_id,
-                'name': job['original_filename'],
+                'name': job.get('original_filename', 'Unknown File'), # Default for name
                 'date': datetime.fromtimestamp(job['end_time']).strftime('%Y-%m-%d %H:%M:%S'),
-                'source_language': job['source_language'],
-                'target_language': job['target_language']
-            })
-    
+            }
+            
+            job_type = job.get('type')
+            
+            if job_type == 'transcription':
+                entry['source_language'] = job.get('language', 'N/A') # Video's language
+                entry['target_language'] = '(Transcription)'
+                recent_files.append(entry)
+            elif 'source_language' in job and 'target_language' in job: # Assumed to be a translation
+                entry['source_language'] = job['source_language']
+                entry['target_language'] = job['target_language']
+                recent_files.append(entry)
+            else:
+                # This job is completed but doesn't fit the expected structures.
+                logger.warning(
+                    f"Job {job_id} (type: {job_type}) is completed but lacks expected language fields. Skipping from recent list."
+                )
+                # No append, so it's skipped
+
     # Sort by date, newest first
     recent_files.sort(key=lambda x: x['date'], reverse=True)
     
@@ -928,7 +915,7 @@ def process_translation(job_id, cache_path, filename, source_language, target_la
         job['message'] = 'Initializing...'
         
         # Initialize subtitle processor
-        subtitle_processor = SubtitleProcessor(logger)
+        SubtitleProcessor(logger)
         
         # Get config
         config = config_manager.get_config()
@@ -1726,202 +1713,110 @@ def process_video_transcription(job_id, video_path, language=None):
     
     # Use the global progress dictionary for status updates
     global bulk_translation_progress
-    progress_dict = bulk_translation_progress
     
+    # Define a callback to update the main progress dictionary
+    def update_main_progress_dict(percent, message, status, current_job_id):
+        if current_job_id == job_id: # Ensure we're updating for the correct job
+            bulk_translation_progress["percent"] = percent
+            bulk_translation_progress["message"] = message
+            bulk_translation_progress["status"] = status
+            # current_file and mode should already be set
+            save_progress_state() # Persist changes
+            logger.debug(f"Callback updated bulk_translation_progress for {job_id}: {percent}% - {message} - {status}")
+
     try:
         # Reset and update global progress status for this job
-        progress_dict.clear()
-        progress_dict.update({
+        # This is the initial setup for bulk_translation_progress for this job
+        bulk_translation_progress.clear()
+        bulk_translation_progress.update({
             "mode": "transcription",
-            "status": "processing",
-            "message": f'Starting transcription for {job["original_filename"]}',
+            "status": "queued", # Will be updated by the transcriber almost immediately
+            "message": f'Queued transcription for {job["original_filename"]}',
             "current_file": job["original_filename"],
-            "job_id": job_id
+            "job_id": job_id,
+            "percent": 0,
+            # Ensure other fields are reset or initialized if needed
+            "current_line": 0,
+            "total_lines": 0, 
+            "done_files": 0,
+            "total_files": 0,
+            "current": {},
+            "processed_lines": []
         })
         
-        # Save progress state to file
+        # Save initial progress state to file
         save_progress_state()
         
-        # Update job status
-        job['status'] = 'processing'
-        job['message'] = 'Extracting audio from video...'
+        # Update job status in translation_jobs (this is the job-specific dict)
+        job['status'] = 'queued' 
+        job['message'] = 'Queued for transcription'
         
         # Initialize the video transcriber
-        config = config_manager.get_config()
-        whisper_server = config.get('whisper', 'server_url', fallback='http://10.0.10.23:10300')
+        current_config = config_manager.get_config() # Ensure fresh config
+        whisper_server = current_config.get('whisper', 'server_url', fallback='http://10.0.10.23:10300')
         transcriber = VideoTranscriber(server_url=whisper_server, logger=logger)
         
-        # Transcribe the video - use chunked mode by default
-        job['message'] = 'Transcribing video with faster-whisper using chunked processing...'
-        success, message, result = transcriber.transcribe_video(
-            video_path, 
+        file_base = os.path.splitext(job['original_filename'])[0]
+        output_filename = f"{file_base}_whisper.srt"
+        output_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(output_filename))
+        
+        # Pass the callback to the transcriber
+        transcribe_success, transcribe_message = transcriber.transcribe_video_to_srt(
+            video_path,
+            output_path,
             language=language,
-            use_chunks=True,      # Enable chunking for better server compatibility
-            chunk_duration=30     # 30-second chunks
+            job_id=job_id,
+            external_progress_updater=update_main_progress_dict # Pass the callback here
         )
         
-        if success:
-            if result.get('transcription_type') == 'chunked':
-                # This is a chunked transcription result
-                job['chunks'] = result.get('chunks', [])
-                job['status'] = 'processing'
-                job['message'] = f'Processed {len(job["chunks"])}/{result.get("num_chunks", 0)} chunks'
-                job['progress'] = 80
-                
-                # Store the local job ID
-                local_job_id = result.get('job_id')
-                job['whisper_job_id'] = local_job_id
-                
-                # Generate output filename
-                file_base = os.path.splitext(job['original_filename'])[0]
-                output_filename = f"{file_base}_whisper.srt"
-                output_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(output_filename))
-                
-                # Download (generate) the SRT file from chunks
-                download_success, download_message = transcriber.download_srt(local_job_id, output_path)
-                
-                if download_success:
-                    job['status'] = 'completed'
-                    job['target_path'] = output_path
-                    job['output_filename'] = output_filename
-                    job['message'] = 'Chunked transcription and SRT generation complete'
-                    job['progress'] = 100
-                    job['end_time'] = time.time()
-                    logger.info(f"Chunked transcription job {job_id} completed successfully")
-                    
-                    # Update global progress
-                    progress_dict["status"] = "completed"
-                    progress_dict["message"] = f"Chunked transcription completed for {job['original_filename']}"
-                else:
-                    raise Exception(f"Failed to generate SRT from chunks: {download_message}")
-                
-            elif 'job_id' in result:
-                # This is a server-side job that needs polling
-                job_id_from_server = result.get('job_id')
-                job['whisper_job_id'] = job_id_from_server
-                job['status'] = 'processing'
-                job['message'] = f'Transcription in progress: {message}'
-                job['progress'] = 30
-                
-                # Poll for completion
-                completed = False
-                retry_count = 0
-                max_retries = 120  # 10 minutes (5s * 120)
-                
-                while not completed and retry_count < max_retries:
-                    time.sleep(5)  # Wait 5 seconds between status checks
-                    retry_count += 1
-                    
-                    # Update progress with linear approximation
-                    progress = min(30 + (retry_count * 50 / max_retries), 80)
-                    job['progress'] = progress
-                    job['message'] = f'Transcription in progress ({progress:.0f}%)...'
-                    
-                    # Check status
-                    status_success, status_message, status_data = transcriber.get_transcription_status(job_id_from_server)
-                    
-                    if status_success:
-                        status = status_data.get('status')
-                        if status == 'completed':
-                            completed = True
-                            job['status'] = 'processing'
-                            job['message'] = 'Transcription complete. Downloading SRT file...'
-                            job['progress'] = 90
-                            
-                            # Generate output filename
-                            file_base = os.path.splitext(job['original_filename'])[0]
-                            output_filename = f"{file_base}_whisper.srt"
-                            output_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(output_filename))
-                            
-                            # Download the SRT file
-                            download_success, download_message = transcriber.download_srt(job_id_from_server, output_path)
-                            
-                            if download_success:
-                                job['status'] = 'completed'
-                                job['target_path'] = output_path
-                                job['output_filename'] = output_filename
-                                job['message'] = 'Transcription and download complete'
-                                job['progress'] = 100
-                                job['end_time'] = time.time()
-                                logger.info(f"Transcription job {job_id} completed successfully")
-                                
-                                # Update global progress
-                                progress_dict["status"] = "completed"
-                                progress_dict["message"] = f"Transcription completed for {job['original_filename']}"
-                            else:
-                                raise Exception(f"Failed to download SRT: {download_message}")
-                        elif status == 'failed':
-                            raise Exception(f"Transcription failed on server: {status_data.get('error', 'Unknown error')}")
-                        else:
-                            # Still processing
-                            progress_info = status_data.get('progress', {})
-                            if progress_info:
-                                task_progress = progress_info.get('progress', 0) * 100
-                                job['message'] = f"Transcribing: {task_progress:.1f}% - {progress_info.get('task', 'processing')}"
-                                job['progress'] = 30 + (task_progress * 0.5)  # Scale server progress to 30-80% range
-                    else:
-                        logger.warning(f"Failed to get transcription status: {status_message}")
-                
-                if not completed:
-                    raise Exception("Transcription timed out after 10 minutes")
-            else:
-                # Direct transcription result with text
-                job['status'] = 'processing'
-                job['message'] = 'Generating SRT from transcription...'
-                job['progress'] = 90
-                
-                # Create an SRT file from the result
-                file_base = os.path.splitext(job['original_filename'])[0]
-                output_filename = f"{file_base}_whisper.srt"
-                output_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(output_filename))
-                
-                # Extract text from result
-                text = result.get('text', '')
-                if not text:
-                    # Try to find text in other formats
-                    if 'result' in result:
-                        text = result['result'].get('text', '')
-                    elif 'transcripts' in result:
-                        text = result['transcripts'][0] if result['transcripts'] else ''
-                
-                # Generate a basic SRT file
-                import datetime
-                with open(output_path, 'w', encoding='utf-8') as f:
-                    # Create a simple SRT with the text as a single subtitle
-                    f.write("1\n00:00:00,000 --> 00:05:00,000\n" + text.strip() + "\n\n")
-                
-                job['status'] = 'completed'
-                job['target_path'] = output_path
-                job['output_filename'] = output_filename
-                job['message'] = 'Transcription and SRT generation complete'
-                job['progress'] = 100
-                job['end_time'] = time.time()
-                logger.info(f"Direct transcription job {job_id} completed successfully")
-                
-                # Update global progress
-                progress_dict["status"] = "completed"
-                progress_dict["message"] = f"Transcription completed for {job['original_filename']}"
+        # Final update to bulk_translation_progress is handled by the callback
+        # from the last step in transcribe_video_to_srt.
+
+        if transcribe_success:
+            job['status'] = 'completed'
+            job['target_path'] = output_path
+            job['output_filename'] = output_filename
+            job['message'] = 'Transcription completed successfully'
+            job['progress'] = 100 # This is for the job-specific dict
+            job['end_time'] = time.time()
+            logger.info(f"Transcription job {job_id} completed successfully: {output_path}")
+            # bulk_translation_progress should be 'complete' and 100% via callback
         else:
-            raise Exception(f"Failed to start transcription: {message}")
-            
+            # The callback in transcribe_video_to_srt's except/finally block should have set error status
+            job['status'] = 'failed'
+            job['message'] = transcribe_message # Error message from transcriber
+            job['progress'] = bulk_translation_progress.get("percent", 0) # Reflect last known percent
+            job['end_time'] = time.time()
+            logger.error(f"Transcription job {job_id} failed: {transcribe_message}")
+
     except Exception as e:
-        error_message = f"Error in transcription job {job_id}: {str(e)}"
+        error_message = f"Unhandled error in process_video_transcription for job {job_id}: {str(e)}"
         logger.error(error_message)
-        import traceback
         logger.error(traceback.format_exc())
         
-        # Update job status
         job['status'] = 'failed'
         job['message'] = error_message
-        job['progress'] = 0
+        job['progress'] = bulk_translation_progress.get("percent", 0)
         job['end_time'] = time.time()
         
-        # Update global progress
-        progress_dict["status"] = "failed"
-        progress_dict["message"] = error_message
-        
-        # Save error state
+        # Ensure bulk_translation_progress reflects the error state
+        bulk_translation_progress["status"] = "failed"
+        bulk_translation_progress["message"] = error_message
+        # bulk_translation_progress["percent"] will be its last updated value
         save_progress_state()
+    finally:
+        # The bulk_translation_progress state is saved by the callback or at the end of try/except.
+        # No need to clear it here, it will be overwritten by the next job.
+        pass
+
+@app.route('/api/transcription_progress/<job_id>')
+def get_transcription_progress(job_id):
+    """API endpoint to check transcription progress"""
+    progress = VideoTranscriber.get_job_progress(job_id)
+    if progress:
+        return jsonify(progress)
+    else:
+        return jsonify({"error": "Job not found"}), 404
 
 def allowed_file(filename):
     """Check if file has an allowed extension."""
