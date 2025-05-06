@@ -9,6 +9,9 @@ let currentJobId = null; // Keep track of the current single translation job
 let expandedHistoryItems = new Set();
 let browserVisible = false; // File Browser State Management
 let isTranslationActive = false; // Flag to track if a translation is running
+let selectedVideoPath = null;
+let videoFileCache = {};
+let currentVideoPath = '';
 
 // Helper function to log debug messages
 function debug(message) {
@@ -284,6 +287,226 @@ document.addEventListener('DOMContentLoaded', function() {
                      deleteSubtitle(filename);
                  }
             }
+        });
+    }
+
+    // --- Set up video file browser ---
+    const browseVideoBtn = document.getElementById('browse-video-btn');
+    const videoFileBrowser = document.getElementById('video-file-browser');
+    const videoDirsList = document.getElementById('video-dirs-list');
+    const videoFilesList = document.getElementById('video-files-list');
+    const videoCurrentPath = document.getElementById('video-current-path');
+    const selectedVideoPathSpan = document.getElementById('selected-video-path');
+    
+    if (browseVideoBtn) {
+        browseVideoBtn.addEventListener('click', function() {
+            debug("Video browser button clicked");
+            if (videoFileBrowser.style.display === 'none' || videoFileBrowser.style.display === '') {
+                videoFileBrowser.style.display = 'block';
+                loadVideoDirectories(''); // Load root directories
+            } else {
+                videoFileBrowser.style.display = 'none';
+            }
+        });
+    }
+    
+    // Function to load directories for the video file browser
+    function loadVideoDirectories(path) {
+        debug(`Loading video directories for path: ${path}`);
+        currentVideoPath = path;
+        
+        // Use the cache if available
+        if (videoFileCache[path]) {
+            renderVideoFilesBrowser(videoFileCache[path]);
+            return;
+        }
+        
+        fetch(`/api/browse_videos?path=${encodeURIComponent(path)}`)
+            .then(response => response.json())
+            .then(data => {
+                // Cache the response
+                videoFileCache[path] = data;
+                renderVideoFilesBrowser(data);
+            })
+            .catch(error => {
+                console.error('Error loading directories:', error);
+                videoDirsList.innerHTML = '<div class="error">Error loading directories</div>';
+            });
+    }
+    
+    // Function to render the video files browser content
+    function renderVideoFilesBrowser(data) {
+        if (data.error) {
+            videoDirsList.innerHTML = `<div class="error">${data.error}</div>`;
+            videoFilesList.innerHTML = '';
+            return;
+        }
+        
+        // Update current path display
+        videoCurrentPath.textContent = data.current_path || 'Root';
+        
+        // Create a parent directory link if we're not at root
+        let dirsHtml = '';
+        if (data.parent_path !== null && data.parent_path !== '') {
+            dirsHtml += `<div class="dir-item parent-dir" data-path="${data.parent_path}">
+                <span class="dir-icon">📁</span>
+                <span class="dir-name">..</span>
+            </div>`;
+        }
+        
+        // Add all directories
+        if (data.directories && data.directories.length > 0) {
+            data.directories.forEach(dir => {
+                dirsHtml += `<div class="dir-item" data-path="${dir.path}">
+                    <span class="dir-icon">📁</span>
+                    <span class="dir-name">${dir.name}</span>
+                </div>`;
+            });
+        } else if (!data.parent_path) {
+            dirsHtml += '<div class="no-dirs">No directories found</div>';
+        }
+        
+        videoDirsList.innerHTML = dirsHtml;
+        
+        // Add click events to directory items
+        videoDirsList.querySelectorAll('.dir-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const dirPath = this.getAttribute('data-path');
+                loadVideoDirectories(dirPath);
+            });
+        });
+        
+        // Add video files
+        let filesHtml = '';
+        if (data.files && data.files.length > 0) {
+            data.files.forEach(file => {
+                filesHtml += `<div class="file-item" data-path="${file.path}">
+                    <span class="file-icon">🎬</span>
+                    <span class="file-name">${file.name}</span>
+                </div>`;
+            });
+        } else {
+            filesHtml = '<div class="no-files">No video files found</div>';
+        }
+        
+        videoFilesList.innerHTML = filesHtml;
+        
+        // Add click events to file items
+        videoFilesList.querySelectorAll('.file-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const filePath = this.getAttribute('data-path');
+                const fileName = this.querySelector('.file-name').textContent;
+                selectedVideoPath = filePath;
+                
+                // Update the display and hide the browser
+                selectedVideoPathSpan.textContent = fileName;
+                selectedVideoPathSpan.title = filePath;
+                videoFileBrowser.style.display = 'none';
+                
+                debug(`Selected video file: ${filePath}`);
+            });
+        });
+    }
+    
+    // --- Setup video transcription form ---
+    const videoTranscribeForm = document.getElementById('video-transcribe-form');
+    if (videoTranscribeForm) {
+        videoTranscribeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!selectedVideoPath) {
+                alert('Please select a video file first');
+                return;
+            }
+            
+            // Show the status container with a checking server message
+            document.getElementById('status-container').style.display = 'block';
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('progress-text').textContent = '0%';
+            document.getElementById('status-message').textContent = 'Checking whisper server connection...';
+            document.getElementById('live-status-display').innerHTML = '<p>Checking if transcription server is available...</p>';
+            
+            // First check if the server is reachable
+            fetch('/api/whisper/check_server')
+                .then(response => response.json())
+                .then(data => {
+                    // Always proceed if TCP connection is successful (regardless of HTTP endpoint status)
+                    // faster-whisper servers often don't implement health or root endpoints
+                    if (data.success) {
+                        let message = data.message;
+                        if (data.partial) {
+                            message = "Server appears to be running but not responding to HTTP test requests. Proceeding with transcription anyway.";
+                        }
+                        
+                        document.getElementById('status-message').textContent = 'Server is reachable, starting transcription...';
+                        document.getElementById('live-status-display').innerHTML = '<p>Preparing to send video to transcription server...</p>';
+                        
+                        startVideoTranscription();
+                    } else {
+                        // Server is not reachable at all
+                        document.getElementById('status-message').textContent = `Error: ${data.message}`;
+                        document.getElementById('progress-bar').style.backgroundColor = '#ff4444';
+                        document.getElementById('live-status-display').innerHTML = `
+                            <p class="error-message">Cannot connect to the transcription server at ${data.server_url}</p>
+                            <p>Please check that the server is running and accessible from your network.</p>
+                            <p>Error details: ${data.message}</p>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking server availability:', error);
+                    document.getElementById('status-message').textContent = `Error checking server: ${error.message}`;
+                    document.getElementById('progress-bar').style.backgroundColor = '#ff4444';
+                    document.getElementById('live-status-display').innerHTML = `
+                        <p class="error-message">Network error while checking server availability.</p>
+                        <p>Please check your network connection and try again.</p>
+                    `;
+                });
+        });
+    }
+
+    // Function to start video transcription after server check
+    function startVideoTranscription() {
+        // Get the selected language or leave empty for auto-detect
+        const language = document.getElementById('video-language').value;
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('video_file_path', selectedVideoPath);
+        if (language) {
+            formData.append('language', language);
+        }
+        
+        // Update status
+        document.getElementById('status-message').textContent = 'Sending video to transcription service...';
+        document.getElementById('live-status-display').innerHTML = '<p>Sending video file to server...</p>';
+        
+        // Make the API call
+        fetch('/api/video_to_srt', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Start polling for job status
+                const jobId = data.job_id;
+                pollJobStatus(jobId);
+                
+                document.getElementById('status-message').textContent = 'Transcription job started successfully';
+                document.getElementById('live-status-display').innerHTML = '<p>Video uploaded, transcription in progress...</p>';
+            } else {
+                throw new Error(data.error || 'Failed to start transcription');
+            }
+        })
+        .catch(error => {
+            console.error('Error starting transcription:', error);
+            document.getElementById('status-message').textContent = `Error: ${error.message}`;
+            document.getElementById('progress-bar').style.backgroundColor = '#ff4444';
+            document.getElementById('live-status-display').innerHTML = `
+                <p class="error-message">Error starting transcription:</p>
+                <p>${error.message}</p>
+            `;
         });
     }
 

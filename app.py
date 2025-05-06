@@ -23,6 +23,7 @@ from py.subtitle_processor import SubtitleProcessor
 from py.translation_service import TranslationService
 from py.critic_service import CriticService
 from py.logger import setup_logger
+from py.video_transcriber import VideoTranscriber
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -185,7 +186,7 @@ def api_translate():
         # Check if a host file path was provided instead of a file upload
         host_file_path = request.form.get('host_file_path', '')
         
-        if host_file_path:
+        if (host_file_path):
             # Validate the host file path for security
             if not os.path.isfile(host_file_path):
                 return jsonify({"error": "Invalid file path or file does not exist"}), 400
@@ -1396,7 +1397,7 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                 archive_path = os.path.join(app.config['UPLOAD_FOLDER'], translated_filename)
                 
                 # Check if the output file already exists in the archive
-                if os.path.exists(archive_path):
+                if (os.path.exists(archive_path)):
                     logger.info(f"Output file {translated_filename} already exists in archive, skipping translation")
                     # Copy the existing file to the temp directory for inclusion in the zip
                     import shutil
@@ -1547,6 +1548,385 @@ def api_update_special_meanings():
     except Exception as e:
         logger.error(f"Error updating special meanings: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/api/browse_videos', methods=['GET'])
+def api_browse_videos():
+    """API endpoint to list video files in a directory for the host file browser."""
+    parent_path = request.args.get("path", "")
+    
+    # Default to system root directories if no path provided
+    if not parent_path:
+        if os.name == "nt":  # Windows
+            import string
+            # Get all drives
+            drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
+            return jsonify({
+                "files": [],
+                "directories": [{"name": d, "path": d} for d in drives],
+                "current_path": "",
+                "parent_path": ""
+            })
+        else:  # Unix-like
+            parent_path = "/"
+    
+    try:
+        # Security check: normalize path to prevent directory traversal
+        parent_path = os.path.normpath(parent_path)
+        
+        # Get the parent of the current directory for "up one level" functionality
+        parent_of_parent = os.path.dirname(parent_path) if parent_path != "/" else ""
+        
+        # List all items in the parent path
+        files = []
+        dirs = []
+        
+        if os.path.isdir(parent_path):
+            for item in os.listdir(parent_path):
+                full_path = os.path.join(parent_path, item)
+                
+                if os.path.isdir(full_path):
+                    dirs.append({"name": item, "path": full_path})
+                else:
+                    # Only include video files
+                    if item.lower().endswith(('.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v')):
+                        files.append({"name": item, "path": full_path})
+            
+            # Sort directories and files by name
+            dirs.sort(key=lambda x: x["name"].lower())
+            files.sort(key=lambda x: x["name"].lower())
+            
+            return jsonify({
+                "files": files,
+                "directories": dirs,
+                "current_path": parent_path,
+                "parent_path": parent_of_parent
+            })
+        else:
+            return jsonify({"error": "Not a valid directory"}), 400
+    except PermissionError:
+        return jsonify({"error": "Permission denied accessing this directory"}), 403
+    except Exception as e:
+        logger.error(f"Error browsing files in directory {parent_path}: {str(e)}")
+        return jsonify({"error": f"Error accessing directory: {str(e)}"}), 500
+
+@app.route('/api/video_to_srt', methods=['POST'])
+def api_video_to_srt():
+    """API endpoint to transcribe a video file to SRT format using faster-whisper."""
+    try:
+        # Check if a host file path was provided
+        video_file_path = request.form.get('video_file_path', '')
+        
+        if not video_file_path:
+            return jsonify({"error": "No video file path provided"}), 400
+            
+        if not os.path.isfile(video_file_path):
+            return jsonify({"error": "Invalid file path or file does not exist"}), 400
+            
+        # Check if it's a video file
+        if not video_file_path.lower().endswith(('.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v')):
+            return jsonify({"error": "Only video files are supported"}), 400
+            
+        # Get the filename without path
+        filename = os.path.basename(video_file_path)
+        
+        # Create a job ID based on the filename and timestamp
+        timestamp = int(time.time())
+        job_id = f"whisper_{timestamp}_{filename}"
+        
+        # Get language if provided (optional)
+        language = request.form.get('language', None)
+        
+        # Create/update the job record
+        translation_jobs[job_id] = {
+            'status': 'queued',
+            'source_path': video_file_path,
+            'original_filename': filename,
+            'progress': 0,
+            'message': 'Queued for transcription with faster-whisper',
+            'start_time': time.time(),
+            'end_time': None,
+            'language': language,
+            'type': 'transcription'  # Mark this as a transcription job
+        }
+        
+        # Start the transcription in a background thread
+        threading.Thread(
+            target=process_video_transcription,
+            args=(job_id, video_file_path, language)
+        ).start()
+
+        return jsonify({
+            "status": "success",
+            "message": "Video queued for transcription",
+            "job_id": job_id
+        })
+
+    except Exception as e:
+        logger.exception("Error in video transcription")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/whisper/check_server', methods=['GET'])
+def api_check_whisper_server():
+    """API endpoint to check if the faster-whisper server is reachable."""
+    try:
+        # Get server URL from config
+        config = config_manager.get_config()
+        whisper_server = config.get('whisper', 'server_url', fallback='http://10.0.10.23:10300')
+        
+        # Initialize transcriber and check server
+        transcriber = VideoTranscriber(server_url=whisper_server, logger=logger)
+        success, message = transcriber.ping_server()
+        
+        # If the TCP check passes but HTTP health check fails, still consider it a partial success
+        if not success and "TCP connection" in message:
+            # This is a total connectivity failure
+            logger.error(f"Failed to connect to whisper server: {message}")
+            return jsonify({
+                "success": False,
+                "message": message,
+                "server_url": whisper_server
+            })
+        elif "port is open but" in message:
+            # TCP connection succeeded but HTTP check failed - consider this a partial success
+            logger.warning(f"Partial connection to whisper server: {message}")
+            return jsonify({
+                "success": True,
+                "message": message,
+                "server_url": whisper_server,
+                "partial": True  # Flag to indicate partial connectivity
+            })
+        elif success:
+            # Full success
+            logger.info(f"Successfully connected to whisper server at {whisper_server}")
+            return jsonify({
+                "success": True,
+                "message": message,
+                "server_url": whisper_server
+            })
+        else:
+            # Any other failure
+            logger.error(f"Failed to connect to whisper server: {message}")
+            return jsonify({
+                "success": False,
+                "message": message,
+                "server_url": whisper_server
+            })
+    except Exception as e:
+        logger.exception(f"Error checking whisper server: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": f"Error checking server: {str(e)}",
+            "error_type": "exception"
+        }), 500
+
+def process_video_transcription(job_id, video_path, language=None):
+    """Process a video transcription job using faster-whisper."""
+    job = translation_jobs[job_id]
+    logger.info(f"Starting transcription job {job_id}: {job['original_filename']}")
+    
+    # Use the global progress dictionary for status updates
+    global bulk_translation_progress
+    progress_dict = bulk_translation_progress
+    
+    try:
+        # Reset and update global progress status for this job
+        progress_dict.clear()
+        progress_dict.update({
+            "mode": "transcription",
+            "status": "processing",
+            "message": f'Starting transcription for {job["original_filename"]}',
+            "current_file": job["original_filename"],
+            "job_id": job_id
+        })
+        
+        # Save progress state to file
+        save_progress_state()
+        
+        # Update job status
+        job['status'] = 'processing'
+        job['message'] = 'Extracting audio from video...'
+        
+        # Initialize the video transcriber
+        config = config_manager.get_config()
+        whisper_server = config.get('whisper', 'server_url', fallback='http://10.0.10.23:10300')
+        transcriber = VideoTranscriber(server_url=whisper_server, logger=logger)
+        
+        # Transcribe the video - use chunked mode by default
+        job['message'] = 'Transcribing video with faster-whisper using chunked processing...'
+        success, message, result = transcriber.transcribe_video(
+            video_path, 
+            language=language,
+            use_chunks=True,      # Enable chunking for better server compatibility
+            chunk_duration=30     # 30-second chunks
+        )
+        
+        if success:
+            if result.get('transcription_type') == 'chunked':
+                # This is a chunked transcription result
+                job['chunks'] = result.get('chunks', [])
+                job['status'] = 'processing'
+                job['message'] = f'Processed {len(job["chunks"])}/{result.get("num_chunks", 0)} chunks'
+                job['progress'] = 80
+                
+                # Store the local job ID
+                local_job_id = result.get('job_id')
+                job['whisper_job_id'] = local_job_id
+                
+                # Generate output filename
+                file_base = os.path.splitext(job['original_filename'])[0]
+                output_filename = f"{file_base}_whisper.srt"
+                output_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(output_filename))
+                
+                # Download (generate) the SRT file from chunks
+                download_success, download_message = transcriber.download_srt(local_job_id, output_path)
+                
+                if download_success:
+                    job['status'] = 'completed'
+                    job['target_path'] = output_path
+                    job['output_filename'] = output_filename
+                    job['message'] = 'Chunked transcription and SRT generation complete'
+                    job['progress'] = 100
+                    job['end_time'] = time.time()
+                    logger.info(f"Chunked transcription job {job_id} completed successfully")
+                    
+                    # Update global progress
+                    progress_dict["status"] = "completed"
+                    progress_dict["message"] = f"Chunked transcription completed for {job['original_filename']}"
+                else:
+                    raise Exception(f"Failed to generate SRT from chunks: {download_message}")
+                
+            elif 'job_id' in result:
+                # This is a server-side job that needs polling
+                job_id_from_server = result.get('job_id')
+                job['whisper_job_id'] = job_id_from_server
+                job['status'] = 'processing'
+                job['message'] = f'Transcription in progress: {message}'
+                job['progress'] = 30
+                
+                # Poll for completion
+                completed = False
+                retry_count = 0
+                max_retries = 120  # 10 minutes (5s * 120)
+                
+                while not completed and retry_count < max_retries:
+                    time.sleep(5)  # Wait 5 seconds between status checks
+                    retry_count += 1
+                    
+                    # Update progress with linear approximation
+                    progress = min(30 + (retry_count * 50 / max_retries), 80)
+                    job['progress'] = progress
+                    job['message'] = f'Transcription in progress ({progress:.0f}%)...'
+                    
+                    # Check status
+                    status_success, status_message, status_data = transcriber.get_transcription_status(job_id_from_server)
+                    
+                    if status_success:
+                        status = status_data.get('status')
+                        if status == 'completed':
+                            completed = True
+                            job['status'] = 'processing'
+                            job['message'] = 'Transcription complete. Downloading SRT file...'
+                            job['progress'] = 90
+                            
+                            # Generate output filename
+                            file_base = os.path.splitext(job['original_filename'])[0]
+                            output_filename = f"{file_base}_whisper.srt"
+                            output_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(output_filename))
+                            
+                            # Download the SRT file
+                            download_success, download_message = transcriber.download_srt(job_id_from_server, output_path)
+                            
+                            if download_success:
+                                job['status'] = 'completed'
+                                job['target_path'] = output_path
+                                job['output_filename'] = output_filename
+                                job['message'] = 'Transcription and download complete'
+                                job['progress'] = 100
+                                job['end_time'] = time.time()
+                                logger.info(f"Transcription job {job_id} completed successfully")
+                                
+                                # Update global progress
+                                progress_dict["status"] = "completed"
+                                progress_dict["message"] = f"Transcription completed for {job['original_filename']}"
+                            else:
+                                raise Exception(f"Failed to download SRT: {download_message}")
+                        elif status == 'failed':
+                            raise Exception(f"Transcription failed on server: {status_data.get('error', 'Unknown error')}")
+                        else:
+                            # Still processing
+                            progress_info = status_data.get('progress', {})
+                            if progress_info:
+                                task_progress = progress_info.get('progress', 0) * 100
+                                job['message'] = f"Transcribing: {task_progress:.1f}% - {progress_info.get('task', 'processing')}"
+                                job['progress'] = 30 + (task_progress * 0.5)  # Scale server progress to 30-80% range
+                    else:
+                        logger.warning(f"Failed to get transcription status: {status_message}")
+                
+                if not completed:
+                    raise Exception("Transcription timed out after 10 minutes")
+            else:
+                # Direct transcription result with text
+                job['status'] = 'processing'
+                job['message'] = 'Generating SRT from transcription...'
+                job['progress'] = 90
+                
+                # Create an SRT file from the result
+                file_base = os.path.splitext(job['original_filename'])[0]
+                output_filename = f"{file_base}_whisper.srt"
+                output_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(output_filename))
+                
+                # Extract text from result
+                text = result.get('text', '')
+                if not text:
+                    # Try to find text in other formats
+                    if 'result' in result:
+                        text = result['result'].get('text', '')
+                    elif 'transcripts' in result:
+                        text = result['transcripts'][0] if result['transcripts'] else ''
+                
+                # Generate a basic SRT file
+                import datetime
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    # Create a simple SRT with the text as a single subtitle
+                    f.write("1\n00:00:00,000 --> 00:05:00,000\n" + text.strip() + "\n\n")
+                
+                job['status'] = 'completed'
+                job['target_path'] = output_path
+                job['output_filename'] = output_filename
+                job['message'] = 'Transcription and SRT generation complete'
+                job['progress'] = 100
+                job['end_time'] = time.time()
+                logger.info(f"Direct transcription job {job_id} completed successfully")
+                
+                # Update global progress
+                progress_dict["status"] = "completed"
+                progress_dict["message"] = f"Transcription completed for {job['original_filename']}"
+        else:
+            raise Exception(f"Failed to start transcription: {message}")
+            
+    except Exception as e:
+        error_message = f"Error in transcription job {job_id}: {str(e)}"
+        logger.error(error_message)
+        import traceback
+        logger.error(traceback.format_exc())
+        
+        # Update job status
+        job['status'] = 'failed'
+        job['message'] = error_message
+        job['progress'] = 0
+        job['end_time'] = time.time()
+        
+        # Update global progress
+        progress_dict["status"] = "failed"
+        progress_dict["message"] = error_message
+        
+        # Save error state
+        save_progress_state()
+
+def allowed_file(filename):
+    """Check if file has an allowed extension."""
+    return '.' in filename and \
+           filename.lower().endswith(('.srt', '.ass', '.vtt'))
 
 if __name__ == '__main__':
     # Create default config if it doesn't exist

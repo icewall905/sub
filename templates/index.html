@@ -48,7 +48,10 @@
                                     <h3>Select a subtitle file from your system</h3>
                                     <div id="host-current-path">Root</div>
                                 </div>
-                                <ul id="host-file-list" class="file-list"></ul>
+                                <div class="browser-body">
+                                    <div id="host-dirs-list"></div>
+                                    <div id="host-files-list"></div>
+                                </div>
                             </div>
                         </div>
                         
@@ -78,6 +81,53 @@
                             <button type="submit" class="upload-button">Translate</button>
                         </div>
                     </form>
+                    
+                    <!-- Video Transcription Section -->
+                    <div class="transcription-section">
+                        <h3>Generate Subtitles from Video</h3>
+                        <p>Select a video file to transcribe into SRT subtitles using faster-whisper</p>
+                        
+                        <form id="video-transcribe-form">
+                            <div class="form-group">
+                                <label for="video-file">Video File:</label>
+                                <div class="upload-options">
+                                    <button type="button" id="browse-video-btn" class="secondary">Browse Video Files</button>
+                                    <span id="selected-video-path">No video selected</span>
+                                </div>
+                                
+                                <!-- Video file browser (initially hidden) -->
+                                <div id="video-file-browser" class="host-file-browser" style="display: none;">
+                                    <div class="browser-header">
+                                        <h3>Select a video file from your system</h3>
+                                        <div id="video-current-path">Root</div>
+                                    </div>
+                                    <div class="browser-body">
+                                        <div id="video-dirs-list"></div>
+                                        <div id="video-files-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Language Option:</label>
+                                <div class="language-selects">
+                                    <div class="language-select">
+                                        <label for="video-language">Language:</label>
+                                        <select id="video-language" name="language">
+                                            <option value="">Auto-detect</option>
+                                            {% for code, name in languages %}
+                                            <option value="{{ code }}">{{ name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-action">
+                                <button type="submit" id="transcribe-btn" class="primary">Generate Subtitles</button>
+                            </div>
+                        </form>
+                    </div>
                     
                     <!-- Directory browsing section -->
                     <div class="directory-browsing">

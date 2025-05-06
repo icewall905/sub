@@ -1,0 +1,7 @@
+Flask
+requests
+srt
+ffmpeg-python
+
+# Wyoming protocol client dependency
+wyoming>=0.4.0

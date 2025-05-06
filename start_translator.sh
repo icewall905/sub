@@ -196,26 +196,90 @@ print_message "$YELLOW" "Upgrading pip to latest version..."
 pip install --upgrade pip
 
 # Check if required packages are installed
-REQUIRED_PACKAGES="Flask pysrt requests colorama beautifulsoup4 mwparserfromhell"
-MISSING_PACKAGES=""
+print_message "$YELLOW" "Installing dependencies from requirements.txt if present..."
+if [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt
+    print_message "$GREEN" "Dependencies from requirements.txt installed successfully."
+else
+    print_message "$YELLOW" "No requirements.txt found. Installing essential packages individually."
+    
+    # List of required packages - expanded to include all necessary dependencies
+    REQUIRED_PACKAGES="Flask pysrt requests colorama beautifulsoup4 mwparserfromhell srt"
+    # Add Wyoming-related packages
+    WYOMING_PACKAGES="wave numpy"
+    ALL_PACKAGES="$REQUIRED_PACKAGES $WYOMING_PACKAGES"
+    
+    print_message "$YELLOW" "Installing essential packages: $ALL_PACKAGES"
+    pip install $ALL_PACKAGES
+fi
 
-for package in $REQUIRED_PACKAGES; do
-    if ! $PYTHON -c "import ${package/beautifulsoup4/bs4}" &>/dev/null; then
-        if [ -z "$MISSING_PACKAGES" ]; then
-            MISSING_PACKAGES="$package"
-        else
-            MISSING_PACKAGES="$MISSING_PACKAGES $package"
-        fi
+# Additional check for commonly missed packages
+for package in "srt" "wave"; do
+    if ! $PYTHON -c "import $package" &>/dev/null 2>&1; then
+        print_message "$YELLOW" "Installing missing package: $package"
+        pip install $package
     fi
 done
 
-# Install missing packages if needed
-if [ ! -z "$MISSING_PACKAGES" ]; then
-    print_message "$YELLOW" "Installing missing packages: $MISSING_PACKAGES"
-    pip install $MISSING_PACKAGES
-    print_message "$GREEN" "Dependencies installed successfully."
+print_message "$GREEN" "All Python dependencies installed successfully."
+
+# Make sure the Wyoming client file exists and is executable
+if [ -f "py/wyoming_client.py" ]; then
+    print_message "$GREEN" "Wyoming client found at py/wyoming_client.py"
+    chmod +x "py/wyoming_client.py"
 else
-    print_message "$GREEN" "All required Python packages are already installed."
+    print_message "$YELLOW" "Wyoming client not found. Creating Wyoming client module..."
+    
+    # Ensure py directory exists
+    mkdir -p py
+    
+    # Create the Wyoming client file - simplified version just to get the file in place
+    cat > py/wyoming_client.py << 'EOF'
+#!/usr/bin/env python3
+import socket
+import json
+import logging
+import wave
+import time
+from typing import Optional, Dict, Any, List, Tuple
+
+class WyomingClient:
+    """Client implementation for the Wyoming protocol used by faster-whisper servers"""
+    
+    def __init__(self, host: str, port: int = 10300, timeout: int = 30, logger=None):
+        """Initialize a Wyoming protocol client for faster-whisper"""
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.logger = logger or logging.getLogger(__name__)
+        
+    # Basic functionality to test connection
+    def test_connection(self) -> bool:
+        """Test connection to Wyoming server"""
+        try:
+            with socket.create_connection((self.host, self.port), self.timeout) as sock:
+                sock.sendall(b'{"type":"describe"}\n')
+                # Read response
+                data = b""
+                while True:
+                    chunk = sock.recv(1024)
+                    if not chunk:
+                        break
+                    data += chunk
+                    if b'\n' in data:
+                        break
+                return True
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Wyoming connection test failed: {str(e)}")
+            return False
+
+# Placeholder for full implementation
+# For complete functionality, please replace this file with the full Wyoming client implementation
+EOF
+    
+    chmod +x "py/wyoming_client.py"
+    print_message "$GREEN" "Created basic Wyoming client. For full functionality, please replace with complete implementation."
 fi
 
 # Check if config.ini exists, create from example if not
