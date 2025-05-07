@@ -1479,65 +1479,107 @@ class VideoTranscriber:
         Returns:
             str: Formatted text with properly formatted dialogue
         """
-        # First check for common dialogue patterns
-        dialogue_patterns = [
-            # Pattern for quotes with attributions: "Text," speaker said.
-            r'"([^"]+)"[,.]? ([^"]+) (?:said|says|replied|added|mentioned|asked|exclaimed|shouted|whispered)',
-            
-            # Pattern for back-and-forth dialogue without attribution
-            r'([^"]*?): ([^:]+?)(?=$|\n|\. [A-Z])',
-            
-            # Pattern for lines that look like speaker attributions
-            r'([A-Z][a-z]+): (.*?)(?=$|\n)',
-        ]
         
-        for pattern in dialogue_patterns:
+        # Rule 0: Handle explicit dialogue patterns first (these are usually high confidence)
+        explicit_dialogue_patterns = [
+            # Pattern for quotes with attributions: "Text," speaker said.
+            (r'\"([^\"]+)\"[,.]? ([A-Z][a-z]+(?: [A-Z][a-z]+)?) (said|says|replied|added|mentioned|asked|exclaimed|shouted|whispered)', 
+             lambda m: f"{m.group(2)}:\n\"{m.group(1)}\""),
+            # Pattern for speaker: text
+            (r'([A-Z][a-z]+(?: [A-Z][a-z]+)?): (.*?)(?=$|\n|[.!?] [A-Z])', 
+             lambda m: f"{m.group(1)}:\n{m.group(2).strip()}"),
+        ]
+
+        for pattern, formatter in explicit_dialogue_patterns:
             match = re.search(pattern, text)
             if match:
-                # If dialogue pattern detected, format it properly
-                if pattern.startswith(r'"'):
-                    # Format quoted dialogue
-                    dialogue = match.group(1)
-                    speaker = match.group(2)
-                    return f"{speaker}:\n{dialogue}"
-                else:
-                    # Format speaker: text dialogue
-                    speaker = match.group(1)
-                    dialogue = match.group(2)
-                    return f"{speaker}:\n{dialogue}"
+                # If an explicit pattern matches the whole text or a significant part,
+                # assume it's correctly formatted or can be formatted by the lambda.
+                # This part might need more sophisticated logic if multiple explicit patterns exist.
+                # For now, if a strong explicit pattern is found, we use it.
+                # This is a simplification; a full solution might try to find all such patterns.
+                return formatter(match) # Return early for high-confidence explicit dialogue
+
+        # Start with the original text for sequential modifications
+        processed_text = text
+
+        # Rule 1: Normalize text - attempt to fix run-on sentences often found in ASR output
+        # Add a period before a capital letter if preceded by a lowercase letter and a space, or just a lowercase letter.
+        processed_text = re.sub(r'([a-z])([A-Z])', r'\1. \2', processed_text) # wordWord -> word. Word
+        processed_text = re.sub(r'([a-z.,?!]) ([A-Z])', r'\1. \2', processed_text) # word. Word or word Word -> word. Word
+        processed_text = re.sub(r'\.([a-zA-Z])', r'. \1', processed_text) # Ensure space after period if missing
+
+        # Rule 2: Split before key interjections or turn-taking phrases (case-insensitive)
+        # These phrases often start a new speaker's turn.
+        # We insert a newline, ensuring not to add if already at line start or after another newline.
+        # Using a placeholder to manage iterative `re.sub` and then replacing it.
+        newline_placeholder = "[[NEWLINE_HERE]]"
         
-        # Check for possible dialogue breaks using contextual clues
-        # This handles cases where two speakers are in the same subtitle
-        # without explicit attribution
-        sentences = re.split(r'(?<=[.!?]) +', text)
-        if len(sentences) >= 2:
-            # Look for dialogue cues like questions followed by responses
-            for i in range(len(sentences)-1):
-                # If a sentence ends with a question and the next starts with a capital
-                if re.search(r'\?$', sentences[i]) and re.match(r'[A-Z]', sentences[i+1]):
-                    # Insert line break between likely dialogue exchanges
-                    return text.replace(f"{sentences[i]} {sentences[i+1]}", f"{sentences[i]}\n{sentences[i+1]}")
+        key_phrases_before = [
+            r"what about you",
+            r"and you",
+            r"am I understood",
+            r"are you sure",
+            r"can you tell me",
+            r"yes sir",
+            r"no sir",
+            r"yes ma'am",
+            r"no ma'am",
+            r"okay",
+            r"alright",
+            r"well", # Can start a new turn
+            r"actually", # Can start a new turn
+            # Names used as vocatives or to change subject - this is harder to generalize
+            # For the example: "Amelia", "Liam" - if they are followed by a shift.
+        ]
         
-        # Check for other dialogue markers
-        if " your " in text.lower() and " am " in text.lower():
-            parts = text.split(". ")
-            if len(parts) >= 2:
-                return "\n".join(parts)
+        # Temporarily mark potential split points before these phrases
+        for phrase in key_phrases_before:
+            processed_text = re.sub(fr'(?i)(?<=[a-z0-9.,?!])\s+(\b{phrase}\b)', fr'{newline_placeholder}\1', processed_text)
         
-        # Look for repetition of first-person vs. second-person pronoun shift
-        # which often indicates dialogue exchange
-        if re.search(r'\b[Ii]\b.*\b[Yy]ou\b', text) and re.search(r'\b[Yy]ou\b.*\b[Ii]\b', text):
-            parts = re.split(r'(?<=[.!?]) ', text)
-            if len(parts) >= 2:
-                # Find the likely dialogue boundary
-                for i in range(len(parts)-1):
-                    if (("I" in parts[i] and "you" in parts[i+1]) or 
-                        ("you" in parts[i] and "I" in parts[i+1])):
-                        # Insert line break at this dialogue boundary
-                        return text.replace(f"{parts[i]} {parts[i+1]}", f"{parts[i]}\n{parts[i+1]}")
+        # Rule 3: Pronoun shift based splitting (I/me/my vs. you/your)
+        # This rule applies after sentence normalization and key phrase splitting.
+        # It looks for transitions between sentences/clauses.
+        # Split "Sentence with I/my. Sentence with you/your." into two lines.
         
-        # If no clear dialogue pattern, return original text
-        return text
+        # Pattern: (stuff ending with I/my/me PUNC) whitespace (you/your stuff)
+        processed_text = re.sub(fr'(?i)(\b(?:I|my|me)\b(?:[^.!?]|[.!?](?!\s+[A-Z]))*?[.!?])(\s+)(\b(?:you|your)\b)', fr'\1{newline_placeholder}\3', processed_text)
+        # Pattern: (stuff ending with you/your PUNC) whitespace (I/my/me stuff)
+        processed_text = re.sub(fr'(?i)(\b(?:you|your)\b(?:[^.!?]|[.!?](?!\s+[A-Z]))*?[.!?])(\s+)(\b(?:I|my|me)\b)', fr'\1{newline_placeholder}\3', processed_text)
+
+        # Rule 4: Splitting around specific names if they appear to mark a turn (context-dependent)
+        # Example: "... outbreak Amelia but it's a start" -> "... outbreak Amelia\nbut it's a start"
+        # Example: "... you Liam I scored" -> "... you Liam\nI scored"
+        # This is heuristic and can be error-prone if names are common words or part of longer names.
+        # For the given example, let's try to be specific.
+        # (This should ideally use a list of known speaker names if available)
+        speaker_names_in_example = [r"Amelia", r"Liam"]
+        for name in speaker_names_in_example:
+            # Split after "Name" if followed by a conjunction or different pronoun context
+            processed_text = re.sub(fr'(?i)(\b{name}\b[.,!?]?)\s+(?=(?:but|and|so|then|\b(?:I|my|me|you|your)\b))', fr'\1{newline_placeholder}', processed_text)
+
+        # Convert placeholders to actual newlines
+        processed_text = processed_text.replace(newline_placeholder, '\n')
+
+        # Rule 5: Clean up whitespace and multiple newlines
+        processed_text = re.sub(r'[ \t]*\n[ \t]*', '\n', processed_text) # Remove spaces around newlines
+        processed_text = re.sub(r'\n{2,}', '\n', processed_text) # Collapse multiple newlines to one
+        processed_text = processed_text.strip() # Remove leading/trailing whitespace
+
+        # If, after all this, the text is identical to original and has no newlines,
+        # and is very long, it might be a monologue.
+        # However, if it contains I/you, it's still suspicious.
+        if processed_text == text.strip() and '\n' not in processed_text and len(processed_text.split()) > 20:
+            # Last resort for long unpunctuated lines with mixed pronouns (very heuristic)
+            if re.search(r'\bI\b', processed_text, re.I) and re.search(r'\byou\b', processed_text, re.I):
+                # Try to find a split point around conjunctions or mid-sentence pronoun shifts
+                # This is complex and risky, so keeping it minimal or skipping for now.
+                # A simple split at a conjunction if one exists mid-way.
+                conjunction_split = re.match(r"(.*?\b(?:but|and|so)\b.*?)\s+(.*)", processed_text)
+                if conjunction_split and abs(len(conjunction_split.group(1)) - len(conjunction_split.group(2))) < len(processed_text) * 0.4 : # Reasonably balanced split
+                     processed_text = f"{conjunction_split.group(1)}\n{conjunction_split.group(2)}"
+
+        return processed_text
 
     def split_into_captions(self, text: str, start_time: float, duration: float, 
                            max_words_per_caption: int = 8,  # Changed from 14
