@@ -21,6 +21,7 @@ htmlcov/
 temp/
 tmp/
 .DS_Store
+cache/*
 
 # Log files
 *.log
@@ -40,3 +41,7 @@ venv_subtrans
 notes.txt
 
 subs/*
+
+translation_progress.json
+
+files/*

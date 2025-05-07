@@ -1,10 +1,10 @@
 {
   "mode": "transcription",
   "status": "processing",
-  "message": "Transcribing chunk 6/47 (12% done)",
+  "message": "Transcribing chunk 3/47 (6% done)",
   "current_file": "kipo.and.the.age.of.wonderbeasts.2020.s03e09.prahmises.hdtv-1080p.mp4",
-  "job_id": "whisper_1746595463_kipo.and.the.age.of.wonderbeasts.2020.s03e09.prahmises.hdtv-1080p.mp4",
-  "percent": 27,
+  "job_id": "whisper_1746598949_kipo.and.the.age.of.wonderbeasts.2020.s03e09.prahmises.hdtv-1080p.mp4",
+  "percent": 22,
   "current_line": 0,
   "total_lines": 0,
   "done_files": 0,

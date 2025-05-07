@@ -35,6 +35,7 @@ class VideoTranscriber:
             logger: Logger instance for logging
         """
         # Try to read server_url from config if it exists
+        self.use_remote_whisper = True # Default to true
         try:
             import configparser
             import os
@@ -42,8 +43,10 @@ class VideoTranscriber:
             config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'config.ini')
             if os.path.exists(config_path):
                 config.read(config_path)
-                if 'whisper' in config and 'server_url' in config['whisper']:
-                    server_url = config['whisper']['server_url']
+                if 'whisper' in config:
+                    if 'server_url' in config['whisper']:
+                        server_url = config['whisper']['server_url']
+                    self.use_remote_whisper = config['whisper'].getboolean('use_remote_whisper', True)
         except Exception:
             # If anything goes wrong, use the provided default
             pass
@@ -645,6 +648,7 @@ class VideoTranscriber:
         """
         Send an audio chunk for transcription using Wyoming protocol first,
         then falling back to HTTP APIs, then local transcription if all remote methods fail.
+        If use_remote_whisper is false, it will directly fall back to local whisper.
         
         Args:
             audio_path (str): Path to the audio file
@@ -656,6 +660,10 @@ class VideoTranscriber:
                 - message (str): Status or error message
                 - result (dict): Response data from the server
         """
+        if not self.use_remote_whisper:
+            self.log('info', "Remote whisper is disabled. Falling back to local transcription.")
+            return self._fallback_to_local_transcription(audio_path, language)
+
         # First try Wyoming protocol (TCP-based)
         try:
             success, message, result = self._transcribe_audio_chunk_wyoming(audio_path, language)
@@ -1461,8 +1469,8 @@ class VideoTranscriber:
         return f"{index}\n{self.format_timestamp(start)} --> {self.format_timestamp(end)}\n{wrapped_text}\n\n"
 
     def split_into_captions(self, text: str, start_time: float, duration: float, 
-                           max_words_per_caption: int = 14,
-                           max_chars_per_caption: int = 80) -> list:
+                           max_words_per_caption: int = 8,  # Changed from 14
+                           max_chars_per_caption: int = 50) -> list: # Changed from 80
         """Split a transcript into multiple caption blocks with appropriate timing"""
         captions = []
         

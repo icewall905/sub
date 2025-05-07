@@ -420,11 +420,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Show the status container with a checking server message
-            document.getElementById('status-container').style.display = 'block';
-            document.getElementById('progress-bar').style.width = '0%';
-            document.getElementById('progress-text').textContent = '0%';
-            document.getElementById('status-message').textContent = 'Checking whisper server connection...';
-            document.getElementById('live-status-display').innerHTML = '<p>Checking if transcription server is available...</p>';
+            const statusContainer = document.getElementById('status-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text'); // Ensure this ID matches HTML
+            const statusMessage = document.getElementById('status-message');
+            const liveStatusDisplay = document.getElementById('live-status-display');
+
+            if(statusContainer) statusContainer.style.display = 'block';
+            if(progressBar) {
+                progressBar.style.width = '0%';
+                progressBar.style.backgroundColor = '#28a745'; // Reset to green
+            }
+            if(progressText) progressText.textContent = '0%';
+            if(statusMessage) statusMessage.textContent = 'Checking whisper server connection...';
+            if(liveStatusDisplay) liveStatusDisplay.innerHTML = '<p>Checking if transcription server is available...</p>';
             
             // First check if the server is reachable
             fetch('/api/whisper/check_server')
@@ -438,15 +447,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             message = "Server appears to be running but not responding to HTTP test requests. Proceeding with transcription anyway.";
                         }
                         
-                        document.getElementById('status-message').textContent = 'Server is reachable, starting transcription...';
-                        document.getElementById('live-status-display').innerHTML = '<p>Preparing to send video to transcription server...</p>';
+                        if(statusMessage) statusMessage.textContent = 'Server is reachable, starting transcription...';
+                        if(liveStatusDisplay) liveStatusDisplay.innerHTML = '<p>Preparing to send video to transcription server...</p>';
                         
                         startVideoTranscription();
                     } else {
                         // Server is not reachable at all
-                        document.getElementById('status-message').textContent = `Error: ${data.message}`;
-                        document.getElementById('progress-bar').style.backgroundColor = '#ff4444';
-                        document.getElementById('live-status-display').innerHTML = `
+                        if(statusMessage) statusMessage.textContent = `Error: ${data.message}`;
+                        if(progressBar) progressBar.style.backgroundColor = '#ff4444';
+                        if(liveStatusDisplay) liveStatusDisplay.innerHTML = `
                             <p class="error-message">Cannot connect to the transcription server at ${data.server_url}</p>
                             <p>Please check that the server is running and accessible from your network.</p>
                             <p>Error details: ${data.message}</p>
@@ -455,9 +464,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(error => {
                     console.error('Error checking server availability:', error);
-                    document.getElementById('status-message').textContent = `Error checking server: ${error.message}`;
-                    document.getElementById('progress-bar').style.backgroundColor = '#ff4444';
-                    document.getElementById('live-status-display').innerHTML = `
+                    if(statusMessage) statusMessage.textContent = `Error checking server: ${error.message}`;
+                    if(progressBar) progressBar.style.backgroundColor = '#ff4444';
+                    if(liveStatusDisplay) liveStatusDisplay.innerHTML = `
                         <p class="error-message">Network error while checking server availability.</p>
                         <p>Please check your network connection and try again.</p>
                     `;
@@ -478,8 +487,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Update status
-        document.getElementById('status-message').textContent = 'Sending video to transcription service...';
-        document.getElementById('live-status-display').innerHTML = '<p>Sending video file to server...</p>';
+        const statusMessage = document.getElementById('status-message');
+        const liveStatusDisplay = document.getElementById('live-status-display');
+        if(statusMessage) statusMessage.textContent = 'Sending video to transcription service...';
+        if(liveStatusDisplay) liveStatusDisplay.innerHTML = '<p>Sending video file to server...</p>';
         
         // Make the API call
         fetch('/api/video_to_srt', {
@@ -491,19 +502,21 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.status === 'success') {
                 // Start polling for job status
                 const jobId = data.job_id;
-                pollJobStatus(jobId);
+                currentJobId = jobId; // Set currentJobId here
+                pollJobStatus(jobId); // This will now handle transcription progress internally
                 
-                document.getElementById('status-message').textContent = 'Transcription job started successfully';
-                document.getElementById('live-status-display').innerHTML = '<p>Video uploaded, transcription in progress...</p>';
+                if(statusMessage) statusMessage.textContent = 'Transcription job started successfully';
+                if(liveStatusDisplay) liveStatusDisplay.innerHTML = '<p>Video uploaded, transcription in progress...</p>';
             } else {
                 throw new Error(data.error || 'Failed to start transcription');
             }
         })
         .catch(error => {
             console.error('Error starting transcription:', error);
-            document.getElementById('status-message').textContent = `Error: ${error.message}`;
-            document.getElementById('progress-bar').style.backgroundColor = '#ff4444';
-            document.getElementById('live-status-display').innerHTML = `
+            if(statusMessage) statusMessage.textContent = `Error: ${error.message}`;
+            const progressBar = document.getElementById('progress-bar');
+            if(progressBar) progressBar.style.backgroundColor = '#ff4444';
+            if(liveStatusDisplay) liveStatusDisplay.innerHTML = `
                 <p class="error-message">Error starting transcription:</p>
                 <p>${error.message}</p>
             `;
@@ -531,52 +544,81 @@ function pollJobStatus(jobId) {
             })
             .then(data => {
                 console.log(`[Job ${jobId}] Status:`, data);
-                const statusMessage = document.getElementById('status-message');
-                const progressBar = document.getElementById('progress-bar'); // Assuming a progress bar element exists
-                const progressPercent = document.getElementById('progress-percent'); // Assuming an element for percentage text
+                const statusMessageEl = document.getElementById('status-message');
+                const progressBarEl = document.getElementById('progress-bar');
+                const progressTextEl = document.getElementById('progress-text'); // Changed from progress-percent
+
+                // Update general job status message first
+                if(statusMessageEl) statusMessageEl.textContent = data.message || `Job ${data.status}.`;
 
                 if (data.status === 'completed' || data.status === 'failed' || data.status === 'error') {
-                    if(statusMessage) statusMessage.textContent = data.message || `Job ${data.status}.`;
-                    if (progressBar) progressBar.style.width = (data.status === 'completed' ? '100%' : '0%');
-                    if (progressPercent) progressPercent.textContent = (data.status === 'completed' ? '100%' : '0%');
+                    if (progressBarEl) progressBarEl.style.width = (data.status === 'completed' ? '100%' : '0%');
+                    if (progressTextEl) progressTextEl.textContent = (data.status === 'completed' ? '100%' : '0%');
                     
                     // Stop polling if job is done or failed
-                    // No need to clear currentJobId here, it might be useful for other actions
+                    console.log(`[Job ${jobId}] Polling stopped. Status: ${data.status}`);
+                    // Refresh archive on completion or failure to reflect new files or states
+                    loadSubtitleArchive(); 
                     return; 
-                } else if (data.status === 'processing' || data.status === 'transcribing') {
-                    // If job is processing, fetch detailed transcription progress
+                } else if (data.status === 'processing' || data.status === 'transcribing' || data.status === 'queued') {
+                    // If job is ongoing (processing, transcribing, or even queued and about to start), 
+                    // fetch detailed transcription progress.
                     fetch(`/api/transcription_progress/${jobId}`)
-                        .then(response => response.json())
+                        .then(response => {
+                            if (!response.ok) {
+                                // If the job ID is not found, it might be an old job or an error.
+                                if (response.status === 404) {
+                                    console.warn(`[Job ${jobId}] Transcription progress not found (404). Job might be initializing or completed elsewhere.`);
+                                    // Keep general status message from job_status
+                                    return null; // Or a default object: { percent: 0, message: "Waiting for progress..."}
+                                }
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
                         .then(progressData => {
-                            console.log(`[Job ${jobId}] Transcription Progress:`, progressData);
-                            if (statusMessage) {
-                                statusMessage.textContent = progressData.message || data.message || 'Processing...';
-                            }
-                            if (progressBar) {
-                                progressBar.style.width = `${progressData.percent || 0}%`;
-                            }
-                            if (progressPercent) {
-                                progressPercent.textContent = `${progressData.percent || 0}%`;
+                            if (progressData) { // Check if progressData is not null
+                                console.log(`[Job ${jobId}] Transcription Progress:`, progressData);
+                                if (statusMessageEl) {
+                                    // Prefer the more specific message from transcription_progress if available
+                                    statusMessageEl.textContent = progressData.message || data.message || 'Processing...';
+                                }
+                                if (progressBarEl) {
+                                    progressBarEl.style.width = `${progressData.percent || 0}%`;
+                                    progressBarEl.style.backgroundColor = '#28a745'; // Green for progress
+                                }
+                                if (progressTextEl) {
+                                    progressTextEl.textContent = `${progressData.percent || 0}%`;
+                                }
+                            } else {
+                                // Handle case where progressData is null (e.g., 404 handled above)
+                                // Keep the general status message from job_status
+                                if (progressBarEl) progressBarEl.style.width = `${data.progress || 0}%`; // Fallback to job's overall progress
+                                if (progressTextEl) progressTextEl.textContent = `${data.progress || 0}%`;
                             }
                         })
                         .catch(error => {
                             console.error(`[Job ${jobId}] Error fetching transcription progress:`, error);
-                            // Keep the general status message if detailed progress fails
-                            if(statusMessage) statusMessage.textContent = data.message || 'Processing...';
+                            // Keep the general status message from job_status if detailed progress fails
+                            if(statusMessageEl) statusMessageEl.textContent = data.message || 'Processing...';
+                            if (progressBarEl) progressBarEl.style.backgroundColor = '#ffc107'; // Yellow for warning/error in fetch
                         });
-                    // Continue polling
+                    // Continue polling for the main job status
                     setTimeout(checkStatus, 2000);
                 } else {
-                    // Unexpected status, maybe stop polling or handle differently
-                     console.warn(`[Job ${jobId}] Unexpected status: ${data.status}`);
-                     if(statusMessage) statusMessage.textContent = data.message || 'Processing...';
-                     setTimeout(checkStatus, 5000); // Poll less frequently
+                     console.warn(`[Job ${jobId}] Unexpected status: ${data.status}. Message: ${data.message}`);
+                     if(statusMessageEl) statusMessageEl.textContent = data.message || 'Processing...';
+                     // Still poll, but maybe less frequently or log this state
+                     setTimeout(checkStatus, 5000); 
                 }
             })
             .catch(error => {
                 console.error(`[Job ${jobId}] Error checking job status:`, error);
-                const statusMessage = document.getElementById('status-message');
-                if(statusMessage) statusMessage.textContent = 'Error checking job status. Retrying...';
+                const statusMessageEl = document.getElementById('status-message');
+                if(statusMessageEl) statusMessageEl.textContent = 'Error checking job status. Retrying...';
+                const progressBarEl = document.getElementById('progress-bar');
+                if (progressBarEl) progressBarEl.style.backgroundColor = '#dc3545'; // Red for error
+                
                 // Don't stop polling on network errors, just wait longer
                 setTimeout(checkStatus, 5000);
             });
@@ -589,6 +631,14 @@ function pollJobStatus(jobId) {
 
 // Update the live status display based on /api/live_status
 function updateLiveStatusDisplay() {
+    // Only run if there isn't a specific job ID being polled by pollJobStatus,
+    // or if the status is for bulk operations.
+    // Individual job progress (including transcription) is now handled by pollJobStatus.
+    if (currentJobId && bulk_translation_progress.job_id === currentJobId && bulk_translation_progress.mode !== 'bulk') {
+        // console.log("Live status update skipped; pollJobStatus is active for currentJobId:", currentJobId);
+        return; 
+    }
+
     fetch('/api/live_status')
         .then(response => response.json())
         .then(data => {

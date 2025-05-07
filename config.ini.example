@@ -14,7 +14,8 @@ debug_mode = false # Set to true for verbose logging, including full LLM prompts
 
 [whisper]
 # Configuration for faster-whisper transcription server
-server_url = http://10.0.10.23:10300
+use_remote_whisper = false
+server_url = http://10.0.0.1:10300
 
 [translation]
 # Configure the service priority (comma-separated list)
