@@ -31,8 +31,6 @@ class LocalWhisperTranscriber:
         self.logger = logger or logging.getLogger(__name__)
         self._whisper = None
         self._model = None
-        self._server_checked = False
-        self._server_available = False
         
     def log(self, level, message):
         """Helper function to log messages with the appropriate level."""
@@ -48,35 +46,6 @@ class LocalWhisperTranscriber:
             else:
                 self.logger.info(message)
     
-    def _check_server_availability(self):
-        """Check if the Whisper server is available before downloading the model."""
-        if self._server_checked:
-            return self._server_available
-            
-        try:
-            # Try to import the VideoTranscriber to check server availability
-            from py.video_transcriber import VideoTranscriber
-            
-            # Create a transcriber instance and check server
-            self.log('info', "Checking if Whisper server is available before downloading model...")
-            transcriber = VideoTranscriber(logger=self.logger)
-            success, message = transcriber.ping_server()
-            
-            self._server_checked = True
-            self._server_available = success
-            
-            if success:
-                self.log('warning', f"Remote Whisper server is available. Using local model only as fallback.")
-            else:
-                self.log('warning', f"Remote Whisper server is NOT available. We will need to download and use local model.")
-                
-            return success
-        except Exception as e:
-            self.log('warning', f"Error checking server availability: {str(e)}")
-            self._server_checked = True
-            self._server_available = False
-            return False
-    
     def _ensure_dependencies_installed(self):
         """Ensure that the required dependencies are installed."""
         try:
@@ -84,12 +53,6 @@ class LocalWhisperTranscriber:
             import faster_whisper
             return True
         except ImportError:
-            # Check if server is available before installing
-            if self._check_server_availability():
-                self.log('warning', "Remote server is available. No need to install local dependencies.")
-                # Return True even though we don't have the dependency, as we'll rely on the server
-                return False
-                
             self.log('warning', "faster_whisper not installed. Attempting to install...")
             try:
                 import subprocess
@@ -154,18 +117,8 @@ class LocalWhisperTranscriber:
     
     def _load_model(self):
         """Load the Whisper model."""
-        # Check if server is available first
-        if not self._server_checked:
-            self._check_server_availability()
-            
-        # If server is available, don't bother loading the model - we'll fallback to server
-        if self._server_available:
-            self.log('info', "Whisper server is available - skipping local model download")
-            # We'll return None when the model is needed indicating server should be used
-            return False
-        
         if not self._ensure_dependencies_installed():
-            self.log('warning', "Failed to install dependencies, but server is available. Will use server for transcription.")
+            self.log('error', "Failed to ensure local dependencies are installed. Local transcription cannot proceed.")
             return False
         
         try:
@@ -250,41 +203,20 @@ class LocalWhisperTranscriber:
         Returns:
             dict: Transcription result with text and segments
         """
-        # Check if we should try server first
-        if not self._server_checked:
-            self._check_server_availability()
-            
-        # If we know server is available and we haven't loaded the model yet, fallback to server
-        # But let the caller handle this by raising an appropriate error
-        if self._server_available and self._model is None:
-            self.log('info', "Server is available but local model is not loaded")
-            return {
-                "error": "Server available but local model not loaded. Should use server transcription instead.",
-                "text": "",
-                "use_server": True
-            }
-            
         # Now try to load model if needed
-        if self._model is None and not self._load_model():
-            if self._server_available:
-                # If server is available, tell caller to use that instead
+        if self._model is None:
+            if not self._load_model():
+                # If model loading failed (e.g. deps missing and couldn't install, or model file issue)
                 return {
-                    "error": "Local model loading failed, but server is available. Use server transcription instead.",
-                    "text": "",
-                    "use_server": True
-                }
-            else:
-                # If server is not available and model loading failed, this is a real error
-                return {
-                    "error": "Failed to load local Whisper model and server is not available",
+                    "error": "Failed to initialize local Whisper model. Dependencies might be missing or model download failed.",
                     "text": ""
                 }
         
         try:
             # If we get here, we either have a loaded model or we're about to fail
-            if self._model is None:
+            if self._model is None: # Should be caught by the block above, but as a safeguard
                 return {
-                    "error": "No transcription model available",
+                    "error": "No local transcription model available and initialization failed.",
                     "text": ""
                 }
                 
