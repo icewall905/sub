@@ -1295,7 +1295,7 @@ class VideoTranscriber:
                         return True, f"TCP port is open but Wyoming protocol couldn't be tested: {str(e)}"
                     
                     # If we reach here, the TCP connection was successful but Wyoming protocol test failed
-                    return True, "TCP connection successful, but server did not respond to Wyoming protocol test"
+                    return True, "TCP connection successful, but Wyoming protocol test failed"
             except socket.timeout:
                 self.log('error', f"Connection to {host}:{port} timed out after 5 seconds")
                 return False, f"Connection timeout after 5 seconds"
@@ -1468,13 +1468,108 @@ class VideoTranscriber:
         wrapped_text = textwrap.fill(text, width=40)
         return f"{index}\n{self.format_timestamp(start)} --> {self.format_timestamp(end)}\n{wrapped_text}\n\n"
 
+    def detect_and_format_dialogue(self, text: str) -> str:
+        """
+        Detects possible dialogue in transcription text and formats it properly
+        for subtitle display with proper line breaks and attribution.
+        
+        Args:
+            text (str): The raw transcription text
+            
+        Returns:
+            str: Formatted text with properly formatted dialogue
+        """
+        # First check for common dialogue patterns
+        dialogue_patterns = [
+            # Pattern for quotes with attributions: "Text," speaker said.
+            r'"([^"]+)"[,.]? ([^"]+) (?:said|says|replied|added|mentioned|asked|exclaimed|shouted|whispered)',
+            
+            # Pattern for back-and-forth dialogue without attribution
+            r'([^"]*?): ([^:]+?)(?=$|\n|\. [A-Z])',
+            
+            # Pattern for lines that look like speaker attributions
+            r'([A-Z][a-z]+): (.*?)(?=$|\n)',
+        ]
+        
+        for pattern in dialogue_patterns:
+            match = re.search(pattern, text)
+            if match:
+                # If dialogue pattern detected, format it properly
+                if pattern.startswith(r'"'):
+                    # Format quoted dialogue
+                    dialogue = match.group(1)
+                    speaker = match.group(2)
+                    return f"{speaker}:\n{dialogue}"
+                else:
+                    # Format speaker: text dialogue
+                    speaker = match.group(1)
+                    dialogue = match.group(2)
+                    return f"{speaker}:\n{dialogue}"
+        
+        # Check for possible dialogue breaks using contextual clues
+        # This handles cases where two speakers are in the same subtitle
+        # without explicit attribution
+        sentences = re.split(r'(?<=[.!?]) +', text)
+        if len(sentences) >= 2:
+            # Look for dialogue cues like questions followed by responses
+            for i in range(len(sentences)-1):
+                # If a sentence ends with a question and the next starts with a capital
+                if re.search(r'\?$', sentences[i]) and re.match(r'[A-Z]', sentences[i+1]):
+                    # Insert line break between likely dialogue exchanges
+                    return text.replace(f"{sentences[i]} {sentences[i+1]}", f"{sentences[i]}\n{sentences[i+1]}")
+        
+        # Check for other dialogue markers
+        if " your " in text.lower() and " am " in text.lower():
+            parts = text.split(". ")
+            if len(parts) >= 2:
+                return "\n".join(parts)
+        
+        # Look for repetition of first-person vs. second-person pronoun shift
+        # which often indicates dialogue exchange
+        if re.search(r'\b[Ii]\b.*\b[Yy]ou\b', text) and re.search(r'\b[Yy]ou\b.*\b[Ii]\b', text):
+            parts = re.split(r'(?<=[.!?]) ', text)
+            if len(parts) >= 2:
+                # Find the likely dialogue boundary
+                for i in range(len(parts)-1):
+                    if (("I" in parts[i] and "you" in parts[i+1]) or 
+                        ("you" in parts[i] and "I" in parts[i+1])):
+                        # Insert line break at this dialogue boundary
+                        return text.replace(f"{parts[i]} {parts[i+1]}", f"{parts[i]}\n{parts[i+1]}")
+        
+        # If no clear dialogue pattern, return original text
+        return text
+
     def split_into_captions(self, text: str, start_time: float, duration: float, 
                            max_words_per_caption: int = 8,  # Changed from 14
                            max_chars_per_caption: int = 50) -> list: # Changed from 80
         """Split a transcript into multiple caption blocks with appropriate timing"""
         captions = []
         
-        # Basic sentence splitting
+        # First process the text for potential dialogue formatting
+        text = self.detect_and_format_dialogue(text)
+        
+        # Now we'll work with the dialogue-enhanced text
+        
+        # Handle already line-broken text specially
+        if "\n" in text:
+            lines = text.split("\n")
+            line_count = len(lines)
+            time_per_line = duration / line_count if line_count > 0 else duration
+            
+            current_time = start_time
+            for i, line in enumerate(lines):
+                if not line.strip():
+                    continue
+                    
+                line_duration = min(time_per_line, 5.0)  # Cap at 5 seconds per line
+                end_time = current_time + line_duration
+                
+                captions.append((line.strip(), current_time, end_time))
+                current_time = end_time
+                
+            return captions
+        
+        # If no line breaks detected, fall back to original sentence splitting
         sentences = re.split(r'(?<=[.!?]) +', text)
         
         # Estimate words per second from overall duration and word count
