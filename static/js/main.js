@@ -522,73 +522,61 @@ function pollJobStatus(jobId) {
     currentJobId = jobId; // Store the current job ID
 
     function checkStatus() {
-        // Only poll if this is still the active job
-        if (currentJobId !== jobId) {
-            console.log(`[Job ${jobId}] Polling stopped, another job is active.`);
-            return;
-        }
-
         fetch(`/api/job_status/${jobId}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 console.log(`[Job ${jobId}] Status:`, data);
+                const statusMessage = document.getElementById('status-message');
+                const progressBar = document.getElementById('progress-bar'); // Assuming a progress bar element exists
+                const progressPercent = document.getElementById('progress-percent'); // Assuming an element for percentage text
 
-                const statusContainer = document.getElementById('status-container');
-                const resultContainer = document.getElementById('result-container');
-                const resultMessage = document.getElementById('result-message');
-                const downloadBtn = document.getElementById('download-btn');
-                const viewBtn = document.getElementById('view-btn'); // Get the view button for single results
-
-                if (data.status === 'completed') {
-                    console.log(`[Job ${jobId}] Completed successfully.`);
-                    if (resultContainer) resultContainer.style.display = 'block';
-                    if (resultMessage) resultMessage.innerHTML = `<p>Translation completed successfully!</p>`;
-
-                    if (downloadBtn) {
-                        downloadBtn.style.display = 'inline-block'; // Ensure visible
-                        downloadBtn.onclick = function() { window.location.href = `/download/${jobId}`; };
-                    }
-                    if (viewBtn) { // Ensure view button exists
-                        viewBtn.style.display = 'inline-block'; // Ensure visible
-                        // Use the job ID to view the result
-                        viewBtn.onclick = function() { viewSubtitle(jobId); };
-                    }
-
-                    // Optionally hide the live status section after completion
-                    // const liveStatusContainer = document.getElementById('live-status-container');
-                    // if (liveStatusContainer) liveStatusContainer.style.display = 'none';
-
-                    loadSubtitleArchive(); // Refresh archive list
-                    currentJobId = null; // Clear current job ID
-                    return; // Stop polling
-
-                } else if (data.status === 'failed') {
-                    console.error(`[Job ${jobId}] Failed: ${data.message}`);
-                    if (resultContainer) resultContainer.style.display = 'block';
-                    if (resultMessage) resultMessage.innerHTML = `<p class="error">Translation failed: ${data.message || 'Unknown error'}</p>`;
-                    if (downloadBtn) downloadBtn.style.display = 'none';
-                    if (viewBtn) viewBtn.style.display = 'none'; // Hide view button on failure
-
-                    // Hide the main status container on failure
-                    if (statusContainer) statusContainer.style.display = 'none';
-                    currentJobId = null; // Clear current job ID
-                    return; // Stop polling
-
-                } else if (data.status === 'processing') {
-                    // Update general status message if needed (distinct from live updates)
-                    const statusMessage = document.getElementById('status-message');
-                    if(statusMessage) statusMessage.textContent = data.message || 'Processing...';
-
+                if (data.status === 'completed' || data.status === 'failed' || data.status === 'error') {
+                    if(statusMessage) statusMessage.textContent = data.message || `Job ${data.status}.`;
+                    if (progressBar) progressBar.style.width = (data.status === 'completed' ? '100%' : '0%');
+                    if (progressPercent) progressPercent.textContent = (data.status === 'completed' ? '100%' : '0%');
+                    
+                    // Stop polling if job is done or failed
+                    // No need to clear currentJobId here, it might be useful for other actions
+                    return; 
+                } else if (data.status === 'processing' || data.status === 'transcribing') {
+                    // If job is processing, fetch detailed transcription progress
+                    fetch(`/api/transcription_progress/${jobId}`)
+                        .then(response => response.json())
+                        .then(progressData => {
+                            console.log(`[Job ${jobId}] Transcription Progress:`, progressData);
+                            if (statusMessage) {
+                                statusMessage.textContent = progressData.message || data.message || 'Processing...';
+                            }
+                            if (progressBar) {
+                                progressBar.style.width = `${progressData.percent || 0}%`;
+                            }
+                            if (progressPercent) {
+                                progressPercent.textContent = `${progressData.percent || 0}%`;
+                            }
+                        })
+                        .catch(error => {
+                            console.error(`[Job ${jobId}] Error fetching transcription progress:`, error);
+                            // Keep the general status message if detailed progress fails
+                            if(statusMessage) statusMessage.textContent = data.message || 'Processing...';
+                        });
                     // Continue polling
                     setTimeout(checkStatus, 2000);
                 } else {
                     // Unexpected status, maybe stop polling or handle differently
                      console.warn(`[Job ${jobId}] Unexpected status: ${data.status}`);
+                     if(statusMessage) statusMessage.textContent = data.message || 'Processing...';
                      setTimeout(checkStatus, 5000); // Poll less frequently
                 }
             })
             .catch(error => {
                 console.error(`[Job ${jobId}] Error checking job status:`, error);
+                const statusMessage = document.getElementById('status-message');
+                if(statusMessage) statusMessage.textContent = 'Error checking job status. Retrying...';
                 // Don't stop polling on network errors, just wait longer
                 setTimeout(checkStatus, 5000);
             });
@@ -1893,9 +1881,9 @@ function saveSpecialMeanings() {
 function escapeHtml(str) {
     return str
         .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
+        .replace(/<//g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
+        .replace(/"//g, "&quot;")
         .replace(/'/g, "&#039;");
 }
 

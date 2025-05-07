@@ -1,35 +1,14 @@
 {
-  "mode": "single",
-  "status": "failed",
-  "message": "Error in translation job 1746551962_kipo.and.the.age.of.wonderbeasts.2020.s03e09.prahmises.hdtv-1080p_whisper_2.srt: name 'subtitle_processor' is not defined",
-  "current_file": "kipo.and.the.age.of.wonderbeasts.2020.s03e09.prahmises.hdtv-1080p_whisper_2.srt",
-  "total_lines": 0,
+  "mode": "transcription",
+  "status": "processing",
+  "message": "Transcribing chunk 6/47 (12% done)",
+  "current_file": "kipo.and.the.age.of.wonderbeasts.2020.s03e09.prahmises.hdtv-1080p.mp4",
+  "job_id": "whisper_1746595463_kipo.and.the.age.of.wonderbeasts.2020.s03e09.prahmises.hdtv-1080p.mp4",
+  "percent": 27,
   "current_line": 0,
-  "job_id": "1746551962_kipo.and.the.age.of.wonderbeasts.2020.s03e09.prahmises.hdtv-1080p_whisper_2.srt",
-  "special_meanings": [
-    {
-      "word": "Mutes",
-      "meaning": "Mutated animals in the show with enhanced intelligence and abilities"
-    },
-    {
-      "word": "Burrow",
-      "meaning": "Underground shelters where humans live to escape Mutes on the surface"
-    },
-    {
-      "word": "Mega",
-      "meaning": "Giant-sized Mutes that are much larger than normal animals"
-    },
-    {
-      "word": "Mandu",
-      "meaning": "A blue mutant pig that is one of Kipo's companions"
-    },
-    {
-      "word": "Surface",
-      "meaning": "The post-apocalyptic world above ground dominated by Mutes"
-    },
-    {
-      "word": "Pheromone collar",
-      "meaning": "Device used to control Mutes by Dr. Emilia and the human resistance"
-    }
-  ]
+  "total_lines": 0,
+  "done_files": 0,
+  "total_files": 0,
+  "current": {},
+  "processed_lines": []
 }

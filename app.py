@@ -6,6 +6,7 @@ import re
 import tempfile
 import zipfile
 import threading
+import traceback  # Add missing traceback import
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash, send_from_directory
 from werkzeug.utils import secure_filename
 import configparser
@@ -70,6 +71,10 @@ bulk_translation_progress = {
     "zip_path": ""
 }
 
+# Progress data for individual transcription jobs (like local Whisper)
+# This will be populated by VideoTranscriber instances
+transcription_job_progress = {}
+
 # Load saved progress state if it exists
 def load_progress_state():
     global bulk_translation_progress
@@ -97,6 +102,15 @@ def save_progress_state():
 
 # Initialize by loading any saved state
 load_progress_state()
+
+@app.route('/api/transcription_progress/<job_id>', methods=['GET'])
+def get_transcription_progress(job_id):
+    # VideoTranscriber should be imported at the top of the file
+    progress_data = VideoTranscriber.get_progress(job_id) # Uses the class method
+    if progress_data:
+        return jsonify(progress_data)
+    else:
+        return jsonify({"status": "unknown", "job_id": job_id, "message": "No progress data found for this job ID.", "percent": 0}), 404
 
 # Language mapping
 LANGUAGES = [
@@ -900,13 +914,6 @@ def process_translation(job_id, cache_path, filename, source_language, target_la
             "job_id": job_id # Add job_id for reference
         })
         
-        # Get special meanings if they were provided with the job
-        special_meanings = job.get('special_meanings', [])
-        if special_meanings:
-            logger.info(f"Job {job_id} includes {len(special_meanings)} special word meanings")
-            # Add special meanings to progress dict so they can be used by the translation service
-            progress_dict["special_meanings"] = special_meanings
-        
         # Save progress state to file
         save_progress_state()
         
@@ -915,7 +922,7 @@ def process_translation(job_id, cache_path, filename, source_language, target_la
         job['message'] = 'Initializing...'
         
         # Initialize subtitle processor
-        SubtitleProcessor(logger)
+        subtitle_processor = SubtitleProcessor(logger) # Ensure subtitle_processor is initialized here
         
         # Get config
         config = config_manager.get_config()
@@ -1809,14 +1816,19 @@ def process_video_transcription(job_id, video_path, language=None):
         # No need to clear it here, it will be overwritten by the next job.
         pass
 
-@app.route('/api/transcription_progress/<job_id>')
-def get_transcription_progress(job_id):
-    """API endpoint to check transcription progress"""
-    progress = VideoTranscriber.get_job_progress(job_id)
-    if progress:
-        return jsonify(progress)
-    else:
-        return jsonify({"error": "Job not found"}), 404
+@app.route('/api/job_status/<job_id>', methods=['GET'])
+def get_job_status(job_id):
+    """API endpoint for checking translation job status."""
+    if job_id not in translation_jobs:
+        return jsonify({'success': False, 'message': 'Job not found'})
+    
+    job = translation_jobs[job_id]
+    return jsonify({
+        'success': True,
+        'status': job['status'],
+        'progress': job['progress'],
+        'message': job['message']
+    })
 
 def allowed_file(filename):
     """Check if file has an allowed extension."""

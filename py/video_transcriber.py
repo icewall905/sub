@@ -24,7 +24,7 @@ class VideoTranscriber:
     """
     
     # Class variable to store progress information
-    _progress_data = {}
+    _progress_data: Dict[str, Dict[str, Any]] = {}
     
     def __init__(self, server_url="http://10.0.10.23:10300", logger=None):
         """
@@ -1545,9 +1545,7 @@ class VideoTranscriber:
         # This prevents downloading a new model when one is already loaded
         
         try:
-            # Import wyoming client from local directory
-            from wyoming_client import WyomingClient
-            
+            from wyoming_client import WyomingClient # Moved import here
             # Create Wyoming client
             client = WyomingClient(host=self.server_host, port=self.server_port, logger=self.logger)
             
@@ -1560,25 +1558,27 @@ class VideoTranscriber:
             self.log('info', f"Generated SRT content with {srt_content.count('#')} caption blocks")
             return srt_content
         
+        except ModuleNotFoundError:
+            self.log('warning', "WyomingClient module not found. Skipping Wyoming STT.")
+            wyoming_transcript = None
         except Exception as e:
-            self.log('error', f"Error processing chunk to SRT: {str(e)}")
-            import traceback
-            self.log('error', traceback.format_exc())
-            
-            # Fall back to using our standard transcription and formatting it as SRT
-            try:
-                success, message, result = self.transcribe_audio_chunk(wav_path, language)
-                if success and 'text' in result:
-                    return self.create_srt_content(result['text'], offset, duration)
-                else:
-                    raise Exception(f"Transcription failed: {message}")
-            except Exception as fallback_error:
-                self.log('error', f"Fallback transcription failed: {str(fallback_error)}")
-                # Return a minimal SRT with error message
-                return f"1\n{self.format_timestamp(offset)} --> {self.format_timestamp(offset + duration)}\n[Transcription failed]\n\n"
+            self.log('error', f"Error during Wyoming STT: {e}")
+            wyoming_transcript = None
+        # Fall back to using our standard transcription and formatting it as SRT
+        try:
+            success, message, result = self.transcribe_audio_chunk(wav_path, language)
+            if success and 'text' in result:
+                return self.create_srt_content(result['text'], offset, duration)
+            else:
+                raise Exception(f"Transcription failed: {message}")
+        except Exception as fallback_error:
+            self.log('error', f"Fallback transcription failed: {str(fallback_error)}")
+            # Return a minimal SRT with error message
+            return f"1\n{self.format_timestamp(offset)} --> {self.format_timestamp(offset + duration)}\n[Transcription failed]\n\n"
 
     def transcribe_video_to_srt(self, video_path: str, output_path: str, language: str = None, 
-                              chunk_duration: int = 30, model: str = None, job_id: str = None) -> Tuple[bool, str]:
+                              chunk_duration: int = 30, model: str = None, job_id: str = None,
+                              external_progress_updater = None) -> Tuple[bool, str]:
         """
         Transcribe a video directly to an SRT file using Wyoming protocol
         
@@ -1589,6 +1589,7 @@ class VideoTranscriber:
             chunk_duration: Duration of each chunk in seconds
             model: Whisper model to use
             job_id: Optional job ID for progress tracking
+            external_progress_updater: Optional callback function for updating progress externally
             
         Returns:
             tuple: (success, message)
@@ -1606,18 +1607,28 @@ class VideoTranscriber:
                 
             # Initialize progress
             self._update_progress(job_id, 0, "Starting transcription...")
+            if external_progress_updater:
+                external_progress_updater(0, "Starting transcription...", "processing", job_id)
             
             # Extract audio from video
             self._update_progress(job_id, 5, "Extracting audio from video...")
+            if external_progress_updater:
+                external_progress_updater(5, "Extracting audio from video...", "processing", job_id)
+                
             extract_success, extract_message, audio_path = self.extract_audio(video_path)
             
             if not extract_success or not audio_path:
                 self.log('error', f"Failed to extract audio: {extract_message}")
                 self._update_progress(job_id, 100, f"Failed: {extract_message}", status="error")
+                if external_progress_updater:
+                    external_progress_updater(100, f"Failed: {extract_message}", "error", job_id)
                 return False, f"Failed to extract audio: {extract_message}"
                 
             # Split audio into manageable chunks
             self._update_progress(job_id, 15, "Splitting audio into chunks...")
+            if external_progress_updater:
+                external_progress_updater(15, "Splitting audio into chunks...", "processing", job_id)
+                
             split_success, split_message, chunk_paths = self.split_audio_into_chunks(
                 audio_path, 
                 chunk_duration_seconds=chunk_duration
@@ -1626,11 +1637,15 @@ class VideoTranscriber:
             if not split_success:
                 self.log('error', f"Failed to split audio: {split_message}")
                 self._update_progress(job_id, 100, f"Failed: {split_message}", status="error")
+                if external_progress_updater:
+                    external_progress_updater(100, f"Failed: {split_message}", "error", job_id)
                 return False, f"Failed to split audio: {split_message}"
                 
             total_chunks = len(chunk_paths)
             self.log('info', f"Processing {total_chunks} audio chunks for SRT generation")
             self._update_progress(job_id, 20, f"Processing {total_chunks} audio chunks...")
+            if external_progress_updater:
+                external_progress_updater(20, f"Processing {total_chunks} audio chunks...", "processing", job_id)
             
             # Process each chunk and collect SRT contents
             srt_chunks = []
@@ -1643,11 +1658,12 @@ class VideoTranscriber:
                 for i, chunk_path in enumerate(chunk_paths):
                     chunk_num = i + 1
                     progress_pct = 20 + (i * chunk_progress_each)
-                    self._update_progress(
-                        job_id, 
-                        int(progress_pct), 
-                        f"Transcribing chunk {chunk_num}/{total_chunks} ({int((chunk_num/total_chunks)*100)}% done)"
-                    )
+                    progress_message = f"Transcribing chunk {chunk_num}/{total_chunks} ({int((chunk_num/total_chunks)*100)}% done)"
+                    
+                    self._update_progress(job_id, int(progress_pct), progress_message)
+                    if external_progress_updater:
+                        external_progress_updater(int(progress_pct), progress_message, "processing", job_id)
+                        
                     self.log('info', f"Processing chunk {chunk_num}/{total_chunks} to SRT")
                     
                     # Calculate offset for this chunk
@@ -1667,31 +1683,43 @@ class VideoTranscriber:
                     # Update progress after each chunk with more detailed information
                     current_progress = int(20 + ((i+1) * chunk_progress_each))
                     chunk_percent = int(((i+1)/total_chunks)*100)
-                    self._update_progress(
-                        job_id, 
-                        current_progress, 
-                        f"Completed chunk {chunk_num}/{total_chunks} ({chunk_percent}% complete)"
-                    )
+                    progress_message = f"Completed chunk {chunk_num}/{total_chunks} ({chunk_percent}% complete)"
+                    
+                    self._update_progress(job_id, current_progress, progress_message)
+                    if external_progress_updater:
+                        external_progress_updater(current_progress, progress_message, "processing", job_id)
             except Exception as chunk_error:
                 self.log('error', f"Error processing chunk {chunk_num}/{total_chunks}: {str(chunk_error)}")
                 # Continue with whatever chunks we have processed so far
                 if not srt_chunks:
-                    raise Exception(f"Failed to process any chunks: {str(chunk_error)}")
+                    error_message = f"Failed to process any chunks: {str(chunk_error)}"
+                    if external_progress_updater:
+                        external_progress_updater(100, error_message, "error", job_id)
+                    raise Exception(error_message)
                 else:
                     self.log('warning', f"Proceeding with {len(srt_chunks)}/{total_chunks} processed chunks")
             
             # Combine all SRT contents
             self._update_progress(job_id, 90, "Combining transcription chunks...")
+            if external_progress_updater:
+                external_progress_updater(90, "Combining transcription chunks...", "processing", job_id)
+                
             combined_srt = self._combine_srt_chunks(srt_chunks)
             
             # Write to output file
             self._update_progress(job_id, 95, "Writing SRT file...")
+            if external_progress_updater:
+                external_progress_updater(95, "Writing SRT file...", "processing", job_id)
+                
             os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(combined_srt)
                 
             self.log('info', f"SRT file generated: {output_path}")
             self._update_progress(job_id, 100, "Transcription complete!", status="complete")
+            if external_progress_updater:
+                external_progress_updater(100, "Transcription complete!", "completed", job_id)
+                
             return True, f"SRT file generated: {output_path}"
             
         except Exception as e:
@@ -1699,6 +1727,9 @@ class VideoTranscriber:
             import traceback
             self.log('error', traceback.format_exc())
             self._update_progress(job_id, 100, f"Error: {str(e)}", status="error")
+            if external_progress_updater:
+                external_progress_updater(100, f"Error: {str(e)}", "failed", job_id)
+                
             return False, f"Error transcribing video to SRT: {str(e)}"
         finally:
             # Clean up temporary files
@@ -1758,21 +1789,28 @@ class VideoTranscriber:
             "updated": time.time()
         }
         
-        self.log('info', f"Progress update [{job_id}]: {percent}% - {message}") # Changed from debug to info
-        VideoTranscriber._progress_data[job_id] = progress_info
-        
+        self.log('info', f"Progress update [{job_id}]: {percent}% - {message}")
+        VideoTranscriber._progress_data[job_id] = progress_info # Store in class variable
+
         # If we have a Flask app with socketio, emit progress update
         try:
             import sys
-            if 'app' in sys.modules and hasattr(sys.modules['app'], 'socketio'):
+            if 'app' in sys.modules and hasattr(sys.modules['app'], 'socketio') and sys.modules['app'].socketio:
                 socketio = sys.modules['app'].socketio
-                socketio.emit('transcription_progress', progress_info)
-                self.log('debug', f"Emitted progress via socketio") # This can remain debug
+                # Emit to a room specific to the job_id for targeted updates
+                socketio.emit('transcription_progress', progress_info, room=job_id)
+                self.log('debug', f"Emitted progress via socketio to room {job_id}: {progress_info}")
+            elif 'app' in sys.modules and hasattr(sys.modules['app'], 'socketio'): # SocketIO might be None if not initialized
+                 self.log('debug', "socketio object exists in app module but is None, cannot emit.")
+            else:
+                self.log('debug', "socketio not available in app module for progress emission.")
+        except ImportError:
+            self.log('debug', "App module or socketio not available for emitting progress.")
         except Exception as e:
-            self.log('debug', f"Could not emit socketio progress: {e}") # This can remain debug
+            self.log('debug', f"Could not emit socketio progress: {e}")
 
     @classmethod
-    def get_job_progress(cls, job_id: str) -> dict:
+    def get_progress(cls, job_id: str) -> Optional[Dict[str, Any]]: # Renamed from get_job_progress
         """
         Get progress information for a specific job
         

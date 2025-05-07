@@ -202,14 +202,16 @@ if [ -f "requirements.txt" ]; then
     print_message "$GREEN" "Dependencies from requirements.txt installed successfully."
 else
     print_message "$YELLOW" "No requirements.txt found. Installing essential packages individually."
-    
+
     # List of required packages - expanded to include all necessary dependencies
-    REQUIRED_PACKAGES="Flask pysrt requests colorama beautifulsoup4 mwparserfromhell srt"
+    CORE_PACKAGES="Flask pysrt requests colorama beautifulsoup4 mwparserfromhell srt"
     # Add Wyoming-related packages
     WYOMING_PACKAGES="wave numpy"
-    ALL_PACKAGES="$REQUIRED_PACKAGES $WYOMING_PACKAGES"
-    
-    print_message "$YELLOW" "Installing essential packages: $ALL_PACKAGES"
+    # Add Local Whisper dependencies
+    LOCAL_WHISPER_PACKAGES="wheel 'ctranslate2>=3.16.0' 'faster-whisper>=0.9.0' torch"
+    ALL_PACKAGES="$CORE_PACKAGES $WYOMING_PACKAGES $LOCAL_WHISPER_PACKAGES"
+
+    print_message "$YELLOW" "Installing essential packages for core, Wyoming, and local Whisper: $ALL_PACKAGES"
     pip install $ALL_PACKAGES
 fi
 
