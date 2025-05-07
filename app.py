@@ -1819,10 +1819,54 @@ def process_video_transcription(job_id, video_path, language=None):
 @app.route('/api/job_status/<job_id>', methods=['GET'])
 def get_job_status(job_id):
     """API endpoint for checking translation job status."""
+    # Check bulk_translation_progress first if it's for the requested job_id and is a transcription
+    if bulk_translation_progress.get('job_id') == job_id and \
+       bulk_translation_progress.get('mode') == 'transcription':
+        # If the job is active in bulk_translation_progress, report from there
+        # as it's the most up-to-date for transcriptions.
+        # Statuses like 'queued', 'processing' are relevant here.
+        # If it's 'completed' or 'failed' in bulk_translation_progress,
+        # translation_jobs should also reflect that final state eventually.
+        if bulk_translation_progress.get('status') in ['processing', 'queued']:
+            logger.debug(f"Job {job_id} is an active transcription. Reporting from bulk_translation_progress.")
+            return jsonify({
+                'success': True,
+                'status': bulk_translation_progress['status'],
+                'progress': bulk_translation_progress.get('percent', 0),
+                'message': bulk_translation_progress.get('message', 'Processing transcription...')
+            })
+
+    # Fallback to checking translation_jobs or if bulk_translation_progress is not for this active transcription
     if job_id not in translation_jobs:
+        # This case handles if job is not in translation_jobs but was caught by the above block
+        # or if it's genuinely not found anywhere.
+        logger.warning(f"Job {job_id} not found in translation_jobs dictionary.")
         return jsonify({'success': False, 'message': 'Job not found'})
-    
+
     job = translation_jobs[job_id]
+
+    # If it's a transcription job, and the bulk progress is for THIS job and active,
+    # it should have been caught by the first block.
+    # This block now primarily handles non-transcription jobs, or completed/failed transcriptions
+    # where translation_jobs holds the final authoritative state.
+    
+    # However, to be safe, if it IS a transcription and somehow missed the first block
+    # (e.g. bulk_translation_progress moved to 'completed' but job object not yet updated),
+    # we can still try to use bulk if it matches.
+    if job.get('type') == 'transcription' and \
+       bulk_translation_progress.get('job_id') == job_id and \
+       bulk_translation_progress.get('mode') == 'transcription':
+        # This will mostly catch 'completed' or 'failed' states from bulk if job object is lagging
+        logger.debug(f"Job {job_id} is a transcription. Cross-referencing with bulk_translation_progress for final state if needed.")
+        return jsonify({
+            'success': True,
+            'status': bulk_translation_progress.get('status', job['status']), # Prefer bulk if available
+            'progress': bulk_translation_progress.get('percent', job['progress']), # Prefer bulk if available
+            'message': bulk_translation_progress.get('message', job['message']) # Prefer bulk if available
+        })
+
+    # Default return for non-transcription jobs, or if no specific active transcription logic applied.
+    logger.debug(f"Job {job_id} (type: {job.get('type')}) reporting from translation_jobs.")
     return jsonify({
         'success': True,
         'status': job['status'],

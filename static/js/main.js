@@ -631,14 +631,6 @@ function pollJobStatus(jobId) {
 
 // Update the live status display based on /api/live_status
 function updateLiveStatusDisplay() {
-    // Only run if there isn't a specific job ID being polled by pollJobStatus,
-    // or if the status is for bulk operations.
-    // Individual job progress (including transcription) is now handled by pollJobStatus.
-    if (currentJobId && bulk_translation_progress.job_id === currentJobId && bulk_translation_progress.mode !== 'bulk') {
-        // console.log("Live status update skipped; pollJobStatus is active for currentJobId:", currentJobId);
-        return; 
-    }
-
     fetch('/api/live_status')
         .then(response => response.json())
         .then(data => {
