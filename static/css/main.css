@@ -1592,10 +1592,14 @@ small {
     overflow: hidden;
     background-color: #252525;
     display: none; /* Hidden by default */
+    position: relative; /* Ensure proper stacking */
+    z-index: 10; /* Higher z-index to appear above other elements */
 }
 
 .inline-file-browser.active {
-    display: block; /* Show when active */
+    display: block !important; /* Show when active with greater specificity */
+    opacity: 1 !important; /* Ensure full visibility */
+    visibility: visible !important; /* Ensure it's visible */
 }
 
 .browser-header {
@@ -1724,6 +1728,9 @@ small {
 #browse-btn {
     background-color: #4a6741;
     color: white;
+    display: inline-block; /* Ensure it's always visible */
+    padding: 8px 12px;
+    cursor: pointer;
 }
 
 .upload-button:hover, 

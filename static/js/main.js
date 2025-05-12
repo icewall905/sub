@@ -188,16 +188,20 @@ document.addEventListener('DOMContentLoaded', function() {
         debug("Adding click event listener to Browse Directories button");
         browseDirBtn.addEventListener('click', function() {
             debug("Browse Directories button clicked");
-            // Show the inline browser if it's hidden
-            if (!browserVisible) {
-                debug("Showing inline file browser");
-                showInlineFileBrowser();
-            }
             
-            // Try to load the last browsed path if available
+            // Always show the browser and update UI state
+            showInlineFileBrowser();
+            
+            // Always reload directory content
             const lastPath = localStorage.getItem('lastBrowsedPath') || '';
             debug(`Browsing to directory: ${lastPath || 'root'}`);
             browseInlineDirectory(lastPath);
+            
+            // Check if browser is visible after changes
+            const browser = document.getElementById('inline-file-browser');
+            if (browser) {
+                debug(`Browser display state after click: ${getComputedStyle(browser).display}`);
+            }
         });
     } else {
         console.error("Browse Directories button not found");
@@ -1416,9 +1420,13 @@ function showInlineFileBrowser() {
     }
     
     browser.classList.add('active');
+    browser.style.display = 'block'; // Override the inline style
+    browser.style.zIndex = '100'; // Ensure it appears above other content
+    browser.style.opacity = '1'; // Make sure it's fully visible
     
     const toggleBtn = document.getElementById('toggle-browser-btn');
     if (toggleBtn) {
+        toggleBtn.style.display = 'block'; // Make toggle visible
         toggleBtn.textContent = '🔽';
         toggleBtn.title = 'Hide file browser';
     }
@@ -1438,6 +1446,7 @@ function hideInlineFileBrowser() {
     }
     
     browser.classList.remove('active');
+    browser.style.display = 'none'; // Override the inline style
     
     const toggleBtn = document.getElementById('toggle-browser-btn');
     if (toggleBtn) {

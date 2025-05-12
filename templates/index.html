@@ -155,10 +155,10 @@
                     <input type="text" id="selected-directory-display" placeholder="Click browse to select a directory..." readonly>
                     <button type="button" id="browse-btn" class="button secondary small">Browse Directory</button>
                 </div>
-                 <button type="button" id="toggle-browser-btn" class="button secondary small" style="display:none; margin-top:5px;">Toggle Browser</button>
+                 <button type="button" id="toggle-browser-btn" class="button secondary small" style="margin-top:5px;">Toggle Browser</button>
             </div>
 
-            <div id="inline-file-browser" class="inline-file-browser" style="display:none;">
+            <div id="inline-file-browser" class="inline-file-browser">
                 <div class="browser-header">
                     <span>Directory Browser</span>
                     <span id="current-inline-path" class="current-path-display"></span>
@@ -272,5 +272,9 @@
             }
         });
     </script>
+    <script src="{{ url_for('static', filename='js/browser-fix.js') }}"></script>
+    {% if debug %}
+    <script src="{{ url_for('static', filename='js/browser-debug.js') }}"></script>
+    {% endif %}
 </body>
 </html>
