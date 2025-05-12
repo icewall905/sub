@@ -399,6 +399,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedVideoPath = filePath;
                 
                 // Update the display and hide the browser
+                const selectedVideoPathDisplay = document.getElementById('selected-video-path-display');
+                if (selectedVideoPathDisplay) {
+                    selectedVideoPathDisplay.value = fileName;
+                    selectedVideoPathDisplay.title = filePath;
+                }
+                
                 selectedVideoPathSpan.textContent = fileName;
                 selectedVideoPathSpan.title = filePath;
                 videoFileBrowser.style.display = 'none';
@@ -996,10 +1002,14 @@ window.viewSubtitle = function(fileIdOrName) {
     // Assuming the backend /api/view_subtitle expects the filename or job ID
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modal-title');
-    const subtitlePreview = document.getElementById('subtitle-preview');
+    const modalTextContent = document.getElementById('modal-text-content');
 
-    if (!modal || !modalTitle || !subtitlePreview) {
-        console.error("Modal elements not found for viewing subtitle.");
+    if (!modal || !modalTitle || !modalTextContent) {
+        console.error("Modal elements not found for viewing subtitle.", {
+            modal: !!modal,
+            modalTitle: !!modalTitle,
+            modalTextContent: !!modalTextContent
+        });
         return;
     }
 
@@ -1008,7 +1018,7 @@ window.viewSubtitle = function(fileIdOrName) {
         .then(data => {
             if (data.success) {
                 modalTitle.textContent = data.filename || 'Subtitle Preview'; // Use filename from response if available
-                subtitlePreview.textContent = data.content || 'No content available.';
+                modalTextContent.textContent = data.content || 'No content available.';
                 modal.style.display = 'block';
             } else {
                 alert(data.message || 'Failed to view subtitle file.');
@@ -1021,6 +1031,8 @@ window.viewSubtitle = function(fileIdOrName) {
 };
 
 window.viewTranslationReport = function(filename) {
+    console.log(`Opening translation report for: ${filename}`);
+    
     // Create or get the report modal
     let reportModal = document.getElementById('report-modal');
     
@@ -1030,9 +1042,9 @@ window.viewTranslationReport = function(filename) {
         reportModal.id = 'report-modal';
         reportModal.className = 'modal';
         
-        // Create modal content
+        // Create modal content with proper styling
         reportModal.innerHTML = `
-            <div class="modal-content report-modal-content">
+            <div class="modal-content card report-modal-content">
                 <span class="close report-modal-close">&times;</span>
                 <h2 id="report-modal-title">Translation Report</h2>
                 <div id="report-loading">Loading report data...</div>
@@ -1060,6 +1072,7 @@ window.viewTranslationReport = function(filename) {
     }
     
     // Show the modal and loading state
+    console.log('Setting report modal display to block');
     reportModal.style.display = 'block';
     const reportLoading = document.getElementById('report-loading');
     const reportContent = document.getElementById('report-content');
@@ -1072,6 +1085,7 @@ window.viewTranslationReport = function(filename) {
     fetch(`/api/translation_report/${encodeURIComponent(filename)}`)
         .then(response => response.json())
         .then(data => {
+            console.log('Received translation report data:', data);
             if (reportLoading) reportLoading.style.display = 'none';
             
             if (data.success) {
@@ -1923,9 +1937,9 @@ function saveSpecialMeanings() {
 function escapeHtml(str) {
     return str
         .replace(/&/g, "&amp;")
-        .replace(/<//g, "&lt;")
+        .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/"//g, "&quot;")
+        .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
 

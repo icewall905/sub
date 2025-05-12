@@ -178,7 +178,7 @@
             <div id="status-message" class="status-text">Initializing...</div>
             <div class="progress-container">
                 <div id="progress-bar" class="progress-bar-fill"></div>
-                <div id="progress-text" class="progress-bar-text">0%</</div>
+                <div id="progress-text" class="progress-bar-text">0%</div>
             </div>
             <div id="live-status-display-container" class="live-feed">
                 <h4>Live Status:</h4>
@@ -219,6 +219,16 @@
             <h3 id="modal-title">File Content</h3>
             <pre id="modal-text-content" class="modal-pre"></pre>
             <div id="modal-report-content"></div>
+        </div>
+    </div>
+    
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal" style="display:none;">
+        <div class="modal-content card">
+            <span class="report-modal-close button tiny secondary" onclick="document.getElementById('report-modal').style.display='none'" style="position:absolute; top:10px; right:10px;">&times;</span>
+            <h3 id="report-modal-title">Translation Report</h3>
+            <div id="report-loading">Loading report data...</div>
+            <div id="report-content" class="report-content"></div>
         </div>
     </div>
 

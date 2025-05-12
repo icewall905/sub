@@ -300,14 +300,25 @@ def download_translation(job_id):
                      as_attachment=True, 
                      download_name=f"translated_{job['original_filename']}")
 
-@app.route('/api/view_subtitle/<job_id>')
-def api_view_subtitle(job_id):
-    """API endpoint for viewing a subtitle file."""
-    if job_id not in translation_jobs:
-        return jsonify({'success': False, 'message': 'Job not found'})
-    
-    job = translation_jobs[job_id]
-    file_path = job['target_path'] if job['status'] == 'completed' else job['source_path']
+@app.route('/api/view_subtitle/<path:file_or_job_id>')
+def api_view_subtitle(file_or_job_id):
+    """API endpoint for viewing a subtitle file. Can accept either a job ID or a filename."""
+    # First, try handling it as a job ID
+    if file_or_job_id in translation_jobs:
+        job = translation_jobs[file_or_job_id]
+        file_path = job['target_path'] if job['status'] == 'completed' else job['source_path']
+        filename = os.path.basename(file_path)
+    else:
+        # If not a job ID, treat as a filename in the subs folder
+        safe_filename = secure_filename(file_or_job_id)
+        if safe_filename != file_or_job_id:
+            return jsonify({'success': False, 'message': 'Invalid filename'})
+        
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_filename)
+        filename = safe_filename
+        
+        if not os.path.exists(file_path):
+            return jsonify({'success': False, 'message': f'File not found: {filename}'})
     
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -315,7 +326,7 @@ def api_view_subtitle(job_id):
         return jsonify({
             'success': True,
             'content': content,
-            'is_translated': job['status'] == 'completed'
+            'filename': filename
         })
     except Exception as e:
         logger.error(f"Error reading subtitle file: {str(e)}")

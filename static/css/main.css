@@ -482,19 +482,15 @@ input:focus, select:focus {
 
 /* Modal Styles */
 .modal {
+    display: none; /* Hidden by default */
     position: fixed;
-    top: 0;
+    z-index: 9999; /* Very high to ensure it's on top */
     left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
+    overflow: auto;
     background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .modal.active {
@@ -1274,15 +1270,9 @@ small {
 
 /* Translation Report Modal styles */
 #report-modal {
+    /* Override potentially conflicting styles */
     display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
 }
 
 .report-modal-content {
@@ -1317,19 +1307,19 @@ small {
 }
 
 .report-section {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     padding: 15px;
-    background-color: #313244;
-    border-radius: 6px;
-    border: 1px solid #444;
+    background-color: #252525;
+    border-radius: 5px;
+    border: 1px solid #333;
 }
 
 .report-section h3 {
-    color: #6a8a5e; /* Lighter mossy green */
     margin-top: 0;
-    margin-bottom: 15px;
     border-bottom: 1px solid #444;
     padding-bottom: 8px;
+    margin-bottom: 15px;
+    color: #4CAF50;
 }
 
 .report-grid {
@@ -2151,4 +2141,132 @@ small {
 
 #transcribe-btn {
     margin-top: 10px;
+}
+
+/* Report Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 9999; /* Very high to ensure it's on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+    background-color: #1e1e1e;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #444;
+    width: 80%;
+    max-width: 800px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative; /* Ensure close button positioning works */
+}
+
+#report-modal {
+    /* Override potentially conflicting styles */
+    display: none;
+    z-index: 9999;
+}
+
+#report-modal .modal-content {
+    max-width: 900px;
+}
+
+.close, .report-modal-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+}
+
+.close:hover, .close:focus,
+.report-modal-close:hover, .report-modal-close:focus {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.modal-pre {
+    white-space: pre-wrap;
+    overflow-x: auto;
+    max-height: 500px;
+    background-color: #121212;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+/* Report Modal Specific Styles */
+.report-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #252525;
+    border-radius: 5px;
+    border: 1px solid #333;
+}
+
+.report-section h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #444;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    color: #4CAF50;
+}
+
+.report-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 8px;
+    align-items: center;
+}
+
+.sample-subtitles {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.subtitle-sample {
+    padding: 10px;
+    background-color: #333;
+    border-radius: 4px;
+    border-left: 3px solid #4CAF50;
+}
+
+.subtitle-index {
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+.subtitle-time {
+    font-family: monospace;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.content-preview {
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 0.9em;
+    padding: 10px;
+    background-color: #121212;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#report-loading {
+    text-align: center;
+    padding: 20px;
 }
