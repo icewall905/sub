@@ -5,34 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuration Editor - Subtitle Translator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+    <header class="app-header">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/sublogo.png') }}" alt="Site Logo" class="site-logo">
+            <h1>Subtitle Translator</h1>
+        </div>
+        <nav class="main-nav">
+            <a href="{{ url_for('index') }}" class="nav-link">Translate</a>
+            <a href="{{ url_for('config') }}" class="nav-link active">Settings</a>
+            <a href="{{ url_for('logs') }}" class="nav-link">Logs</a>
+        </nav>
+    </header>
+
     <div class="container">
-        <h1>Subtitle Translator Configuration</h1>
-        
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/logs">Logs</a>
-            <a href="/config" class="active">Configuration</a>
-        </div>
-        
-        <div id="notification" style="display: none;" class="notification"></div>
-        
-        <div class="search-container">
-            <input type="text" id="search-config" placeholder="Search settings..." />
-        </div>
-        
-        <form id="config-form">
-            <div id="config-sections"></div>
+        <div class="card">
+            <h2><span class="icon"><i class="fas fa-cog"></i></span>Configuration Editor</h2>
+            <p class="description">Adjust application settings and preferences here. Changes are saved to the config.ini file.</p>
+
+            <div id="notification" style="display: none;" class="notification"></div>
             
-            <div class="button-group">
-                <button type="button" id="reset-btn" class="secondary">Reset Changes</button>
-                <button type="submit" id="save-btn" class="primary">Save Configuration</button>
+            <div class="form-group">
+                <label for="search-config">Search Settings</label>
+                <input type="text" id="search-config" placeholder="Enter keyword to filter settings..." class="form-control">
             </div>
-        </form>
+            
+            <form id="config-form">
+                <div id="config-sections">
+                    <!-- Configuration sections will be loaded here by JavaScript -->
+                </div>
+                
+                <div class="button-group" style="margin-top: 2rem;">
+                    <button type="button" id="reset-btn" class="button secondary">Reset Changes</button>
+                    <button type="submit" id="save-btn" class="button primary">Save Configuration</button>
+                </div>
+            </form>
+        </div>
     </div>
-    
-    <img src="{{ url_for('static', filename='images/sublogo.png') }}" alt="Subtitle Translator" class="site-logo">
     
     <script src="{{ url_for('static', filename='js/config_editor.js') }}"></script>
 </body>
