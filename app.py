@@ -942,10 +942,28 @@ def process_translation(job_id, cache_path, filename, source_language, target_la
         config.set('general', 'source_language', job['source_language'])
         config.set('general', 'target_language', job['target_language'])
         
+        # --- MODIFICATION START ---
+        # Construct the target path for the 'subs' folder (app.config['UPLOAD_FOLDER'])
+        original_filename_base, original_filename_ext = os.path.splitext(job['original_filename'])
+        
+        # Use secure_filename on the modified name
+        translated_filename_stem = f"{original_filename_base}_translated_{job['target_language']}"
+        # Preserve original extension if it's .ass or .vtt, otherwise default to .srt
+        # However, pysrt usually saves as .srt. If you want to ensure .srt:
+        # final_translated_filename = secure_filename(f"{translated_filename_stem}.srt")
+        # If you want to try and keep original extension (but pysrt might still save as srt):
+        output_extension = original_filename_ext if original_filename_ext.lower() in ['.ass', '.vtt'] else '.srt'
+        final_translated_filename = secure_filename(f"{translated_filename_stem}{output_extension}")
+
+        # Ensure UPLOAD_FOLDER (app.config['UPLOAD_FOLDER']) is used for the output path
+        final_output_path = os.path.join(app.config['UPLOAD_FOLDER'], final_translated_filename)
+        logger.info(f"Target save path for single translation will be: {final_output_path}")
+        # --- MODIFICATION END ---
+        
         # Call translate_srt, passing the global progress dictionary
         success = subtitle_processor.translate_srt(
-            job['source_path'], 
-            job['source_path'].replace('.srt', f'_translated_{job["target_language"]}.srt'), # Generate target path
+            job['source_path'],      # Source is still the cached file (cache_path)
+            final_output_path,       # <<<< MODIFIED: Save to 'subs' folder
             config, 
             progress_dict=progress_dict
         )
@@ -953,15 +971,19 @@ def process_translation(job_id, cache_path, filename, source_language, target_la
         if success:
             # Update job status upon successful completion
             job['status'] = 'completed'
-            job['target_path'] = progress_dict.get("output_path", job['source_path'].replace('.srt', f'_translated_{job["target_language"]}.srt')) # Get actual output path if set
+            # Ensure job['target_path'] points to the new location in 'subs'
+            # progress_dict["output_path"] should be set by translate_srt to final_output_path
+            job['target_path'] = progress_dict.get("output_path", final_output_path) 
             job['progress'] = 100 # Mark as 100% in job-specific dict
             job['message'] = 'Translation completed'
             job['end_time'] = time.time()
-            logger.info(f"Translation job {job_id} completed: {job['original_filename']}")
+            logger.info(f"Translation job {job_id} completed: {job['original_filename']}. Saved to: {job['target_path']}") # Log the correct save path
             
             # Update global progress status to completed
             progress_dict["status"] = "completed"
             progress_dict["message"] = f"Translation completed for {job['original_filename']}"
+            # Ensure the global progress also reflects the correct final path in 'subs'
+            progress_dict["output_path"] = job['target_path']
             
             # Save final progress state to file
             save_progress_state()
@@ -987,9 +1009,15 @@ def process_translation(job_id, cache_path, filename, source_language, target_la
         # Save error state to file
         save_progress_state()
     finally:
-        # Optionally clear current details from global progress after a short delay
-        # to allow the UI to fetch the final status
-        # threading.Timer(10.0, clear_global_progress, args=[progress_dict]).start()
+        # Optionally clean up the original uploaded file from CACHE_DIR
+        # after successful translation and saving to UPLOAD_FOLDER.
+        # For example:
+        # if job.get('status') == 'completed' and os.path.exists(job['source_path']):
+        #     try:
+        #         os.remove(job['source_path'])
+        #         logger.info(f"Cleaned up cached source file: {job['source_path']}")
+        #     except Exception as e_clean:
+        #         logger.warning(f"Failed to clean up cached source file {job['source_path']}: {e_clean}")
         pass # Keep final status until next job starts
 
 def clear_global_progress(progress_dict):
