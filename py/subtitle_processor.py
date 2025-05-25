@@ -63,6 +63,11 @@ class SubtitleProcessor:
     def __init__(self, logger=None):
         """Initialize the subtitle processor with optional custom logger."""
         self.logger = logger or logging.getLogger(__name__)
+        self.config = None
+        
+    def set_config(self, config):
+        """Set the configuration object for this processor."""
+        self.config = config
         
     def get_iso_code(self, language_name: str) -> str:
         """Convert a language name to its ISO code."""
@@ -92,8 +97,10 @@ class SubtitleProcessor:
         # Ensure output directory exists
         os.makedirs(output_dir, exist_ok=True)
         
-        # ENHANCEMENT: Force extraction of all subtitle streams for debugging
-        extract_all_for_debug = True
+        # Get setting for extraction mode from config if provided, otherwise default to False
+        extract_all_for_debug = False
+        if self.config:
+            extract_all_for_debug = self.config.getboolean('extraction', 'extract_all_subtitles', fallback=False)
         
         # Use a more detailed ffprobe command to get complete information
         try:
@@ -662,6 +669,9 @@ class SubtitleProcessor:
         import pysrt
         from py.translation_service import TranslationService
         
+        # Store config for use in other methods
+        self.set_config(cfg)
+        
         start_time = time.time() # Initialize overall start time
         
         # Initialize progress history if needed
@@ -1142,111 +1152,6 @@ class SubtitleProcessor:
         self.logger.debug(f"No season/episode pattern found in filename '{filename}'")
         return (None, None)
         
-    def scan_and_translate_directory(self, root_path: str, cfg=None, progress_dict=None):
-        """
-        Scans a directory recursively for subtitle files matching the source language
-        and translates them if a target language version doesn't exist.
-        
-        Args:
-            root_path: Directory to scan
-            cfg: Configuration object
-            progress_dict: Optional dictionary to track scanning progress
-        """
-        # Log function defaults to the class logger
-        log_func = self.logger.info
-        
-        if cfg is None:
-            self.logger.error("Configuration object is required for scanning")
-            return
-        
-        # Constants
-        SUBS_FOLDER = "subs"  # Define folder for saved subtitles
-        
-        # Get source and target languages from config
-        source_lang = cfg.get("general", "source_language", fallback="en")
-        target_lang = cfg.get("general", "target_language", fallback="da")
-        
-        # Language markers in filenames (e.g., .en.srt, .da.srt)
-        source_marker = f".{source_lang}."
-        target_marker = f".{target_lang}."
-        
-        log_func(f"[SCANNER] Starting scan in '{root_path}' for source '{source_marker}' and target '{target_marker}'")
-        
-        found_files = 0
-        translated_files = 0
-        skipped_files = 0
-        files_to_translate = []
-        
-        # Scan the directory recursively
-        for subdir, _, files in os.walk(root_path):
-            for file in files:
-                # Check if it's a source language subtitle file
-                if file.endswith(".srt") and source_marker in file:
-                    found_files += 1
-                    source_path = os.path.join(subdir, file)
-                    
-                    # Construct target filename
-                    target_file = file.replace(source_marker, target_marker)
-                    target_path = os.path.join(SUBS_FOLDER, target_file)
-                    
-                    # Skip if target already exists
-                    if os.path.exists(target_path):
-                        log_func(f"[SCANNER] Skipping '{file}' - target file already exists")
-                        skipped_files += 1
-                        continue
-                    
-                    # Add to translation queue
-                    files_to_translate.append((source_path, target_path))
-                    log_func(f"[SCANNER] Added '{file}' to translation queue")
-        
-        log_func(f"[SCANNER] Scan complete. Found {found_files} source files needing translation. {skipped_files} skipped (target exists or pattern mismatch).")
-        
-        if not files_to_translate:
-            log_func("[SCANNER] No files need translation.")
-            if progress_dict is not None:
-                progress_dict["status"] = "done"
-                progress_dict["message"] = "No subtitle files need translation."
-            return
-        
-        # Update progress before starting translation
-        if progress_dict is not None:
-            progress_dict["status"] = "translating"
-            progress_dict["mode"] = "bulk"
-            progress_dict["total_files"] = len(files_to_translate)
-            progress_dict["done_files"] = 0
-        
-        # Translate the files
-        for i, (source_path, target_path) in enumerate(files_to_translate):
-            try:
-                # Update progress with current file
-                if progress_dict is not None:
-                    progress_dict["current_file"] = os.path.basename(source_path)
-                
-                log_func(f"[SCANNER] Translating {i+1}/{len(files_to_translate)}: {os.path.basename(source_path)}")
-                
-                # Make sure the output directory exists
-                os.makedirs(os.path.dirname(target_path), exist_ok=True)
-                
-                # Call the translate_srt method
-                self.translate_srt(source_path, target_path, cfg)
-                
-                translated_files += 1
-                
-                # Update progress after file completion
-                if progress_dict is not None:
-                    progress_dict["done_files"] = i + 1
-                
-            except Exception as e:
-                log_func(f"[SCANNER] Error translating '{source_path}': {e}")
-        
-        log_func(f"[SCANNER] Translation process finished. Translated {translated_files} files.")
-        
-        if progress_dict is not None:
-            progress_dict["status"] = "done"
-            progress_dict["message"] = f"Translation process finished. Translated {translated_files} files."
-        
-        return
-
     def parse_file(self, file_path: str) -> list:
         """
         Parse a subtitle file and return a list of subtitle dictionaries.

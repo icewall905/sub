@@ -57,6 +57,9 @@ config_manager = ConfigManager(os.path.join(os.path.dirname(os.path.abspath(__fi
 # Translation jobs storage
 translation_jobs = {}
 
+# Lock for thread-safe access to shared resources
+progress_lock = threading.Lock()
+
 # Progress status file path
 PROGRESS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'translation_progress.json')
 
@@ -80,23 +83,25 @@ def load_progress_state():
     global bulk_translation_progress
     try:
         if os.path.exists(PROGRESS_FILE):
-            with open(PROGRESS_FILE, 'r', encoding='utf-8') as f:
-                saved_progress = json.load(f)
-                if saved_progress.get("status") in ["processing", "scanning", "translating"]:
-                    # If the saved status shows an active process, set to failed
-                    # as the process was likely interrupted
-                    saved_progress["status"] = "failed"
-                    saved_progress["message"] = "Translation was interrupted. Please start again."
-                bulk_translation_progress = saved_progress
-                logger.info("Loaded saved translation progress state")
+            with progress_lock:
+                with open(PROGRESS_FILE, 'r', encoding='utf-8') as f:
+                    saved_progress = json.load(f)
+                    if saved_progress.get("status") in ["processing", "scanning", "translating"]:
+                        # If the saved status shows an active process, set to failed
+                        # as the process was likely interrupted
+                        saved_progress["status"] = "failed"
+                        saved_progress["message"] = "Translation was interrupted. Please start again."
+                    bulk_translation_progress = saved_progress
+                    logger.info("Loaded saved translation progress state")
     except Exception as e:
         logger.error(f"Failed to load translation progress state: {e}")
 
 # Save current progress state to file
 def save_progress_state():
     try:
-        with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(bulk_translation_progress, f, ensure_ascii=False, indent=2)
+        with progress_lock:
+            with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
+                json.dump(bulk_translation_progress, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.error(f"Failed to save translation progress state: {e}")
 
@@ -201,16 +206,36 @@ def api_translate():
         host_file_path = request.form.get('host_file_path', '')
         
         if (host_file_path):
-            # Validate the host file path for security
-            if not os.path.isfile(host_file_path):
+            # Get allowed paths from config for security validation
+            config = config_manager.get_config()
+            allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
+            allowed_abs_paths = [os.path.abspath(p.strip()) for p in allowed_paths_str.split(',') if p.strip()]
+            
+            # Normalize the requested path
+            requested_abs_path = os.path.abspath(os.path.normpath(host_file_path))
+            
+            # Check if the file is within allowed paths
+            is_allowed = False
+            if allowed_abs_paths:  # Only validate if allowed paths are configured
+                for allowed_base in allowed_abs_paths:
+                    if os.path.commonpath([requested_abs_path, allowed_base]) == allowed_base:
+                        is_allowed = True
+                        break
+                
+                if not is_allowed:
+                    logger.warning(f"Access denied for file: {requested_abs_path}. Not within allowed bases.")
+                    return jsonify({"error": "Access to this file is restricted."}), 403
+            
+            # Additional validations
+            if not os.path.isfile(requested_abs_path):
                 return jsonify({"error": "Invalid file path or file does not exist"}), 400
                 
             # Check if it's a subtitle file
-            if not host_file_path.lower().endswith(('.srt', '.ass', '.vtt')):
+            if not requested_abs_path.lower().endswith(('.srt', '.ass', '.vtt')):
                 return jsonify({"error": "Only subtitle files (.srt, .ass, .vtt) are supported"}), 400
                 
             # Get the filename without path
-            filename = os.path.basename(host_file_path)
+            filename = os.path.basename(requested_abs_path)
             
             # Create a job ID based on the filename and timestamp
             timestamp = int(time.time())
@@ -218,8 +243,8 @@ def api_translate():
             
             # Copy the file to the cache directory
             cache_path = os.path.join(CACHE_DIR, filename)
-            shutil.copy2(host_file_path, cache_path)
-            logger.info(f"Using host file: {host_file_path}, copied to {cache_path}")
+            shutil.copy2(requested_abs_path, cache_path)
+            logger.info(f"Using host file: {requested_abs_path}, copied to {cache_path}")
             
         else:
             # Handle regular file upload
@@ -274,20 +299,6 @@ def api_translate():
     except Exception as e:
         logger.exception("Error in file upload and translation")
         return jsonify({"error": str(e)}), 500
-
-@app.route('/api/job_status/<job_id>')
-def api_job_status(job_id):
-    """API endpoint for checking translation job status."""
-    if job_id not in translation_jobs:
-        return jsonify({'success': False, 'message': 'Job not found'})
-    
-    job = translation_jobs[job_id]
-    return jsonify({
-        'success': True,
-        'status': job['status'],
-        'progress': job['progress'],
-        'message': job['message']
-    })
 
 @app.route('/download/<job_id>')
 def download_translation(job_id):
@@ -499,28 +510,53 @@ def api_browse_dirs():
     """API endpoint to list directories for the file browser."""
     parent_path = request.args.get("path", "")
     
-    # Default to system root directories if no path provided
+    # Get allowed paths from config
+    config = config_manager.get_config()
+    allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
+    allowed_abs_paths = [os.path.abspath(p.strip()) for p in allowed_paths_str.split(',') if p.strip()]
+    
+    # If no allowed paths configured, restrict access
+    if not allowed_abs_paths:
+        logger.warning("File browsing attempted but no 'allowed_paths' configured in [file_browser] section.")
+        return jsonify({"error": "File browsing is not configured or no paths are allowed."}), 403
+    
+    # Default to first allowed path if no path provided
     if not parent_path:
-        if os.name == "nt":  # Windows
-            import string
-            # Get all drives
-            drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
-            return jsonify({"directories": drives, "current_path": "", "parent_path": ""})
-        else:  # Unix-like
-            parent_path = "/"
+        parent_path = allowed_abs_paths[0]
     
     try:
         # Security check: normalize path to prevent directory traversal
-        parent_path = os.path.normpath(parent_path)
+        requested_abs_path = os.path.abspath(os.path.normpath(parent_path))
+        
+        # Check if the requested path is within allowed paths
+        is_allowed = False
+        for allowed_base in allowed_abs_paths:
+            if os.path.commonpath([requested_abs_path, allowed_base]) == allowed_base:
+                is_allowed = True
+                break
+        
+        if not is_allowed:
+            logger.warning(f"Access denied for path: {requested_abs_path}. Not within allowed bases.")
+            return jsonify({"error": "Access to this path is restricted."}), 403
         
         # Get the parent of the current directory for "up one level" functionality
-        parent_of_parent = os.path.dirname(parent_path) if parent_path != "/" else ""
+        parent_of_parent = os.path.dirname(requested_abs_path)
+        
+        # Check if parent_of_parent is still within allowed paths
+        parent_allowed = False
+        for allowed_base in allowed_abs_paths:
+            if os.path.commonpath([parent_of_parent, allowed_base]) == allowed_base:
+                parent_allowed = True
+                break
+        
+        if not parent_allowed:
+            parent_of_parent = requested_abs_path  # Don't allow going up beyond allowed paths
         
         # List all directories in the parent path
         dirs = []
-        if os.path.isdir(parent_path):
-            for item in os.listdir(parent_path):
-                full_path = os.path.join(parent_path, item)
+        if os.path.isdir(requested_abs_path):
+            for item in os.listdir(requested_abs_path):
+                full_path = os.path.join(requested_abs_path, item)
                 if os.path.isdir(full_path):
                     dirs.append({"name": item, "path": full_path})
             
@@ -529,7 +565,7 @@ def api_browse_dirs():
             
             return jsonify({
                 "directories": dirs,
-                "current_path": parent_path,
+                "current_path": requested_abs_path,
                 "parent_path": parent_of_parent
             })
         else:
@@ -545,35 +581,55 @@ def api_browse_files():
     """API endpoint to list files in a directory for the host file browser."""
     parent_path = request.args.get("path", "")
     
-    # Default to system root directories if no path provided
+    # Get allowed paths from config
+    config = config_manager.get_config()
+    allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
+    allowed_abs_paths = [os.path.abspath(p.strip()) for p in allowed_paths_str.split(',') if p.strip()]
+    
+    # If no allowed paths configured, restrict access
+    if not allowed_abs_paths:
+        logger.warning("File browsing attempted but no 'allowed_paths' configured in [file_browser] section.")
+        return jsonify({"error": "File browsing is not configured or no paths are allowed."}), 403
+    
+    # Default to first allowed path if no path provided
     if not parent_path:
-        if os.name == "nt":  # Windows
-            import string
-            # Get all drives
-            drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
-            return jsonify({
-                "files": [],
-                "directories": [{"name": d, "path": d} for d in drives],
-                "current_path": "",
-                "parent_path": ""
-            })
-        else:  # Unix-like
-            parent_path = "/"
+        parent_path = allowed_abs_paths[0]
     
     try:
         # Security check: normalize path to prevent directory traversal
-        parent_path = os.path.normpath(parent_path)
+        requested_abs_path = os.path.abspath(os.path.normpath(parent_path))
+        
+        # Check if the requested path is within allowed paths
+        is_allowed = False
+        for allowed_base in allowed_abs_paths:
+            if os.path.commonpath([requested_abs_path, allowed_base]) == allowed_base:
+                is_allowed = True
+                break
+        
+        if not is_allowed:
+            logger.warning(f"Access denied for path: {requested_abs_path}. Not within allowed bases.")
+            return jsonify({"error": "Access to this path is restricted."}), 403
         
         # Get the parent of the current directory for "up one level" functionality
-        parent_of_parent = os.path.dirname(parent_path) if parent_path != "/" else ""
+        parent_of_parent = os.path.dirname(requested_abs_path)
+        
+        # Check if parent_of_parent is still within allowed paths
+        parent_allowed = False
+        for allowed_base in allowed_abs_paths:
+            if os.path.commonpath([parent_of_parent, allowed_base]) == allowed_base:
+                parent_allowed = True
+                break
+        
+        if not parent_allowed:
+            parent_of_parent = requested_abs_path  # Don't allow going up beyond allowed paths
         
         # List all items in the parent path
         files = []
         dirs = []
         
-        if os.path.isdir(parent_path):
-            for item in os.listdir(parent_path):
-                full_path = os.path.join(parent_path, item)
+        if os.path.isdir(requested_abs_path):
+            for item in os.listdir(requested_abs_path):
+                full_path = os.path.join(requested_abs_path, item)
                 
                 if os.path.isdir(full_path):
                     dirs.append({"name": item, "path": full_path})
@@ -589,7 +645,7 @@ def api_browse_files():
             return jsonify({
                 "files": files,
                 "directories": dirs,
-                "current_path": parent_path,
+                "current_path": requested_abs_path,
                 "parent_path": parent_of_parent
             })
         else:
@@ -1288,18 +1344,18 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             # For files matching complex patterns like .en.hi.srt, remove the language code and any additional markers
             if ".hi." in base_name or "-hi." in base_name:
                 # Remove language code with hi marker
-                base_name = re.sub(r'\.' + detected_lang + r'\.hi\.', '.*.hi.', base_name)
-                base_name = re.sub(r'\.' + detected_lang + r'-hi\.', '.*-hi.', base_name)
+                base_name = re.sub(r'\.(' + re.escape(detected_lang) + r')\.hi\.', '.*.hi.', base_name)
+                base_name = re.sub(r'\.(' + re.escape(detected_lang) + r')-hi\.', '.*-hi.', base_name)
             else:
-                # Standard replacements for other patterns
-                base_name = re.sub(r'\.' + detected_lang + r'\.', '.*.', base_name)
-                base_name = re.sub(r'\.' + detected_lang + r'-', '.*-', base_name)
-                base_name = re.sub(r'\.' + detected_lang + r'_', '.*_', base_name)
-                base_name = re.sub(r'_' + detected_lang + r'_', '_*_', base_name)
-                base_name = re.sub(r'-' + detected_lang + r'-', '-*-', base_name)
+            # Standard replacements for other patterns
+                base_name = re.sub(r'\.(' + re.escape(detected_lang) + r')\.', '.*.', base_name)
+                base_name = re.sub(r'\.(' + re.escape(detected_lang) + r')-', '.*-', base_name)
+                base_name = re.sub(r'\.(' + re.escape(detected_lang) + r')_', '.*_', base_name)
+                base_name = re.sub(r'_(' + re.escape(detected_lang) + r')_', '_*_', base_name)
+                base_name = re.sub(r'-(' + re.escape(detected_lang) + r')-', '-*-', base_name)
                 # For languages at the start of filename
-                base_name = re.sub(r'^' + detected_lang + r'\.', '*.', base_name)
-                base_name = re.sub(r'^' + detected_lang + r'-', '*-', base_name)
+                base_name = re.sub(r'^(' + re.escape(detected_lang) + r')\.', '*.', base_name)
+                base_name = re.sub(r'^(' + re.escape(detected_lang) + r')-', '*-', base_name)
             
             # Use a combination of directory and base name as the group key
             # This handles cases where the same filename appears in different directories
@@ -1587,35 +1643,55 @@ def api_browse_videos():
     """API endpoint to list video files in a directory for the host file browser."""
     parent_path = request.args.get("path", "")
     
-    # Default to system root directories if no path provided
+    # Get allowed paths from config
+    config = config_manager.get_config()
+    allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
+    allowed_abs_paths = [os.path.abspath(p.strip()) for p in allowed_paths_str.split(',') if p.strip()]
+    
+    # If no allowed paths configured, restrict access
+    if not allowed_abs_paths:
+        logger.warning("Video file browsing attempted but no 'allowed_paths' configured in [file_browser] section.")
+        return jsonify({"error": "File browsing is not configured or no paths are allowed."}), 403
+    
+    # Default to first allowed path if no path provided
     if not parent_path:
-        if os.name == "nt":  # Windows
-            import string
-            # Get all drives
-            drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
-            return jsonify({
-                "files": [],
-                "directories": [{"name": d, "path": d} for d in drives],
-                "current_path": "",
-                "parent_path": ""
-            })
-        else:  # Unix-like
-            parent_path = "/"
+        parent_path = allowed_abs_paths[0]
     
     try:
         # Security check: normalize path to prevent directory traversal
-        parent_path = os.path.normpath(parent_path)
+        requested_abs_path = os.path.abspath(os.path.normpath(parent_path))
+        
+        # Check if the requested path is within allowed paths
+        is_allowed = False
+        for allowed_base in allowed_abs_paths:
+            if os.path.commonpath([requested_abs_path, allowed_base]) == allowed_base:
+                is_allowed = True
+                break
+        
+        if not is_allowed:
+            logger.warning(f"Access denied for path: {requested_abs_path}. Not within allowed bases.")
+            return jsonify({"error": "Access to this path is restricted."}), 403
         
         # Get the parent of the current directory for "up one level" functionality
-        parent_of_parent = os.path.dirname(parent_path) if parent_path != "/" else ""
+        parent_of_parent = os.path.dirname(requested_abs_path)
+        
+        # Check if parent_of_parent is still within allowed paths
+        parent_allowed = False
+        for allowed_base in allowed_abs_paths:
+            if os.path.commonpath([parent_of_parent, allowed_base]) == allowed_base:
+                parent_allowed = True
+                break
+        
+        if not parent_allowed:
+            parent_of_parent = requested_abs_path  # Don't allow going up beyond allowed paths
         
         # List all items in the parent path
         files = []
         dirs = []
         
-        if os.path.isdir(parent_path):
-            for item in os.listdir(parent_path):
-                full_path = os.path.join(parent_path, item)
+        if os.path.isdir(requested_abs_path):
+            for item in os.listdir(requested_abs_path):
+                full_path = os.path.join(requested_abs_path, item)
                 
                 if os.path.isdir(full_path):
                     dirs.append({"name": item, "path": full_path})
@@ -1631,7 +1707,7 @@ def api_browse_videos():
             return jsonify({
                 "files": files,
                 "directories": dirs,
-                "current_path": parent_path,
+                "current_path": requested_abs_path,
                 "parent_path": parent_of_parent
             })
         else:
@@ -1651,16 +1727,36 @@ def api_video_to_srt():
         
         if not video_file_path:
             return jsonify({"error": "No video file path provided"}), 400
+        
+        # Get allowed paths from config for security validation
+        config = config_manager.get_config()
+        allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
+        allowed_abs_paths = [os.path.abspath(p.strip()) for p in allowed_paths_str.split(',') if p.strip()]
+        
+        # Normalize the requested path
+        requested_abs_path = os.path.abspath(os.path.normpath(video_file_path))
+        
+        # Check if the file is within allowed paths
+        is_allowed = False
+        if allowed_abs_paths:  # Only validate if allowed paths are configured
+            for allowed_base in allowed_abs_paths:
+                if os.path.commonpath([requested_abs_path, allowed_base]) == allowed_base:
+                    is_allowed = True
+                    break
             
-        if not os.path.isfile(video_file_path):
+            if not is_allowed:
+                logger.warning(f"Access denied for video file: {requested_abs_path}. Not within allowed bases.")
+                return jsonify({"error": "Access to this file is restricted."}), 403
+            
+        if not os.path.isfile(requested_abs_path):
             return jsonify({"error": "Invalid file path or file does not exist"}), 400
             
         # Check if it's a video file
-        if not video_file_path.lower().endswith(('.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v')):
+        if not requested_abs_path.lower().endswith(('.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v')):
             return jsonify({"error": "Only video files are supported"}), 400
             
         # Get the filename without path
-        filename = os.path.basename(video_file_path)
+        filename = os.path.basename(requested_abs_path)
         
         # Create a job ID based on the filename and timestamp
         timestamp = int(time.time())
@@ -1672,7 +1768,7 @@ def api_video_to_srt():
         # Create/update the job record
         translation_jobs[job_id] = {
             'status': 'queued',
-            'source_path': video_file_path,
+            'source_path': requested_abs_path,
             'original_filename': filename,
             'progress': 0,
             'message': 'Queued for transcription with faster-whisper',

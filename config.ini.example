@@ -114,3 +114,15 @@ enabled = false
 type = consistency
 temperature = 0.2
 description = Consistency Critic - focuses on terminology consistency across subtitle lines
+
+[file_browser]
+# Comma-separated list of absolute base paths allowed for browsing
+# Example for Linux: allowed_paths = /home/user/media,/mnt/videos
+# Example for Windows: allowed_paths = D:\media,C:\Users\user\Videos
+# Example for macOS: allowed_paths = /Users/user/Movies,/Volumes/media
+allowed_paths = /srv/subtitle_translator_files
+# Default to a restrictive path or leave empty to disable if not set
+
+[extraction]
+# Set to true to extract all subtitle streams from video files regardless of language
+extract_all_subtitles = false

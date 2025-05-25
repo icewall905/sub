@@ -406,7 +406,7 @@ input:focus, select:focus {
     border-radius: 6px;
     margin-top: 1rem;
     border: 1px solid #303030;
-    max-height: 200px;
+    max-height: 50vh; /* Increased from 200px to 50% of viewport height */
     overflow-y: auto;
 }
 
@@ -420,7 +420,7 @@ input:focus, select:focus {
     font-size: 0.85em;
     color: #a0a0a0;
     margin-bottom: 0.3rem;
-    word-break: break-all;
+    overflow-wrap: break-word; /* Better word wrapping than break-all */
 }
 
 /* Recent and Archive Grid */
