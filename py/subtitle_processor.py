@@ -101,6 +101,8 @@ class SubtitleProcessor:
         extract_all_for_debug = False
         if self.config:
             extract_all_for_debug = self.config.getboolean('extraction', 'extract_all_subtitles', fallback=False)
+        if self.config:
+            extract_all_for_debug = self.config.getboolean('extraction', 'extract_all_subtitles', fallback=False)
         
         # Use a more detailed ffprobe command to get complete information
         try:

@@ -123,6 +123,17 @@ description = Consistency Critic - focuses on terminology consistency across sub
 allowed_paths = /srv/subtitle_translator_files
 # Default to a restrictive path or leave empty to disable if not set
 
+# Optional: Comma-separated list of paths or patterns explicitly denied 
+# even if they're within an allowed path (e.g., system directories)
+# Example: denied_patterns = /etc,/var,/boot,/root,/home/*/.*,*password*,*config*
+denied_patterns = 
+
+# Security settings
+enable_parent_navigation = true  # Set to false to disable "up one level" navigation
+max_depth = 10                   # Maximum directory depth to prevent deep traversal
+hide_dot_files = true            # Hide files and directories that start with a dot
+restrict_to_media_dirs = false   # Only show directories likely to contain media
+
 [extraction]
 # Set to true to extract all subtitle streams from video files regardless of language
 extract_all_subtitles = false

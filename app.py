@@ -25,6 +25,7 @@ from py.translation_service import TranslationService
 from py.critic_service import CriticService
 from py.logger import setup_logger
 from py.video_transcriber import VideoTranscriber
+from py.secure_browser import SecureFileBrowser
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -57,8 +58,9 @@ config_manager = ConfigManager(os.path.join(os.path.dirname(os.path.abspath(__fi
 # Translation jobs storage
 translation_jobs = {}
 
-# Lock for thread-safe access to shared resources
+# Locks for thread-safe access to shared resources
 progress_lock = threading.Lock()
+jobs_lock = threading.Lock()  # New lock for translation_jobs dictionary
 
 # Progress status file path
 PROGRESS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'translation_progress.json')
@@ -206,25 +208,16 @@ def api_translate():
         host_file_path = request.form.get('host_file_path', '')
         
         if (host_file_path):
-            # Get allowed paths from config for security validation
-            config = config_manager.get_config()
-            allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
-            allowed_abs_paths = [os.path.abspath(p.strip()) for p in allowed_paths_str.split(',') if p.strip()]
+            # Get a secure browser instance for path validation
+            secure_browser = get_secure_browser()
             
-            # Normalize the requested path
+            # Validate the path is allowed using our secure browser
+            if not secure_browser.is_path_allowed(host_file_path):
+                logger.warning(f"Access denied for file: {host_file_path}. Not within allowed bases or matches denied pattern.")
+                return jsonify({"error": "Access to this file is restricted."}), 403
+            
+            # Normalize the requested path after validation
             requested_abs_path = os.path.abspath(os.path.normpath(host_file_path))
-            
-            # Check if the file is within allowed paths
-            is_allowed = False
-            if allowed_abs_paths:  # Only validate if allowed paths are configured
-                for allowed_base in allowed_abs_paths:
-                    if os.path.commonpath([requested_abs_path, allowed_base]) == allowed_base:
-                        is_allowed = True
-                        break
-                
-                if not is_allowed:
-                    logger.warning(f"Access denied for file: {requested_abs_path}. Not within allowed bases.")
-                    return jsonify({"error": "Access to this file is restricted."}), 403
             
             # Additional validations
             if not os.path.isfile(requested_abs_path):
@@ -439,7 +432,8 @@ def upload():
 @app.route('/api/progress')
 def get_progress():
     """API endpoint for getting translation progress."""
-    return jsonify(bulk_translation_progress)
+    with progress_lock:
+        return jsonify(bulk_translation_progress)
 
 @app.route('/api/list_subs')
 def api_list_subs():
@@ -510,52 +504,41 @@ def api_browse_dirs():
     """API endpoint to list directories for the file browser."""
     parent_path = request.args.get("path", "")
     
-    # Get allowed paths from config
-    config = config_manager.get_config()
-    allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
-    allowed_abs_paths = [os.path.abspath(p.strip()) for p in allowed_paths_str.split(',') if p.strip()]
+    # Get secure browser instance
+    secure_browser = get_secure_browser()
     
     # If no allowed paths configured, restrict access
-    if not allowed_abs_paths:
+    if not secure_browser.allowed_paths:
         logger.warning("File browsing attempted but no 'allowed_paths' configured in [file_browser] section.")
         return jsonify({"error": "File browsing is not configured or no paths are allowed."}), 403
     
     # Default to first allowed path if no path provided
     if not parent_path:
-        parent_path = allowed_abs_paths[0]
+        parent_path = secure_browser.allowed_paths[0]
     
     try:
-        # Security check: normalize path to prevent directory traversal
-        requested_abs_path = os.path.abspath(os.path.normpath(parent_path))
-        
-        # Check if the requested path is within allowed paths
-        is_allowed = False
-        for allowed_base in allowed_abs_paths:
-            if os.path.commonpath([requested_abs_path, allowed_base]) == allowed_base:
-                is_allowed = True
-                break
-        
-        if not is_allowed:
-            logger.warning(f"Access denied for path: {requested_abs_path}. Not within allowed bases.")
+        # Validate the requested path
+        if not secure_browser.is_path_allowed(parent_path):
+            logger.warning(f"Access denied for path: {parent_path}. Not within allowed bases.")
             return jsonify({"error": "Access to this path is restricted."}), 403
         
-        # Get the parent of the current directory for "up one level" functionality
-        parent_of_parent = os.path.dirname(requested_abs_path)
+        # Normalize path
+        requested_abs_path = os.path.abspath(os.path.normpath(parent_path))
         
-        # Check if parent_of_parent is still within allowed paths
-        parent_allowed = False
-        for allowed_base in allowed_abs_paths:
-            if os.path.commonpath([parent_of_parent, allowed_base]) == allowed_base:
-                parent_allowed = True
-                break
-        
-        if not parent_allowed:
-            parent_of_parent = requested_abs_path  # Don't allow going up beyond allowed paths
+        # Get the parent path if navigation is allowed
+        parent_of_parent = secure_browser.get_safe_parent_path(requested_abs_path)
         
         # List all directories in the parent path
         dirs = []
         if os.path.isdir(requested_abs_path):
-            for item in os.listdir(requested_abs_path):
+            # Get all items in the directory
+            items = os.listdir(requested_abs_path)
+            
+            # Filter items based on security rules
+            filtered_items = secure_browser.filter_items(requested_abs_path, items)
+            
+            # Add all directories to the result
+            for item in filtered_items:
                 full_path = os.path.join(requested_abs_path, item)
                 if os.path.isdir(full_path):
                     dirs.append({"name": item, "path": full_path})
@@ -563,14 +546,19 @@ def api_browse_dirs():
             # Sort directories by name
             dirs.sort(key=lambda x: x["name"].lower())
             
-            return jsonify({
+            # Add security headers
+            resp = jsonify({
                 "directories": dirs,
                 "current_path": requested_abs_path,
                 "parent_path": parent_of_parent
             })
+            resp.headers["X-Content-Type-Options"] = "nosniff"
+            resp.headers["X-Frame-Options"] = "DENY"
+            return resp
         else:
             return jsonify({"error": "Not a valid directory"}), 400
     except PermissionError:
+        logger.warning(f"Permission denied accessing directory: {parent_path}")
         return jsonify({"error": "Permission denied accessing this directory"}), 403
     except Exception as e:
         logger.error(f"Error browsing directory {parent_path}: {str(e)}")
@@ -581,54 +569,42 @@ def api_browse_files():
     """API endpoint to list files in a directory for the host file browser."""
     parent_path = request.args.get("path", "")
     
-    # Get allowed paths from config
-    config = config_manager.get_config()
-    allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
-    allowed_abs_paths = [os.path.abspath(p.strip()) for p in allowed_paths_str.split(',') if p.strip()]
+    # Get secure browser instance
+    secure_browser = get_secure_browser()
     
     # If no allowed paths configured, restrict access
-    if not allowed_abs_paths:
+    if not secure_browser.allowed_paths:
         logger.warning("File browsing attempted but no 'allowed_paths' configured in [file_browser] section.")
         return jsonify({"error": "File browsing is not configured or no paths are allowed."}), 403
     
     # Default to first allowed path if no path provided
     if not parent_path:
-        parent_path = allowed_abs_paths[0]
+        parent_path = secure_browser.allowed_paths[0]
     
     try:
-        # Security check: normalize path to prevent directory traversal
-        requested_abs_path = os.path.abspath(os.path.normpath(parent_path))
-        
-        # Check if the requested path is within allowed paths
-        is_allowed = False
-        for allowed_base in allowed_abs_paths:
-            if os.path.commonpath([requested_abs_path, allowed_base]) == allowed_base:
-                is_allowed = True
-                break
-        
-        if not is_allowed:
-            logger.warning(f"Access denied for path: {requested_abs_path}. Not within allowed bases.")
+        # Validate the requested path
+        if not secure_browser.is_path_allowed(parent_path):
+            logger.warning(f"Access denied for path: {parent_path}. Not within allowed bases.")
             return jsonify({"error": "Access to this path is restricted."}), 403
         
-        # Get the parent of the current directory for "up one level" functionality
-        parent_of_parent = os.path.dirname(requested_abs_path)
+        # Normalize path
+        requested_abs_path = os.path.abspath(os.path.normpath(parent_path))
         
-        # Check if parent_of_parent is still within allowed paths
-        parent_allowed = False
-        for allowed_base in allowed_abs_paths:
-            if os.path.commonpath([parent_of_parent, allowed_base]) == allowed_base:
-                parent_allowed = True
-                break
-        
-        if not parent_allowed:
-            parent_of_parent = requested_abs_path  # Don't allow going up beyond allowed paths
+        # Get the parent path if navigation is allowed
+        parent_of_parent = secure_browser.get_safe_parent_path(requested_abs_path)
         
         # List all items in the parent path
         files = []
         dirs = []
         
         if os.path.isdir(requested_abs_path):
-            for item in os.listdir(requested_abs_path):
+            # Get all items in the directory
+            items = os.listdir(requested_abs_path)
+            
+            # Filter items based on security rules
+            filtered_items = secure_browser.filter_items(requested_abs_path, items)
+            
+            for item in filtered_items:
                 full_path = os.path.join(requested_abs_path, item)
                 
                 if os.path.isdir(full_path):
@@ -642,15 +618,20 @@ def api_browse_files():
             dirs.sort(key=lambda x: x["name"].lower())
             files.sort(key=lambda x: x["name"].lower())
             
-            return jsonify({
+            # Add security headers
+            resp = jsonify({
                 "files": files,
                 "directories": dirs,
                 "current_path": requested_abs_path,
                 "parent_path": parent_of_parent
             })
+            resp.headers["X-Content-Type-Options"] = "nosniff"
+            resp.headers["X-Frame-Options"] = "DENY"
+            return resp
         else:
             return jsonify({"error": "Not a valid directory"}), 400
     except PermissionError:
+        logger.warning(f"Permission denied accessing directory: {parent_path}")
         return jsonify({"error": "Permission denied accessing this directory"}), 403
     except Exception as e:
         logger.error(f"Error browsing files in directory {parent_path}: {str(e)}")
@@ -683,16 +664,17 @@ def api_start_scan():
             return jsonify({"ok": False, "error": "Error validating folder path against allowed bases."}), 400
 
     # Reset global progress dict for bulk mode
-    bulk_translation_progress.clear()
-    bulk_translation_progress.update({
-        "mode": "bulk",
-        "status": "queued",
-        "message": "",
-        "current_file": "",
-        "done_files": 0,
-        "total_files": 0,
-        "zip_path": ""
-    })
+    with progress_lock:
+        bulk_translation_progress.clear()
+        bulk_translation_progress.update({
+            "mode": "bulk",
+            "status": "queued",
+            "message": "",
+            "current_file": "",
+            "done_files": 0,
+            "total_files": 0,
+            "zip_path": ""
+        })
     
     # Start bulk translation in background thread
     threading.Thread(
@@ -735,20 +717,21 @@ def live_status():
     """
     # bulk_translation_progress is the global dictionary
     # Ensure a consistent structure for the response
-    response_data = {
-        "mode": bulk_translation_progress.get("mode", "idle"),
-        "status": bulk_translation_progress.get("status", "idle"),
-        "message": bulk_translation_progress.get("message", "System is idle."),
-        "filename": bulk_translation_progress.get("current_file", ""),
-        "percent": bulk_translation_progress.get("percent", 0), # Percent is now directly in bulk_translation_progress
-        "job_id": bulk_translation_progress.get("job_id"), # job_id is useful for all modes
-        "current_line": bulk_translation_progress.get("current_line", 0),
-        "total_lines": bulk_translation_progress.get("total_lines", 0),
-        "done_files": bulk_translation_progress.get("done_files", 0),
-        "total_files": bulk_translation_progress.get("total_files", 0),
-        "current": bulk_translation_progress.get("current", {}),
-        "processed_lines": bulk_translation_progress.get("processed_lines", [])
-    }
+    with progress_lock:
+        response_data = {
+            "mode": bulk_translation_progress.get("mode", "idle"),
+            "status": bulk_translation_progress.get("status", "idle"),
+            "message": bulk_translation_progress.get("message", "System is idle."),
+            "filename": bulk_translation_progress.get("current_file", ""),
+            "percent": bulk_translation_progress.get("percent", 0), # Percent is now directly in bulk_translation_progress
+            "job_id": bulk_translation_progress.get("job_id"), # job_id is useful for all modes
+            "current_line": bulk_translation_progress.get("current_line", 0),
+            "total_lines": bulk_translation_progress.get("total_lines", 0),
+            "done_files": bulk_translation_progress.get("done_files", 0),
+            "total_files": bulk_translation_progress.get("total_files", 0),
+            "current": bulk_translation_progress.get("current", {}),
+            "processed_lines": bulk_translation_progress.get("processed_lines", [])
+        }
     
     # No mode-specific logic needed here anymore if bulk_translation_progress is always up-to-date.
     # The background threads (process_translation, process_video_transcription, scan_and_translate_directory)
@@ -803,14 +786,14 @@ def api_translation_report(filename):
             total_chars = 0
             avg_line_length = 0
             longest_line = 0
-            longest_line_content = ""
+            longest_line_content = "";
             
             for subtitle in subtitles:
                 text = subtitle.get('text', '')
                 words = len(text.split())
                 chars = len(text)
                 total_words += words
-                total_chars += chars
+                total_chars += chars;
                 
                 if chars > longest_line:
                     longest_line = chars
@@ -947,21 +930,23 @@ def clear_log_file(log_file):
 def process_translation(job_id, cache_path, filename, source_language, target_language, special_meanings):
     """Process a translation job, updating the global progress dictionary."""
     # Create a job record if it doesn't exist already
-    if job_id not in translation_jobs:
-        translation_jobs[job_id] = {
-            'status': 'queued',
-            'source_path': cache_path,
-            'original_filename': filename,
-            'source_language': source_language,
-            'target_language': target_language,
-            'progress': 0,
-            'message': 'Queued for translation',
-            'start_time': time.time(),
-            'end_time': None,
-            'special_meanings': special_meanings
-        }
+    with jobs_lock:
+        if job_id not in translation_jobs:
+            translation_jobs[job_id] = {
+                'status': 'queued',
+                'source_path': cache_path,
+                'original_filename': filename,
+                'source_language': source_language,
+                'target_language': target_language,
+                'progress': 0,
+                'message': 'Queued for translation',
+                'start_time': time.time(),
+                'end_time': None,
+                'special_meanings': special_meanings
+            }
+        
+        job = translation_jobs[job_id]
     
-    job = translation_jobs[job_id]
     logger.info(f"Starting translation job {job_id}: {job['original_filename']}")
     
     # Use the global progress dictionary for live status updates
@@ -970,11 +955,12 @@ def process_translation(job_id, cache_path, filename, source_language, target_la
     
     try:
         # Reset and update global progress status for this job
-        progress_dict.clear()
-        progress_dict.update({
-            "mode": "single",
-            "status": "processing",
-            "message": f'Starting translation for {job["original_filename"]}',
+        with progress_lock:
+            progress_dict.clear()
+            progress_dict.update({
+                "mode": "single",
+                "status": "processing",
+                "message": f'Starting translation for {job["original_filename"]}',
             "current_file": job["original_filename"],
             "total_lines": 0, # Will be updated by translate_srt
             "current_line": 0,
@@ -1078,29 +1064,31 @@ def process_translation(job_id, cache_path, filename, source_language, target_la
 
 def clear_global_progress(progress_dict):
     """Resets the global progress dict to idle state."""
-    progress_dict.clear()
-    progress_dict.update({
-        "mode": "idle",
-        "status": "idle", 
-        "message": "",
-        "current_file": "",
-        "done_files": 0,
-        "total_files": 0,
-        "zip_path": ""
-    })
+    with progress_lock:
+        progress_dict.clear()
+        progress_dict.update({
+            "mode": "idle",
+            "status": "idle", 
+            "message": "",
+            "current_file": "",
+            "done_files": 0,
+            "total_files": 0,
+            "zip_path": ""
+        })
     logger.info("Global progress dictionary reset to idle.")
 
 def scan_and_translate_directory(root_dir, config, progress, logger):
     """Scan a directory for subtitle files and translate them in bulk."""
     try:
-        progress["status"] = "scanning"
-        progress["message"] = f"Scanning {root_dir} for subtitle files..."
-        # Initialize the current field for line-by-line data
-        progress["current"] = {}
-        # Create empty processed_lines history
-        progress["processed_lines"] = []
-        # Save progress state to file after status change
-        save_progress_state()
+        with progress_lock:
+            progress["status"] = "scanning"
+            progress["message"] = f"Scanning {root_dir} for subtitle files..."
+            # Initialize the current field for line-by-line data
+            progress["current"] = {}
+            # Create empty processed_lines history
+            progress["processed_lines"] = []
+            # Save progress state to file after status change
+            save_progress_state()
         
         # Get language settings
         src_lang = config.get("general", "source_language", fallback="en")
@@ -1170,8 +1158,9 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         extracted_subtitle_files = []
         
         for i, video_file in enumerate(all_video_files):
-            progress["message"] = f"Extracting subtitles from video file {i+1}/{len(all_video_files)}: {os.path.basename(video_file)}"
-            save_progress_state()
+            with progress_lock:
+                progress["message"] = f"Extracting subtitles from video file {i+1}/{len(all_video_files)}: {os.path.basename(video_file)}"
+                save_progress_state()
             
             try:
                 # Extract embedded subtitles matching source language
@@ -1437,13 +1426,14 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         # Translate each file
         for i, srt_file in enumerate(srt_files):
             file_name = os.path.basename(srt_file)
-            progress["current_file"] = file_name
-            progress["message"] = f"Translating {file_name} ({i+1}/{len(srt_files)})"
-            # Reset current and processed_lines for the new file
-            progress["current"] = {}
-            progress["processed_lines"] = []
-            # Save progress state to file at the start of each file
-            save_progress_state()
+            with progress_lock:
+                progress["current_file"] = file_name
+                progress["message"] = f"Translating {file_name} ({i+1}/{len(srt_files)})"
+                # Reset current and processed_lines for the new file
+                progress["current"] = {}
+                progress["processed_lines"] = []
+                # Save progress state to file at the start of each file
+                save_progress_state()
             
             try:
                 # Generate translated filename
@@ -1521,20 +1511,23 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                         logger.error(f"Failed to save alongside original: {e}")
                     
                     translated_files.append(output_path)
-                    progress["done_files"] += 1
-                    # Save progress state after completing each file
-                    save_progress_state()
+                    with progress_lock:
+                        progress["done_files"] += 1
+                        # Save progress state after completing each file
+                        save_progress_state()
                 else:
                     logger.error(f"Failed to translate {file_name}")
-                    progress["message"] = f"Error translating {file_name}"
-                    save_progress_state()
+                    with progress_lock:
+                        progress["message"] = f"Error translating {file_name}"
+                        save_progress_state()
                 
             except Exception as e:
                 error_msg = f"Error translating {file_name}: {str(e)}"
                 logger.error(error_msg)
-                progress["message"] = error_msg
-                # Save progress state after error
-                save_progress_state()
+                with progress_lock:
+                    progress["message"] = error_msg
+                    # Save progress state after error
+                    save_progress_state()
                 # Continue with next file
         
         # Create ZIP file with all translated subtitles
@@ -1546,16 +1539,18 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                     zipf.write(file, os.path.basename(file))
             
             # Update progress
-            progress["status"] = "completed"
-            progress["message"] = f"Translated {progress['done_files']} subtitle files. Skipped {len(skipped_files)} files that already had {tgt_lang} versions."
-            progress["zip_path"] = zip_path
-            # Save final progress state to file
-            save_progress_state()
+            with progress_lock:
+                progress["status"] = "completed"
+                progress["message"] = f"Translated {progress['done_files']} subtitle files. Skipped {len(skipped_files)} files that already had {tgt_lang} versions."
+                progress["zip_path"] = zip_path
+                # Save final progress state to file
+                save_progress_state()
         else:
-            progress["status"] = "completed"
-            progress["message"] = "No files were successfully translated"
-            # Save final progress state to file
-            save_progress_state()
+            with progress_lock:
+                progress["status"] = "completed"
+                progress["message"] = "No files were successfully translated"
+                # Save final progress state to file
+                save_progress_state()
         
         # Cleanup temp directories
         try:
@@ -1643,76 +1638,73 @@ def api_browse_videos():
     """API endpoint to list video files in a directory for the host file browser."""
     parent_path = request.args.get("path", "")
     
-    # Get allowed paths from config
-    config = config_manager.get_config()
-    allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
-    allowed_abs_paths = [os.path.abspath(p.strip()) for p in allowed_paths_str.split(',') if p.strip()]
+    # Get secure browser instance
+    secure_browser = get_secure_browser()
     
     # If no allowed paths configured, restrict access
-    if not allowed_abs_paths:
+    if not secure_browser.allowed_paths:
         logger.warning("Video file browsing attempted but no 'allowed_paths' configured in [file_browser] section.")
         return jsonify({"error": "File browsing is not configured or no paths are allowed."}), 403
     
     # Default to first allowed path if no path provided
     if not parent_path:
-        parent_path = allowed_abs_paths[0]
+        parent_path = secure_browser.allowed_paths[0]
     
     try:
-        # Security check: normalize path to prevent directory traversal
-        requested_abs_path = os.path.abspath(os.path.normpath(parent_path))
-        
-        # Check if the requested path is within allowed paths
-        is_allowed = False
-        for allowed_base in allowed_abs_paths:
-            if os.path.commonpath([requested_abs_path, allowed_base]) == allowed_base:
-                is_allowed = True
-                break
-        
-        if not is_allowed:
-            logger.warning(f"Access denied for path: {requested_abs_path}. Not within allowed bases.")
+        # Validate the requested path
+        if not secure_browser.is_path_allowed(parent_path):
+            logger.warning(f"Access denied for path: {parent_path}. Not within allowed bases.")
             return jsonify({"error": "Access to this path is restricted."}), 403
         
-        # Get the parent of the current directory for "up one level" functionality
-        parent_of_parent = os.path.dirname(requested_abs_path)
+        # Normalize path
+        requested_abs_path = os.path.abspath(os.path.normpath(parent_path))
         
-        # Check if parent_of_parent is still within allowed paths
-        parent_allowed = False
-        for allowed_base in allowed_abs_paths:
-            if os.path.commonpath([parent_of_parent, allowed_base]) == allowed_base:
-                parent_allowed = True
-                break
-        
-        if not parent_allowed:
-            parent_of_parent = requested_abs_path  # Don't allow going up beyond allowed paths
+        # Get the parent path if navigation is allowed
+        parent_of_parent = secure_browser.get_safe_parent_path(requested_abs_path)
         
         # List all items in the parent path
         files = []
         dirs = []
         
         if os.path.isdir(requested_abs_path):
-            for item in os.listdir(requested_abs_path):
+            # Get all items in the directory
+            items = os.listdir(requested_abs_path)
+            
+            # Filter items based on security rules
+            filtered_items = secure_browser.filter_items(requested_abs_path, items)
+            
+            # Video file extensions
+            video_extensions = ('.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v', '.mpg', '.mpeg', 
+                              '.ts', '.mts', '.m2ts', '.vob', '.3gp', '.ogv', '.divx', '.xvid')
+            
+            for item in filtered_items:
                 full_path = os.path.join(requested_abs_path, item)
                 
                 if os.path.isdir(full_path):
                     dirs.append({"name": item, "path": full_path})
                 else:
                     # Only include video files
-                    if item.lower().endswith(('.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v')):
+                    if item.lower().endswith(video_extensions):
                         files.append({"name": item, "path": full_path})
             
             # Sort directories and files by name
             dirs.sort(key=lambda x: x["name"].lower())
             files.sort(key=lambda x: x["name"].lower())
             
-            return jsonify({
+            # Add security headers
+            resp = jsonify({
                 "files": files,
                 "directories": dirs,
                 "current_path": requested_abs_path,
                 "parent_path": parent_of_parent
             })
+            resp.headers["X-Content-Type-Options"] = "nosniff"
+            resp.headers["X-Frame-Options"] = "DENY"
+            return resp
         else:
             return jsonify({"error": "Not a valid directory"}), 400
     except PermissionError:
+        logger.warning(f"Permission denied accessing directory: {parent_path}")
         return jsonify({"error": "Permission denied accessing this directory"}), 403
     except Exception as e:
         logger.error(f"Error browsing files in directory {parent_path}: {str(e)}")
@@ -1723,30 +1715,22 @@ def api_video_to_srt():
     """API endpoint to transcribe a video file to SRT format using faster-whisper."""
     try:
         # Check if a host file path was provided
+       
         video_file_path = request.form.get('video_file_path', '')
         
         if not video_file_path:
             return jsonify({"error": "No video file path provided"}), 400
         
-        # Get allowed paths from config for security validation
-        config = config_manager.get_config()
-        allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
-        allowed_abs_paths = [os.path.abspath(p.strip()) for p in allowed_paths_str.split(',') if p.strip()]
+        # Get a secure browser instance for path validation
+        secure_browser = get_secure_browser()
         
-        # Normalize the requested path
+        # Validate the path is allowed using our secure browser
+        if not secure_browser.is_path_allowed(video_file_path):
+            logger.warning(f"Access denied for video file: {video_file_path}. Not within allowed bases or matches denied pattern.")
+            return jsonify({"error": "Access to this file is restricted."}), 403
+        
+        # Normalize the requested path after validation
         requested_abs_path = os.path.abspath(os.path.normpath(video_file_path))
-        
-        # Check if the file is within allowed paths
-        is_allowed = False
-        if allowed_abs_paths:  # Only validate if allowed paths are configured
-            for allowed_base in allowed_abs_paths:
-                if os.path.commonpath([requested_abs_path, allowed_base]) == allowed_base:
-                    is_allowed = True
-                    break
-            
-            if not is_allowed:
-                logger.warning(f"Access denied for video file: {requested_abs_path}. Not within allowed bases.")
-                return jsonify({"error": "Access to this file is restricted."}), 403
             
         if not os.path.isfile(requested_abs_path):
             return jsonify({"error": "Invalid file path or file does not exist"}), 400
@@ -1850,7 +1834,8 @@ def api_check_whisper_server():
 
 def process_video_transcription(job_id, video_path, language=None):
     """Process a video transcription job using faster-whisper."""
-    job = translation_jobs[job_id]
+    with jobs_lock:
+        job = translation_jobs[job_id]
     logger.info(f"Starting transcription job {job_id}: {job['original_filename']}")
     
     # Use the global progress dictionary for status updates
@@ -1859,21 +1844,23 @@ def process_video_transcription(job_id, video_path, language=None):
     # Define a callback to update the main progress dictionary
     def update_main_progress_dict(percent, message, status, current_job_id):
         if current_job_id == job_id: # Ensure we're updating for the correct job
-            bulk_translation_progress["percent"] = percent
-            bulk_translation_progress["message"] = message
-            bulk_translation_progress["status"] = status
-            # current_file and mode should already be set
-            save_progress_state() # Persist changes
+            with progress_lock:
+                bulk_translation_progress["percent"] = percent
+                bulk_translation_progress["message"] = message
+                bulk_translation_progress["status"] = status
+                # current_file and mode should already be set
+                save_progress_state() # Persist changes
             logger.debug(f"Callback updated bulk_translation_progress for {job_id}: {percent}% - {message} - {status}")
 
     try:
         # Reset and update global progress status for this job
         # This is the initial setup for bulk_translation_progress for this job
-        bulk_translation_progress.clear()
-        bulk_translation_progress.update({
-            "mode": "transcription",
-            "status": "queued", # Will be updated by the transcriber almost immediately
-            "message": f'Queued transcription for {job["original_filename"]}',
+        with progress_lock:
+            bulk_translation_progress.clear()
+            bulk_translation_progress.update({
+                "mode": "transcription",
+                "status": "queued", # Will be updated by the transcriber almost immediately
+                "message": f'Queued transcription for {job["original_filename"]}',
             "current_file": job["original_filename"],
             "job_id": job_id,
             "percent": 0,
@@ -1955,14 +1942,14 @@ def process_video_transcription(job_id, video_path, language=None):
 def get_job_status(job_id):
     """API endpoint for checking translation job status."""
     # Check bulk_translation_progress first if it's for the requested job_id and is a transcription
-    if bulk_translation_progress.get('job_id') == job_id and \
-       bulk_translation_progress.get('mode') == 'transcription':
-        # If the job is active in bulk_translation_progress, report from there
-        # as it's the most up-to-date for transcriptions.
-        # Statuses like 'queued', 'processing' are relevant here.
-        # If it's 'completed' or 'failed' in bulk_translation_progress,
-        # translation_jobs should also reflect that final state eventually.
-        if bulk_translation_progress.get('status') in ['processing', 'queued']:
+    with progress_lock:
+        is_active_transcription = (bulk_translation_progress.get('job_id') == job_id and 
+                                   bulk_translation_progress.get('mode') == 'transcription' and
+                                   bulk_translation_progress.get('status') in ['processing', 'queued'])
+        
+        if is_active_transcription:
+            # If the job is active in bulk_translation_progress, report from there
+            # as it's the most up-to-date for transcriptions.
             logger.debug(f"Job {job_id} is an active transcription. Reporting from bulk_translation_progress.")
             return jsonify({
                 'success': True,
@@ -1972,33 +1959,31 @@ def get_job_status(job_id):
             })
 
     # Fallback to checking translation_jobs or if bulk_translation_progress is not for this active transcription
-    if job_id not in translation_jobs:
-        # This case handles if job is not in translation_jobs but was caught by the above block
-        # or if it's genuinely not found anywhere.
-        logger.warning(f"Job {job_id} not found in translation_jobs dictionary.")
-        return jsonify({'success': False, 'message': 'Job not found'})
+    with jobs_lock:
+        if job_id not in translation_jobs:
+            # This case handles if job is not in translation_jobs but was caught by the above block
+            # or if it's genuinely not found anywhere.
+            logger.warning(f"Job {job_id} not found in translation_jobs dictionary.")
+            return jsonify({'success': False, 'message': 'Job not found'})
 
-    job = translation_jobs[job_id]
-
-    # If it's a transcription job, and the bulk progress is for THIS job and active,
-    # it should have been caught by the first block.
-    # This block now primarily handles non-transcription jobs, or completed/failed transcriptions
-    # where translation_jobs holds the final authoritative state.
+        job = translation_jobs[job_id]
     
-    # However, to be safe, if it IS a transcription and somehow missed the first block
-    # (e.g. bulk_translation_progress moved to 'completed' but job object not yet updated),
-    # we can still try to use bulk if it matches.
-    if job.get('type') == 'transcription' and \
-       bulk_translation_progress.get('job_id') == job_id and \
-       bulk_translation_progress.get('mode') == 'transcription':
-        # This will mostly catch 'completed' or 'failed' states from bulk if job object is lagging
-        logger.debug(f"Job {job_id} is a transcription. Cross-referencing with bulk_translation_progress for final state if needed.")
-        return jsonify({
-            'success': True,
-            'status': bulk_translation_progress.get('status', job['status']), # Prefer bulk if available
-            'progress': bulk_translation_progress.get('percent', job['progress']), # Prefer bulk if available
-            'message': bulk_translation_progress.get('message', job['message']) # Prefer bulk if available
-        })
+    # If it's a transcription job, and the bulk progress is for THIS job,
+    # we might need to cross-reference with bulk_translation_progress for the latest state
+    with progress_lock, jobs_lock:
+        is_transcription = (job.get('type') == 'transcription' and 
+                           bulk_translation_progress.get('job_id') == job_id and 
+                           bulk_translation_progress.get('mode') == 'transcription')
+        
+        if is_transcription:
+            # This will mostly catch 'completed' or 'failed' states from bulk if job object is lagging
+            logger.debug(f"Job {job_id} is a transcription. Cross-referencing with bulk_translation_progress for final state if needed.")
+            return jsonify({
+                'success': True,
+                'status': bulk_translation_progress.get('status', job['status']), # Prefer bulk if available
+                'progress': bulk_translation_progress.get('percent', job['progress']), # Prefer bulk if available
+                'message': bulk_translation_progress.get('message', job['message']) # Prefer bulk if available
+            })
 
     # Default return for non-transcription jobs, or if no specific active transcription logic applied.
     logger.debug(f"Job {job_id} (type: {job.get('type')}) reporting from translation_jobs.")
@@ -2013,6 +1998,60 @@ def allowed_file(filename):
     """Check if file has an allowed extension."""
     return '.' in filename and \
            filename.lower().endswith(('.srt', '.ass', '.vtt'))
+
+# Initialize global objects
+config_manager = ConfigManager()
+subtitle_processor = SubtitleProcessor()
+
+# Global storage for translation progress
+bulk_translation_progress = {}
+translation_jobs = {}
+
+# Locks for thread safety
+progress_lock = threading.Lock()
+jobs_lock = threading.Lock()
+
+# Create secure file browser instance
+def get_secure_browser():
+    """Initialize and return a SecureFileBrowser instance with config settings."""
+    config = config_manager.get_config()
+    
+    # Get allowed paths
+    allowed_paths_str = config.get('file_browser', 'allowed_paths', fallback='')
+    allowed_paths = [p.strip() for p in allowed_paths_str.split(',') if p.strip()]
+    
+    # Get denied patterns
+    denied_patterns_str = config.get('file_browser', 'denied_patterns', fallback='')
+    denied_patterns = [p.strip() for p in denied_patterns_str.split(',') if p.strip()]
+    
+    # Get security settings
+    enable_parent = config.getboolean('file_browser', 'enable_parent_navigation', fallback=True)
+    max_depth = config.getint('file_browser', 'max_depth', fallback=10)
+    hide_dot_files = config.getboolean('file_browser', 'hide_dot_files', fallback=True)
+    restrict_to_media = config.getboolean('file_browser', 'restrict_to_media_dirs', fallback=False)
+    
+    return SecureFileBrowser(
+        allowed_paths=allowed_paths,
+        denied_patterns=denied_patterns,
+        enable_parent_navigation=enable_parent,
+        max_depth=max_depth,
+        hide_dot_files=hide_dot_files,
+        restrict_to_media_dirs=restrict_to_media
+    )
+
+# Set up security middleware
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to all responses."""
+    # Prevent clickjacking
+    response.headers["X-Frame-Options"] = "DENY"
+    # Prevent MIME type sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    # Enable XSS protection in browsers
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    # Restrict access to the current domain
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    return response
 
 if __name__ == '__main__':
     # Create default config if it doesn't exist
