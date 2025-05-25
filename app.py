@@ -211,13 +211,16 @@ def api_translate():
             # Get a secure browser instance for path validation
             secure_browser = get_secure_browser()
             
+            # Normalize the path before validation
+            normalized_path = os.path.abspath(os.path.normpath(host_file_path))
+            
             # Validate the path is allowed using our secure browser
-            if not secure_browser.is_path_allowed(host_file_path):
-                logger.warning(f"Access denied for file: {host_file_path}. Not within allowed bases or matches denied pattern.")
+            if not secure_browser.is_path_allowed(normalized_path):
+                logger.warning(f"Access denied for file: {normalized_path}. Not within allowed bases or matches denied pattern.")
                 return jsonify({"error": "Access to this file is restricted."}), 403
             
-            # Normalize the requested path after validation
-            requested_abs_path = os.path.abspath(os.path.normpath(host_file_path))
+            # After validation, use the normalized path
+            requested_abs_path = normalized_path
             
             # Additional validations
             if not os.path.isfile(requested_abs_path):
@@ -514,7 +517,12 @@ def api_browse_dirs():
     
     # Default to first allowed path if no path provided
     if not parent_path:
-        parent_path = secure_browser.allowed_paths[0]
+        # If no path provided, return configured allowed_paths as root entries
+        roots = [{"name": os.path.basename(p) or p, "path": p} for p in secure_browser.allowed_paths]
+        resp = jsonify({"directories": roots, "files": [], "current_path": "", "parent_path": ""})
+        resp.headers["X-Content-Type-Options"] = "nosniff"
+        resp.headers["X-Frame-Options"] = "DENY"
+        return resp
     
     try:
         # Validate the requested path
@@ -577,9 +585,13 @@ def api_browse_files():
         logger.warning("File browsing attempted but no 'allowed_paths' configured in [file_browser] section.")
         return jsonify({"error": "File browsing is not configured or no paths are allowed."}), 403
     
-    # Default to first allowed path if no path provided
+    # If no path provided, return configured allowed_paths as root entries
     if not parent_path:
-        parent_path = secure_browser.allowed_paths[0]
+        roots = [{"name": os.path.basename(p) or p, "path": p} for p in secure_browser.allowed_paths]
+        resp = jsonify({"directories": roots, "files": [], "current_path": "", "parent_path": ""})
+        resp.headers["X-Content-Type-Options"] = "nosniff"
+        resp.headers["X-Frame-Options"] = "DENY"
+        return resp
     
     try:
         # Validate the requested path
@@ -1646,9 +1658,13 @@ def api_browse_videos():
         logger.warning("Video file browsing attempted but no 'allowed_paths' configured in [file_browser] section.")
         return jsonify({"error": "File browsing is not configured or no paths are allowed."}), 403
     
-    # Default to first allowed path if no path provided
+    # If no path provided, return configured allowed_paths as root entries
     if not parent_path:
-        parent_path = secure_browser.allowed_paths[0]
+        roots = [{"name": os.path.basename(p) or p, "path": p} for p in secure_browser.allowed_paths]
+        resp = jsonify({"directories": roots, "files": [], "current_path": "", "parent_path": ""})
+        resp.headers["X-Content-Type-Options"] = "nosniff"
+        resp.headers["X-Frame-Options"] = "DENY"
+        return resp
     
     try:
         # Validate the requested path
@@ -1724,13 +1740,16 @@ def api_video_to_srt():
         # Get a secure browser instance for path validation
         secure_browser = get_secure_browser()
         
+        # Normalize the path before validation
+        normalized_path = os.path.abspath(os.path.normpath(video_file_path))
+        
         # Validate the path is allowed using our secure browser
-        if not secure_browser.is_path_allowed(video_file_path):
-            logger.warning(f"Access denied for video file: {video_file_path}. Not within allowed bases or matches denied pattern.")
+        if not secure_browser.is_path_allowed(normalized_path):
+            logger.warning(f"Access denied for video file: {normalized_path}. Not within allowed bases or matches denied pattern.")
             return jsonify({"error": "Access to this file is restricted."}), 403
         
-        # Normalize the requested path after validation
-        requested_abs_path = os.path.abspath(os.path.normpath(video_file_path))
+        # After validation, use the normalized path
+        requested_abs_path = normalized_path
             
         if not os.path.isfile(requested_abs_path):
             return jsonify({"error": "Invalid file path or file does not exist"}), 400
@@ -2051,6 +2070,16 @@ def add_security_headers(response):
     # Restrict access to the current domain
     response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
     return response
+
+@app.errorhandler(404)
+def handle_404(error):
+    logger.error(f"404 error: {error}")
+    return jsonify({'error': 'Resource not found'}), 404
+
+@app.errorhandler(500)
+def handle_500(error):
+    logger.error(f"500 error: {error}")
+    return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
     # Define the config file path

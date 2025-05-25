@@ -87,7 +87,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Fetch from the API directly
                     fetch('/api/browse_dirs?path=')
-                        .then(response => response.json())
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Error ${response.status}: ${response.statusText}`);
+                            }
+                            
+                            // Check if response is JSON (to handle HTML error pages)
+                            const contentType = response.headers.get('content-type');
+                            if (!contentType || !contentType.includes('application/json')) {
+                                throw new Error('Server returned non-JSON response');
+                            }
+                            
+                            return response.json();
+                        })
                         .then(data => {
                             console.log("Directory data received:", data);
                             

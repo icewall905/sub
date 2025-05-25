@@ -326,7 +326,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         fetch(`/api/browse_videos?path=${encodeURIComponent(path)}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    // Try to parse error message from JSON response
+                    return response.json()
+                        .then(data => {
+                            throw new Error(data.error || `Server error: ${response.status}`);
+                        })
+                        .catch(jsonError => {
+                            // If not JSON, throw with status
+                            throw new Error(`Error ${response.status}: ${response.statusText}`);
+                        });
+                }
+                
+                // Check for JSON content type
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Server returned non-JSON response (HTML instead of JSON)');
+                }
+                
+                return response.json();
+            })
             .then(data => {
                 // Cache the response
                 videoFileCache[path] = data;
@@ -1243,7 +1263,27 @@ function loadDirectories(path) {
     }
 
     fetch(`/api/browse_dirs?path=${encodeURIComponent(path)}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                // Try to parse error message from JSON response
+                return response.json()
+                    .then(data => {
+                        throw new Error(data.error || `Server error: ${response.status}`);
+                    })
+                    .catch(jsonError => {
+                        // If not JSON, throw with status
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    });
+            }
+            
+            // Check for JSON content type
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response (HTML instead of JSON)');
+            }
+            
+            return response.json();
+        })
         .then(data => {
             if (data.error) {
                 alert(data.error);
@@ -1486,10 +1526,23 @@ function browseInlineDirectory(path) {
     fetch(`/api/browse_dirs?path=${encodeURIComponent(path)}`)
         .then(response => {
             if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.error || 'Error browsing directories');
-                });
+                // Try to parse error message from JSON response
+                return response.json()
+                    .then(data => {
+                        throw new Error(data.error || `Server error: ${response.status}`);
+                    })
+                    .catch(jsonError => {
+                        // If not JSON, throw with status
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    });
             }
+            
+            // Check for JSON content type
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response (HTML instead of JSON)');
+            }
+            
             return response.json();
         })
         .then(data => {
@@ -1966,10 +2019,23 @@ function browseHostFiles(path) {
     fetch(`/api/browse_files?path=${encodeURIComponent(path)}`)
         .then(response => {
             if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.error || 'Error browsing files');
-                });
+                // Try to parse error message from JSON response
+                return response.json()
+                    .then(data => {
+                        throw new Error(data.error || `Server error: ${response.status}`);
+                    })
+                    .catch(jsonError => {
+                        // If not JSON, throw with status
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    });
             }
+            
+            // Check for JSON content type
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response (HTML instead of JSON)');
+            }
+            
             return response.json();
         })
         .then(data => {

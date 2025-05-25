@@ -66,40 +66,44 @@ class SecureFileBrowser:
         Returns:
             bool: True if the path is allowed, False otherwise
         """
-        if not path or not self.allowed_paths:
-            return False
-        
-        # Normalize the path to prevent directory traversal
-        abs_path = os.path.abspath(os.path.normpath(path))
-        
-        # Check path depth to prevent excessive nesting
-        if self._get_path_depth(abs_path) > self.max_depth:
-            logger.warning(f"Path exceeds maximum depth: {abs_path}")
-            return False
-        
-        # Check if path is within any allowed base path
-        is_allowed = False
-        for allowed_base in self.allowed_paths:
-            try:
-                # Using commonpath is safer than just string operations
-                if os.path.commonpath([abs_path, allowed_base]) == allowed_base:
-                    is_allowed = True
-                    break
-            except ValueError:
-                # This happens when paths are on different drives in Windows
-                continue
-        
-        if not is_allowed:
-            logger.warning(f"Path not within allowed bases: {abs_path}")
-            return False
-        
-        # Check against denied patterns
-        for regex in self._denied_regexes:
-            if regex.search(abs_path):
-                logger.warning(f"Path matches denied pattern: {abs_path}")
+        try:
+            if not path or not self.allowed_paths:
                 return False
-        
-        return True
+            
+            # Normalize the path to prevent directory traversal
+            abs_path = os.path.abspath(os.path.normpath(path))
+            
+            # Check path depth to prevent excessive nesting
+            if self._get_path_depth(abs_path) > self.max_depth:
+                logger.warning(f"Path exceeds maximum depth: {abs_path}")
+                return False
+            
+            # Check if path is within any allowed base path
+            is_allowed = False
+            for allowed_base in self.allowed_paths:
+                try:
+                    # Using commonpath is safer than just string operations
+                    if os.path.commonpath([abs_path, allowed_base]) == allowed_base:
+                        is_allowed = True
+                        break
+                except ValueError:
+                    # This happens when paths are on different drives in Windows
+                    continue
+            
+            if not is_allowed:
+                logger.warning(f"Path not within allowed bases: {abs_path}")
+                return False
+            
+            # Check against denied patterns
+            for regex in self._denied_regexes:
+                if regex.search(abs_path):
+                    logger.warning(f"Path matches denied pattern: {abs_path}")
+                    return False
+            
+            return True
+        except Exception as e:
+            logger.error(f"Error validating path {path}: {str(e)}")
+            return False
     
     def get_safe_parent_path(self, path: str) -> Optional[str]:
         """
