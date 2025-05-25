@@ -1999,8 +1999,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.lower().endswith(('.srt', '.ass', '.vtt'))
 
-# Initialize global objects
-config_manager = ConfigManager()
+# Initialize global objects - use the already initialized config_manager from above
 subtitle_processor = SubtitleProcessor()
 
 # Global storage for translation progress
@@ -2054,11 +2053,16 @@ def add_security_headers(response):
     return response
 
 if __name__ == '__main__':
-    # Create default config if it doesn't exist
-    if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini')):
-        config_manager.create_default_config()
+    # Define the config file path
+    config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini')
     
-    # Get host and port from config
+    # Create default config if it doesn't exist
+    if not os.path.exists(config_file_path):
+        # Initialize a ConfigManager instance specifically for creating the default config
+        temp_config_manager = ConfigManager(config_file_path)
+        temp_config_manager.create_default_config()
+    
+    # Get host and port from config using the already initialized global config_manager
     config = config_manager.get_config()
     host = config.get('general', 'host', fallback='127.0.0.1')
     port = config.getint('general', 'port', fallback=5089)
