@@ -149,11 +149,44 @@ def index():
     # Get list of recent translations
     recent_files = get_recent_translations()
     
+    # Use the global LANGUAGES list instead of getting from translation_service
+    
     return render_template('index.html', 
                           languages=LANGUAGES, 
                           default_source=default_source,
                           default_target=default_target,
-                          recent_files=recent_files)
+                          recent_files=recent_files,
+                          debug=debug_mode)
+
+@app.route('/transcribe')
+def transcribe():
+    """Render the video transcription page."""
+    config = config_manager.get_config()
+    default_source = config.get('general', 'source_language', fallback='en')
+    # Use the global LANGUAGES list instead of getting from translation_service
+    
+    return render_template('transcribe.html',
+                          languages=LANGUAGES,
+                          debug=debug_mode)
+
+@app.route('/bulk_translate')
+def bulk_translate():
+    """Render the bulk translation page."""
+    config = config_manager.get_config()
+    default_source = config.get('general', 'source_language', fallback='en')
+    default_target = config.get('general', 'target_language', fallback='da')
+    # Use the global LANGUAGES list instead of getting from translation_service
+    
+    return render_template('bulk_translate.html',
+                          languages=LANGUAGES,
+                          default_source=default_source,
+                          default_target=default_target,
+                          debug=debug_mode)
+
+@app.route('/archive')
+def archive():
+    """Render the subtitle archive page."""
+    return render_template('archive.html', debug=debug_mode)
 
 @app.route('/logs')
 def logs():
@@ -749,8 +782,14 @@ def live_status():
     # The background threads (process_translation, process_video_transcription, scan_and_translate_directory)
     # are responsible for keeping bulk_translation_progress accurate.
 
-    if config.getboolean('logging', 'log_live_status', fallback=False):
-        logger.debug(f"Live status API response: {json.dumps(response_data)}")
+    # Check if log_live_status is set to true in config
+    try:
+        log_live_status = config.getboolean('logging', 'log_live_status', fallback=False)
+        if log_live_status:
+            logger.debug(f"Live status API response: {json.dumps(response_data)}")
+    except ValueError:
+        # Handle case where config value is malformed
+        logger.warning("Invalid value for log_live_status in config.ini. Should be 'true' or 'false'.")
     
     return jsonify(response_data)
 
@@ -1726,8 +1765,8 @@ def api_browse_videos():
         logger.error(f"Error browsing files in directory {parent_path}: {str(e)}")
         return jsonify({"error": f"Error accessing directory: {str(e)}"}), 500
 
-@app.route('/api/video_to_srt', methods=['POST'])
-def api_video_to_srt():
+@app.route('/api/transcribe', methods=['POST'])
+def api_transcribe():
     """API endpoint to transcribe a video file to SRT format using faster-whisper."""
     try:
         # Check if a host file path was provided

@@ -1,228 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subtitle Translator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-    <!-- Add Font Awesome or other icon library if you plan to use icons like in the CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/font-awesome.min.css') }}">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='images/sublogo.png') }}" alt="Site Logo" class="site-logo">
-                Subtitle Translator
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{{ url_for('index') }}">Translate</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('config') }}">Settings</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logs') }}">Logs</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% extends "base.html" %}
 
-    <div class="container mt-4">
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div id="flash-messages-container" class="card" style="margin-bottom: 1rem;">
-                    {% for category, message in messages %}
-                        <div class="flash-message {{ category }}">{{ message }} <span class="close-flash" onclick="this.parentElement.style.display='none';">&times;</span></div>
-                    {% endfor %}
+{% block title %}Translate - Subtitle Translator{% endblock %}
+
+{% block content %}
+    <!-- Single File Translation Card -->
+    <div class="card">
+        <h2><span class="icon"><i class="fas fa-file-alt"></i></span>Translate Subtitle File</h2>
+        <p class="description">Upload an SRT, ASS, or VTT file, or select one from the host system to translate.</p>
+        <form id="upload-form">
+            <div class="translation-method">
+                <div class="form-group">
+                    <label for="subtitle-file">Upload Subtitle File</label>
+                    <input type="file" id="subtitle-file" name="file" class="form-control" accept=".srt,.ass,.vtt">
                 </div>
-            {% endif %}
-        {% endwith %}
-
-        <div class="translation-options-grid">
-            <!-- Single File Translation Card -->
-            <div class="card">
-                <h2><span class="icon"><i class="fas fa-file-alt"></i></span>Translate Subtitle File</h2>
-                <p class="description">Upload an SRT, ASS, or VTT file, or select one from the host system to translate.</p>
-                <form id="upload-form">
-                    <div class="translation-method">
-                        <div class="form-group">
-                            <label for="subtitle-file">Upload Subtitle File</label>
-                            <input type="file" id="subtitle-file" name="file" class="form-control" accept=".srt,.ass,.vtt">
+                <p style="text-align: center; margin: 0.5rem 0; color: #888;">OR</p>
+                <div class="form-group">
+                    <label for="host-file-path">Select File from Host</label>
+                    <div class="upload-options">
+                        <input type="text" id="host-file-path" name="host_file_path" class="form-control" placeholder="Click browse to select a host file..." readonly>
+                        <button type="button" id="browse-host-file-btn" class="btn btn-secondary btn-sm">Browse</button>
+                    </div>
+                    <div id="host-file-browser" style="display:none;">
+                        <div class="browser-header">
+                            <span>Host File Browser</span>
+                            <span id="host-current-path" class="current-path-display"></span>
                         </div>
-                        <p style="text-align: center; margin: 0.5rem 0; color: #888;">OR</p>
-                        <div class="form-group">
-                            <label for="host-file-path">Select File from Host</label>
-                            <div class="upload-options">
-                                <input type="text" id="host-file-path" name="host_file_path" class="form-control" placeholder="Click browse to select a host file..." readonly>
-                                <button type="button" id="browse-host-file-btn" class="btn btn-secondary btn-sm">Browse</button>
-                            </div>
-                            <div id="host-file-browser" style="display:none;">
-                                <div class="browser-header">
-                                    <span>Host File Browser</span>
-                                    <span id="host-current-path" class="current-path-display"></span>
-                                </div>
-                                <div class="browser-body">
-                                    <ul id="host-file-list" class="browser-list"></ul>
-                                </div>
-                            </div>
+                        <div class="browser-body">
+                            <ul id="host-file-list" class="browser-list"></ul>
                         </div>
                     </div>
-
-                    <div class="language-options">
-                        <div class="form-group">
-                            <label for="source-language">Source Language</label>
-                            <select id="source-language" name="source_language" class="form-select">
-                                {% for code, name in languages %}
-                                    <option value="{{ code }}" {% if code == default_source %}selected{% endif %}>{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="target-language">Target Language</label>
-                            <select id="target-language" name="target_language" class="form-select">
-                                {% for code, name in languages %}
-                                    <option value="{{ code }}" {% if code == default_target %}selected{% endif %}>{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <h3><span class="icon"><i class="fas fa-book-open"></i></span>Special Meanings (Optional)</h3>
-                        <div id="special-meanings-container">
-                            <!-- JS will populate this -->
-                        </div>
-                        <button type="button" id="add-special-meaning-btn" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;">Add Meaning</button>
-                        <div class="info-text">
-                            <small>Define specific translations for words or phrases. Useful for names, jargon, or correcting common mistranslations.</small>
-                        </div>
-                    </div>
-                    <div class="button-group">
-                        <button type="submit" class="btn btn-primary">Start Translation</button>
-                    </div>
-                </form>
+                </div>
             </div>
 
-            <!-- Video Transcription Card -->
-            <div class="card">
-                <h2><span class="icon"><i class="fas fa-video"></i></span>Transcribe Video File</h2>
-                <p class="description">Select a video file from the host system to transcribe into an SRT subtitle file.</p>
-                <form id="video-transcribe-form">
-                    <div class="form-group">
-                        <label for="selected-video-path">Selected Video File</label>
-                        <div class="upload-options">
-                             <input type="text" id="selected-video-path-display" class="form-control" placeholder="Click browse to select a video..." readonly>
-                             <button type="button" id="browse-video-btn" class="btn btn-secondary btn-sm">Browse Video</button>
-                        </div>
-                        <span id="selected-video-path" style="display:none;"></span> <!-- Hidden, stores actual path -->
-                        
-                        <div id="video-file-browser" class="host-file-browser" style="display:none;">
-                            <div class="browser-header">
-                                <span>Video File Browser</span>
-                                <span id="video-current-path" class="current-path-display"></span>
-                            </div>
-                            <div class="browser-content">
-                                <div id="video-dirs-list-container" class="browser-list-half">
-                                    <p class="browser-section-title">Directories</p>
-                                    <ul id="video-dirs-list" class="browser-list"></ul>
-                                </div>
-                                <div id="video-files-list-container" class="browser-list-half">
-                                    <p class="browser-section-title">Video Files</p>
-                                    <ul id="video-files-list" class="browser-list"></ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="video-language">Video Language (Optional - leave blank to auto-detect)</label>
-                        <select id="video-language" name="language" class="form-select">
-                            <option value="">Auto-detect</option>
-                            {% for code, name in languages %}
-                                <option value="{{ code }}">{{ name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="button-group">
-                        <button type="submit" class="btn btn-primary">Start Transcription</button>
-                    </div>
-                </form>
+            <div class="language-options">
+                <div class="form-group">
+                    <label for="source-language">Source Language</label>
+                    <select id="source-language" name="source_language" class="form-select">
+                        {% for code, name in languages %}
+                            <option value="{{ code }}" {% if code == default_source %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="target-language">Target Language</label>
+                    <select id="target-language" name="target_language" class="form-select">
+                        {% for code, name in languages %}
+                            <option value="{{ code }}" {% if code == default_target %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <!-- Bulk Directory Translation Card -->
-        <div class="card">
-            <h2><span class="icon"><i class="fas fa-folder-open"></i></span>Bulk Translate Directory</h2>
-            <p class="description">Select a directory on the host system to find and translate all subtitle files within it.</p>
             <div class="form-group">
-                <label for="selected-directory-display">Selected Directory for Bulk Translation</label>
-                <div class="upload-options">
-                    <input type="text" id="selected-directory-display" class="form-control" placeholder="Click browse to select a directory..." readonly>
-                    <button type="button" id="browse-btn" class="btn btn-secondary btn-sm">Browse Directory</button>
-                </div>
-                 <button type="button" id="toggle-browser-btn" class="btn btn-secondary btn-sm" style="margin-top:5px;">Toggle Browser</button>
-            </div>
-
-            <div id="inline-file-browser" class="inline-file-browser">
-                <div class="browser-header">
-                    <span>Directory Browser</span>
-                    <span id="current-inline-path" class="current-path-display"></span>
-                </div>
-                <div class="browser-body">
-                    <ul id="inline-directory-list" class="directory-list"></ul>
-                </div>
-                <div class="browser-actions">
-                    <button type="button" id="inline-select-dir-btn" class="btn btn-primary">Translate This Directory</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Status and Results Card -->
-        <div id="status-container" class="card progress-feedback" style="display:none;">
-            <h3><span class="icon"><i class="fas fa-tasks"></i></span>Translation Progress</h3>
-            <div id="status-message" class="status-text">Initializing...</div>
-            <div class="progress-container">
-                <div id="progress-bar" class="progress-bar-fill"></div>
-                <div id="progress-text" class="progress-bar-text">0%</div>
-            </div>
-            <div id="live-status-display-container" class="live-feed">
-                <h4>Live Status:</h4>
-                <div id="live-status-display"><p>Waiting for job to start...</p></div>
-            </div>
-            <div id="result-container" style="display:none; margin-top: 1rem;">
-                <!-- Results like download links will be injected here by JS -->
-            </div>
-        </div>
-
-        <!-- Recent Files and Archive Grid -->
-        <div class="recent-and-archive-grid">
-            <div class="card">
-                <h3><span class="icon"><i class="fas fa-history"></i></span>Recent Translations/Transcriptions</h3>
-                <ul id="recent-files-list" class="file-list">
+                <h3><span class="icon"><i class="fas fa-book-open"></i></span>Special Meanings (Optional)</h3>
+                <div id="special-meanings-container">
                     <!-- JS will populate this -->
-                    <li class="empty-state">No recent files.</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h3><span class="icon"><i class="fas fa-archive"></i></span>Subtitle Archive</h3>
-                <div class="button-group" style="margin-bottom: 1rem;">
-                    <button id="refresh-archive-btn" class="btn btn-secondary btn-sm">Refresh Archive</button>
                 </div>
-                <ul id="subtitle-archive" class="file-list">
-                    <!-- JS will populate this -->
-                    <li class="loading-state">Loading archive...</li>
-                </ul>
+                <button type="button" id="add-special-meaning-btn" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;">Add Meaning</button>
+                <div class="info-text">
+                    <small>Define specific translations for words or phrases. Useful for names, jargon, or correcting common mistranslations.</small>
+                </div>
             </div>
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">Start Translation</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Status and Results Card -->
+    <div id="status-container" class="card progress-feedback" style="display:none;">
+        <h3><span class="icon"><i class="fas fa-tasks"></i></span>Translation Progress</h3>
+        <div id="status-message" class="status-text">Initializing...</div>
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar-fill"></div>
+            <div id="progress-text" class="progress-bar-text">0%</div>
+        </div>
+        <div id="live-status-display-container" class="live-feed">
+            <h4>Live Status:</h4>
+            <div id="live-status-display"><p>Waiting for job to start...</p></div>
+        </div>
+        <div id="result-container" style="display:none; margin-top: 1rem;">
+            <!-- Results like download links will be injected here by JS -->
         </div>
     </div>
 
@@ -245,11 +103,12 @@
             <div id="report-content" class="report-content"></div>
         </div>
     </div>
+{% endblock %}
 
+{% block scripts %}
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script>
-        // Small script to handle add special meaning button and refresh archive
+        // Small script to handle add special meaning button
         document.addEventListener('DOMContentLoaded', function() {
             const addMeaningBtn = document.getElementById('add-special-meaning-btn');
             if (addMeaningBtn) {
@@ -265,31 +124,10 @@
             if (typeof loadSpecialMeaningsFromFile === 'function') {
                 loadSpecialMeaningsFromFile();
             }
-
-
-            const refreshArchiveBtn = document.getElementById('refresh-archive-btn');
-            if (refreshArchiveBtn) {
-                refreshArchiveBtn.addEventListener('click', function() {
-                    if (typeof loadSubtitleArchive === 'function') {
-                        loadSubtitleArchive();
-                    } else {
-                        console.error('loadSubtitleArchive function not found.');
-                    }
-                });
-            }
-            
-            // Initial load of recent files and archive
-            if (typeof loadRecentFiles === 'function') { // Assuming you might create this
-                loadRecentFiles();
-            } else if (typeof loadSubtitleArchive === 'function') {
-                // If no specific recent files loader, archive might cover it or parts of it
-                // loadSubtitleArchive(); // Already called by refresh button setup, and likely on DOMContentLoaded in main.js
-            }
         });
     </script>
     <script src="{{ url_for('static', filename='js/browser-fix.js') }}"></script>
     {% if debug %}
     <script src="{{ url_for('static', filename='js/browser-debug.js') }}"></script>
     {% endif %}
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,46 @@
+<!-- filepath: /Users/hnyg/git/sub-1/templates/log_viewer.html -->
+{% extends "base.html" %}
+
+{% block title %}Logs - Subtitle Translator{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h2><span class="icon"><i class="fas fa-clipboard-list"></i></span>Log Viewer</h2>
+        <p class="description">View application logs. You can select different log files, refresh the view, and search for specific entries.</p>
+
+        <div class="controls log-controls">
+            <div class="form-group">
+                <label for="log-file-select">Select Log File</label>
+                <select id="log-file-select" class="form-control">
+                    {% for file in log_files %}
+                    <option value="{{ file }}" {% if file == current_log %}selected{% endif %}>{{ file }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="button-group">
+                <button id="refresh-log" class="button primary"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <button id="clear-log" class="button secondary"><i class="fas fa-trash-alt"></i> Clear Log</button>
+                <button id="auto-refresh" class="button toggle"><i class="fas fa-play-circle"></i> Auto-refresh: Off</button>
+            </div>
+            
+            <div class="form-group search-container">
+                <label for="search-log">Search Logs</label>
+                <input type="text" id="search-log" placeholder="Search in logs..." class="form-control">
+                <div class="search-stats">
+                    <span id="search-count">0</span> matches
+                    <button id="prev-match" class="button icon-button" disabled><i class="fas fa-arrow-up"></i></button>
+                    <button id="next-match" class="button icon-button" disabled><i class="fas fa-arrow-down"></i></button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="log-container" class="log-view-area">
+            <pre id="log-content">{{ log_content }}</pre>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/log_viewer.js') }}"></script>
+{% endblock %}

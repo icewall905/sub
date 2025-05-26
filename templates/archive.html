@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Subtitle Archive - Subtitle Translator{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h2><span class="icon"><i class="fas fa-archive"></i></span>Subtitle Archive</h2>
+        <p class="description">Browse and manage all your translated and transcribed subtitle files.</p>
+        
+        <div class="button-group" style="margin-bottom: 1rem;">
+            <button id="refresh-archive-btn" class="btn btn-secondary">Refresh Archive</button>
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="search-archive" class="form-label">Search Archive</label>
+            <input type="text" id="search-archive" placeholder="Enter keywords to filter files..." class="form-control">
+        </div>
+        
+        <div class="archive-container">
+            <ul id="subtitle-archive" class="file-list detailed-list">
+                <!-- JS will populate this -->
+                <li class="loading-state">Loading archive...</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Recent Files Section -->
+    <div class="card mt-4">
+        <h3><span class="icon"><i class="fas fa-history"></i></span>Recent Translations/Transcriptions</h3>
+        <ul id="recent-files-list" class="file-list">
+            <!-- JS will populate this -->
+            <li class="empty-state">No recent files.</li>
+        </ul>
+    </div>
+
+    <!-- Modal for Viewing Subtitles/Reports -->
+    <div id="modal" class="modal" style="display:none;">
+        <div class="modal-content card">
+            <span class="close-modal-btn btn btn-sm btn-secondary" onclick="document.getElementById('modal').style.display='none'" style="position:absolute; top:10px; right:10px;">&times;</span>
+            <h3 id="modal-title">File Content</h3>
+            <pre id="modal-text-content" class="modal-pre"></pre>
+            <div id="modal-report-content"></div>
+        </div>
+    </div>
+    
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal" style="display:none;">
+        <div class="modal-content card">
+            <span class="report-modal-close btn btn-sm btn-secondary" onclick="document.getElementById('report-modal').style.display='none'" style="position:absolute; top:10px; right:10px;">&times;</span>
+            <h3 id="report-modal-title">Translation Report</h3>
+            <div id="report-loading">Loading report data...</div>
+            <div id="report-content" class="report-content"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/archive.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const refreshArchiveBtn = document.getElementById('refresh-archive-btn');
+            if (refreshArchiveBtn) {
+                refreshArchiveBtn.addEventListener('click', function() {
+                    if (typeof loadSubtitleArchive === 'function') {
+                        loadSubtitleArchive();
+                    } else {
+                        console.error('loadSubtitleArchive function not found.');
+                    }
+                });
+            }
+            
+            // Initial load of archive
+            if (typeof loadSubtitleArchive === 'function') {
+                loadSubtitleArchive();
+            }
+            
+            // Initial load of recent files
+            if (typeof loadRecentFiles === 'function') {
+                loadRecentFiles();
+            }
+            
+            // Set up search functionality
+            const searchInput = document.getElementById('search-archive');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    if (typeof filterArchive === 'function') {
+                        filterArchive(this.value);
+                    } else {
+                        console.error('filterArchive function not found.');
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

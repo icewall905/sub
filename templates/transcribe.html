@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Transcribe - Subtitle Translator{% endblock %}
+
+{% block content %}
+    <!-- Video Transcription Card -->
+    <div class="card">
+        <h2><span class="icon"><i class="fas fa-video"></i></span>Transcribe Video File</h2>
+        <p class="description">Select a video file from the host system to transcribe into an SRT subtitle file.</p>
+        <form id="video-transcribe-form">
+            <div class="form-group">
+                <label for="selected-video-path">Selected Video File</label>
+                <div class="upload-options">
+                     <input type="text" id="selected-video-path-display" class="form-control" placeholder="Click browse to select a video..." readonly>
+                     <button type="button" id="browse-video-btn" class="btn btn-secondary btn-sm">Browse Video</button>
+                </div>
+                <span id="selected-video-path" style="display:none;"></span> <!-- Hidden, stores actual path -->
+                
+                <div id="video-file-browser" class="host-file-browser" style="display:none;">
+                    <div class="browser-header">
+                        <span>Video File Browser</span>
+                        <span id="video-current-path" class="current-path-display"></span>
+                    </div>
+                    <div class="browser-content">
+                        <div id="video-dirs-list-container" class="browser-list-half">
+                            <p class="browser-section-title">Directories</p>
+                            <ul id="video-dirs-list" class="browser-list"></ul>
+                        </div>
+                        <div id="video-files-list-container" class="browser-list-half">
+                            <p class="browser-section-title">Video Files</p>
+                            <ul id="video-files-list" class="browser-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="video-language">Video Language (Optional - leave blank to auto-detect)</label>
+                <select id="video-language" name="language" class="form-select">
+                    <option value="">Auto-detect</option>
+                    {% for code, name in languages %}
+                        <option value="{{ code }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">Start Transcription</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Status and Results Card -->
+    <div id="status-container" class="card progress-feedback" style="display:none;">
+        <h3><span class="icon"><i class="fas fa-tasks"></i></span>Transcription Progress</h3>
+        <div id="status-message" class="status-text">Initializing...</div>
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar-fill"></div>
+            <div id="progress-text" class="progress-bar-text">0%</div>
+        </div>
+        <div id="live-status-display-container" class="live-feed">
+            <h4>Live Status:</h4>
+            <div id="live-status-display"><p>Waiting for job to start...</p></div>
+        </div>
+        <div id="result-container" style="display:none; margin-top: 1rem;">
+            <!-- Results like download links will be injected here by JS -->
+        </div>
+    </div>
+
+    <!-- Modal for Viewing Subtitles/Reports -->
+    <div id="modal" class="modal" style="display:none;">
+        <div class="modal-content card">
+            <span class="close-modal-btn btn btn-sm btn-secondary" onclick="document.getElementById('modal').style.display='none'" style="position:absolute; top:10px; right:10px;">&times;</span>
+            <h3 id="modal-title">File Content</h3>
+            <pre id="modal-text-content" class="modal-pre"></pre>
+            <div id="modal-report-content"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/transcribe.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/browser-fix.js') }}"></script>
+    {% if debug %}
+    <script src="{{ url_for('static', filename='js/browser-debug.js') }}"></script>
+    {% endif %}
+{% endblock %}

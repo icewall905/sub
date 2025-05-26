@@ -40,6 +40,64 @@ body {
     color: #4CAF50 !important;
 }
 
+/* Sidebar Styles */
+#sidebar-wrapper {
+    width: 250px;
+    transition: width 0.3s ease;
+    background-color: #1e1e1e !important;
+}
+
+#page-content-wrapper {
+    flex: 1;
+    padding-left: 0;
+    transition: margin-left 0.3s ease;
+}
+
+/* Sidebar links */
+#sidebar-wrapper .list-group-item {
+    border: none;
+    color: #b0b0b0;
+    background-color: #1e1e1e;
+}
+
+#sidebar-wrapper .list-group-item:hover {
+    background-color: #333;
+    color: #4CAF50;
+}
+
+#sidebar-wrapper .list-group-item.active {
+    background-color: #4CAF50;
+    color: #ffffff;
+    border-left: 3px solid #ffffff;
+}
+
+#sidebar-wrapper .sidebar-heading {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4CAF50;
+}
+
+/* For toggled/collapsible sidebar */
+body.sidebar-toggled #sidebar-wrapper {
+    width: 0;
+    overflow: hidden;
+}
+
+body.sidebar-toggled #page-content-wrapper {
+    margin-left: 0;
+}
+
+@media (min-width: 768px) {
+    body:not(.sidebar-toggled) #page-content-wrapper {
+        margin-left: 0;
+    }
+}
+
+/* Adjust content padding as needed */
+#page-content-wrapper .container-fluid {
+    padding: 1.5rem;
+}
+
 /* App Header */
 .app-header {
     background-color: #1e1e1e; /* Darker shade for header */

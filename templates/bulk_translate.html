@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Translate - Subtitle Translator{% endblock %}
+
+{% block content %}
+    <!-- Bulk Directory Translation Card -->
+    <div class="card">
+        <h2><span class="icon"><i class="fas fa-folder-open"></i></span>Bulk Translate Directory</h2>
+        <p class="description">Select a directory on the host system to find and translate all subtitle files within it.</p>
+        <div class="form-group">
+            <label for="selected-directory-display">Selected Directory for Bulk Translation</label>
+            <div class="upload-options">
+                <input type="text" id="selected-directory-display" class="form-control" placeholder="Click browse to select a directory..." readonly>
+                <button type="button" id="browse-btn" class="btn btn-secondary btn-sm">Browse Directory</button>
+            </div>
+            <button type="button" id="toggle-browser-btn" class="btn btn-secondary btn-sm" style="margin-top:5px;">Toggle Browser</button>
+        </div>
+
+        <div id="inline-file-browser" class="inline-file-browser">
+            <div class="browser-header">
+                <span>Directory Browser</span>
+                <span id="current-inline-path" class="current-path-display"></span>
+            </div>
+            <div class="browser-body">
+                <ul id="inline-directory-list" class="directory-list"></ul>
+            </div>
+            <div class="browser-actions">
+                <button type="button" id="inline-select-dir-btn" class="btn btn-primary">Translate This Directory</button>
+            </div>
+        </div>
+        
+        <div class="language-options mt-4">
+            <div class="form-group">
+                <label for="source-language">Source Language</label>
+                <select id="source-language" name="source_language" class="form-select">
+                    {% for code, name in languages %}
+                        <option value="{{ code }}" {% if code == default_source %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="target-language">Target Language</label>
+                <select id="target-language" name="target_language" class="form-select">
+                    {% for code, name in languages %}
+                        <option value="{{ code }}" {% if code == default_target %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group mt-4">
+            <h3><span class="icon"><i class="fas fa-book-open"></i></span>Special Meanings (Optional)</h3>
+            <div id="special-meanings-container">
+                <!-- JS will populate this -->
+            </div>
+            <button type="button" id="add-special-meaning-btn" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;">Add Meaning</button>
+            <div class="info-text">
+                <small>Define specific translations for words or phrases. Useful for names, jargon, or correcting common mistranslations.</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status and Results Card -->
+    <div id="status-container" class="card progress-feedback" style="display:none;">
+        <h3><span class="icon"><i class="fas fa-tasks"></i></span>Bulk Translation Progress</h3>
+        <div id="status-message" class="status-text">Initializing...</div>
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar-fill"></div>
+            <div id="progress-text" class="progress-bar-text">0%</div>
+        </div>
+        <div id="live-status-display-container" class="live-feed">
+            <h4>Live Status:</h4>
+            <div id="live-status-display"><p>Waiting for job to start...</p></div>
+        </div>
+        <div id="result-container" style="display:none; margin-top: 1rem;">
+            <!-- Results like download links will be injected here by JS -->
+        </div>
+    </div>
+
+    <!-- Modal for Viewing Subtitles/Reports -->
+    <div id="modal" class="modal" style="display:none;">
+        <div class="modal-content card">
+            <span class="close-modal-btn btn btn-sm btn-secondary" onclick="document.getElementById('modal').style.display='none'" style="position:absolute; top:10px; right:10px;">&times;</span>
+            <h3 id="modal-title">File Content</h3>
+            <pre id="modal-text-content" class="modal-pre"></pre>
+            <div id="modal-report-content"></div>
+        </div>
+    </div>
+    
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal" style="display:none;">
+        <div class="modal-content card">
+            <span class="report-modal-close btn btn-sm btn-secondary" onclick="document.getElementById('report-modal').style.display='none'" style="position:absolute; top:10px; right:10px;">&times;</span>
+            <h3 id="report-modal-title">Translation Report</h3>
+            <div id="report-loading">Loading report data...</div>
+            <div id="report-content" class="report-content"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/bulk_translate.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/browser-fix.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addMeaningBtn = document.getElementById('add-special-meaning-btn');
+            if (addMeaningBtn) {
+                addMeaningBtn.addEventListener('click', function() {
+                    if (typeof addSpecialMeaningRow === 'function') {
+                        addSpecialMeaningRow();
+                    } else {
+                        console.error('addSpecialMeaningRow function not found.');
+                    }
+                });
+            }
+            // Load initial special meanings if the function exists
+            if (typeof loadSpecialMeaningsFromFile === 'function') {
+                loadSpecialMeaningsFromFile();
+            }
+        });
+    </script>
+    {% if debug %}
+    <script src="{{ url_for('static', filename='js/browser-debug.js') }}"></script>
+    {% endif %}
+{% endblock %}
