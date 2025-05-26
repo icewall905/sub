@@ -13,6 +13,33 @@ body {
     font-size: 16px;
 }
 
+/* Bootstrap overrides for custom color scheme */
+.btn-primary {
+    background-color: #4CAF50;
+    border-color: #45a049;
+}
+.btn-primary:hover {
+    background-color: #45a049;
+    border-color: #3e8e41;
+}
+body {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+.card {
+    background-color: #1e1e1e;
+    border: 1px solid #282828;
+}
+.navbar, .bg-dark {
+    background-color: #1e1e1e !important;
+}
+.nav-link {
+    color: #e0e0e0 !important;
+}
+.nav-link.active {
+    color: #4CAF50 !important;
+}
+
 /* App Header */
 .app-header {
     background-color: #1e1e1e; /* Darker shade for header */
@@ -1606,7 +1633,7 @@ small {
     padding: 10px 15px;
     background-color: #333;
     border-bottom: 1px solid #444;
-    font-weight: bold;
+    font-size: 0.9em;
     color: #e0e0e0;
 }
 
@@ -1897,7 +1924,7 @@ small {
     padding: 8px 12px;
     background-color: #272733;
     border-bottom: 1px solid #333;
-    fontts-size: 0.9em;
+    font-size: 0.9em;
 }
 
 .host-file-browser .browser-content {

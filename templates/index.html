@@ -4,25 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subtitle Translator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <!-- Add Font Awesome or other icon library if you plan to use icons like in the CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/font-awesome.min.css') }}">
 </head>
 <body>
-    <header class="app-header">
-        <div class="logo-container">
-            <img src="{{ url_for('static', filename='images/sublogo.png') }}" alt="Site Logo" class="site-logo">
-            <h1>Subtitle Translator</h1>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='images/sublogo.png') }}" alt="Site Logo" class="site-logo">
+                Subtitle Translator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{{ url_for('index') }}">Translate</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('config') }}">Settings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logs') }}">Logs</a>
+                    </li>
+                </ul>
+            </div>
         </div>
-        <nav class="main-nav">
-            <a href="{{ url_for('index') }}" class="nav-link active">Translate</a>
-            <a href="{{ url_for('config') }}" class="nav-link">Settings</a>
-            <a href="{{ url_for('logs') }}" class="nav-link">Logs</a>
-        </nav>
-    </header>
+    </nav>
 
-    <div class="container">
+    <div class="container mt-4">
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -43,14 +57,14 @@
                     <div class="translation-method">
                         <div class="form-group">
                             <label for="subtitle-file">Upload Subtitle File</label>
-                            <input type="file" id="subtitle-file" name="file" accept=".srt,.ass,.vtt">
+                            <input type="file" id="subtitle-file" name="file" class="form-control" accept=".srt,.ass,.vtt">
                         </div>
                         <p style="text-align: center; margin: 0.5rem 0; color: #888;">OR</p>
                         <div class="form-group">
                             <label for="host-file-path">Select File from Host</label>
                             <div class="upload-options">
-                                <input type="text" id="host-file-path" name="host_file_path" placeholder="Click browse to select a host file..." readonly>
-                                <button type="button" id="browse-host-file-btn" class="button secondary small">Browse</button>
+                                <input type="text" id="host-file-path" name="host_file_path" class="form-control" placeholder="Click browse to select a host file..." readonly>
+                                <button type="button" id="browse-host-file-btn" class="btn btn-secondary btn-sm">Browse</button>
                             </div>
                             <div id="host-file-browser" style="display:none;">
                                 <div class="browser-header">
@@ -67,7 +81,7 @@
                     <div class="language-options">
                         <div class="form-group">
                             <label for="source-language">Source Language</label>
-                            <select id="source-language" name="source_language">
+                            <select id="source-language" name="source_language" class="form-select">
                                 {% for code, name in languages %}
                                     <option value="{{ code }}" {% if code == default_source %}selected{% endif %}>{{ name }}</option>
                                 {% endfor %}
@@ -75,7 +89,7 @@
                         </div>
                         <div class="form-group">
                             <label for="target-language">Target Language</label>
-                            <select id="target-language" name="target_language">
+                            <select id="target-language" name="target_language" class="form-select">
                                 {% for code, name in languages %}
                                     <option value="{{ code }}" {% if code == default_target %}selected{% endif %}>{{ name }}</option>
                                 {% endfor %}
@@ -88,13 +102,13 @@
                         <div id="special-meanings-container">
                             <!-- JS will populate this -->
                         </div>
-                        <button type="button" id="add-special-meaning-btn" class="button secondary small" style="margin-top: 0.5rem;">Add Meaning</button>
+                        <button type="button" id="add-special-meaning-btn" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;">Add Meaning</button>
                         <div class="info-text">
                             <small>Define specific translations for words or phrases. Useful for names, jargon, or correcting common mistranslations.</small>
                         </div>
                     </div>
                     <div class="button-group">
-                        <button type="submit" class="button primary">Start Translation</button>
+                        <button type="submit" class="btn btn-primary">Start Translation</button>
                     </div>
                 </form>
             </div>
@@ -107,8 +121,8 @@
                     <div class="form-group">
                         <label for="selected-video-path">Selected Video File</label>
                         <div class="upload-options">
-                             <input type="text" id="selected-video-path-display" placeholder="Click browse to select a video..." readonly>
-                             <button type="button" id="browse-video-btn" class="button secondary small">Browse Video</button>
+                             <input type="text" id="selected-video-path-display" class="form-control" placeholder="Click browse to select a video..." readonly>
+                             <button type="button" id="browse-video-btn" class="btn btn-secondary btn-sm">Browse Video</button>
                         </div>
                         <span id="selected-video-path" style="display:none;"></span> <!-- Hidden, stores actual path -->
                         
@@ -131,7 +145,7 @@
                     </div>
                     <div class="form-group">
                         <label for="video-language">Video Language (Optional - leave blank to auto-detect)</label>
-                        <select id="video-language" name="language">
+                        <select id="video-language" name="language" class="form-select">
                             <option value="">Auto-detect</option>
                             {% for code, name in languages %}
                                 <option value="{{ code }}">{{ name }}</option>
@@ -139,7 +153,7 @@
                         </select>
                     </div>
                     <div class="button-group">
-                        <button type="submit" class="button primary">Start Transcription</button>
+                        <button type="submit" class="btn btn-primary">Start Transcription</button>
                     </div>
                 </form>
             </div>
@@ -152,10 +166,10 @@
             <div class="form-group">
                 <label for="selected-directory-display">Selected Directory for Bulk Translation</label>
                 <div class="upload-options">
-                    <input type="text" id="selected-directory-display" placeholder="Click browse to select a directory..." readonly>
-                    <button type="button" id="browse-btn" class="button secondary small">Browse Directory</button>
+                    <input type="text" id="selected-directory-display" class="form-control" placeholder="Click browse to select a directory..." readonly>
+                    <button type="button" id="browse-btn" class="btn btn-secondary btn-sm">Browse Directory</button>
                 </div>
-                 <button type="button" id="toggle-browser-btn" class="button secondary small" style="margin-top:5px;">Toggle Browser</button>
+                 <button type="button" id="toggle-browser-btn" class="btn btn-secondary btn-sm" style="margin-top:5px;">Toggle Browser</button>
             </div>
 
             <div id="inline-file-browser" class="inline-file-browser">
@@ -167,7 +181,7 @@
                     <ul id="inline-directory-list" class="directory-list"></ul>
                 </div>
                 <div class="browser-actions">
-                    <button type="button" id="inline-select-dir-btn" class="button primary">Translate This Directory</button>
+                    <button type="button" id="inline-select-dir-btn" class="btn btn-primary">Translate This Directory</button>
                 </div>
             </div>
         </div>
@@ -202,7 +216,7 @@
             <div class="card">
                 <h3><span class="icon"><i class="fas fa-archive"></i></span>Subtitle Archive</h3>
                 <div class="button-group" style="margin-bottom: 1rem;">
-                    <button id="refresh-archive-btn" class="button secondary small">Refresh Archive</button>
+                    <button id="refresh-archive-btn" class="btn btn-secondary btn-sm">Refresh Archive</button>
                 </div>
                 <ul id="subtitle-archive" class="file-list">
                     <!-- JS will populate this -->
@@ -215,7 +229,7 @@
     <!-- Modal for Viewing Subtitles/Reports -->
     <div id="modal" class="modal" style="display:none;">
         <div class="modal-content card">
-            <span class="close-modal-btn button tiny secondary" onclick="document.getElementById('modal').style.display='none'" style="position:absolute; top:10px; right:10px;">&times;</span>
+            <span class="close-modal-btn btn btn-sm btn-secondary" onclick="document.getElementById('modal').style.display='none'" style="position:absolute; top:10px; right:10px;">&times;</span>
             <h3 id="modal-title">File Content</h3>
             <pre id="modal-text-content" class="modal-pre"></pre>
             <div id="modal-report-content"></div>
@@ -225,7 +239,7 @@
     <!-- Report Modal -->
     <div id="report-modal" class="modal" style="display:none;">
         <div class="modal-content card">
-            <span class="report-modal-close button tiny secondary" onclick="document.getElementById('report-modal').style.display='none'" style="position:absolute; top:10px; right:10px;">&times;</span>
+            <span class="report-modal-close btn btn-sm btn-secondary" onclick="document.getElementById('report-modal').style.display='none'" style="position:absolute; top:10px; right:10px;">&times;</span>
             <h3 id="report-modal-title">Translation Report</h3>
             <div id="report-loading">Loading report data...</div>
             <div id="report-content" class="report-content"></div>
@@ -233,6 +247,7 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script>
         // Small script to handle add special meaning button and refresh archive
         document.addEventListener('DOMContentLoaded', function() {
