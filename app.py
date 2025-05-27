@@ -1010,8 +1010,8 @@ def get_recent_translations():
     # Sort by date, newest first
     recent_files.sort(key=lambda x: x['date'], reverse=True)
     
-    # Limit to 10 most recent
-    return recent_files[:10]
+    # Return all recent files, no limit
+    return recent_files
 
 def get_log_files():
     """Get list of available log files."""

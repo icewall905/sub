@@ -972,10 +972,8 @@ class SubtitleProcessor:
                         "timing": {k: round(v, 2) for k, v in timing.items() if v > 0}  # Round timings for display
                     }
                     
-                    # Add to history and keep only last 10
+                    # Add to history (no limit)
                     progress_dict["processed_lines"].append(line_history_item)
-                    if len(progress_dict["processed_lines"]) > 10:
-                        progress_dict["processed_lines"] = progress_dict["processed_lines"][-10:]
                     
                     # Save progress state after line is complete if there's a save function
                     if 'save_progress_state' in globals():
