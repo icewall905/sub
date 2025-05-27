@@ -1228,6 +1228,13 @@ small {
     border-left: 3px solid #4a6741; /* Mossy green */
 }
 
+.critic-comment {
+    color: #aaa;
+    font-style: italic;
+    font-size: 0.9em;
+    margin-left: 5px;
+}
+
 .final-translation {
     background: #313244;
     padding: 10px;

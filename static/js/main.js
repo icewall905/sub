@@ -802,7 +802,14 @@ function updateLiveStatusDisplay() {
                     if (timing.total) {
                         timingInfo = ` <span class="timing">(Total: ${timing.total.toFixed(2)}s)</span>`;
                     }
-                    statusHTML += `<p><strong>Current Best:</strong> ${finalToShow}${timingInfo}</p>`;
+                    
+                    // Include critic feedback in parentheses after the final translation if available
+                    let feedbackInfo = '';
+                    if (critic_changed && data.current && data.current.critic_action && data.current.critic_action.feedback) {
+                        feedbackInfo = ` <span class="critic-comment">(${data.current.critic_action.feedback})</span>`;
+                    }
+                    
+                    statusHTML += `<p><strong>Current Best:</strong> ${finalToShow}${feedbackInfo}${timingInfo}</p>`;
                 }
                 statusHTML += `</div>`; // End translation-item
                 statusHTML += `</div>`; // End current-translation
@@ -848,7 +855,14 @@ function updateLiveStatusDisplay() {
                         
                         // Always show final translation
                         const lineFinal = line.final || line.critic || line.standard_critic || line.first_pass || '';
-                        statusHTML += `<p><strong>Final:</strong> ${lineFinal}</p>
+                        
+                        // Include critic feedback in parentheses after the final translation if available
+                        let feedbackInfo = '';
+                        if (line.critic_changed && line.critic_action && line.critic_action.feedback) {
+                            feedbackInfo = ` <span class="critic-comment">(${line.critic_action.feedback})</span>`;
+                        }
+                        
+                        statusHTML += `<p><strong>Final:</strong> ${lineFinal}${feedbackInfo}</p>
                                 </div>
                             </div>`;
                     });

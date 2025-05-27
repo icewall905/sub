@@ -179,6 +179,15 @@ class TranslationService:
                 
                 if ollama_final_result:
                     self.logger.info(f"Ollama successfully provided the final translation in {end_time - start_time:.2f} seconds")
+                    
+                    # Log if DeepL translation was preserved or modified
+                    if "Deepl" in collected_translations:
+                        deepl_translation = collected_translations["Deepl"]
+                        if deepl_translation == ollama_final_result:
+                            self.logger.info("Ollama preserved the DeepL translation")
+                        else:
+                            self.logger.info("Ollama modified the DeepL translation")
+                            
                     result_details["final_text"] = ollama_final_result
                     result_details["first_pass_text"] = ollama_final_result # In this flow, Ollama's result is the first pass
                     return result_details
@@ -576,7 +585,7 @@ class TranslationService:
                     self.logger.error(f"Error adding user-defined special meanings to Ollama prompt: {str(e)}")
             
             prompt += (
-                f"\nConsider this context from surrounding subtitles:\n\n"
+                f"\nConsider this context from surrounding subtitles to make sure you understand the translation correctly:\n\n"
                 f"CONTEXT:\n{context or 'No context available'}\n\n"
                 f"Translate this text: {text}\n\n"
                 f"Maintain the same formatting, tone, and meaning. Return ONLY the translated text."
@@ -593,7 +602,7 @@ class TranslationService:
         if context and not media_info:
             prompt = (
                 f"You are an expert translator from {source_full} to {target_full}.\n"
-                f"Consider this context from surrounding subtitles:\n\n"
+                f"Consider this context from surrounding subtitles to make sure you understand the translation correctly:\n\n"
                 f"CONTEXT:\n{context}\n\n"
                 f"Translate this text: {text}\n\n"
                 f"Maintain the same formatting, tone, and meaning. Return ONLY the translated text."
@@ -791,6 +800,8 @@ IMPORTANT INSTRUCTIONS:
 - Do NOT translate any of the context lines - they are for understanding the scene only
 - Return ONLY your final translation, without quotes, explanations, or notes
 - Maintain formatting (especially HTML tags if present)
+- Be conservative when choosing between multiple translations - if a professional translation (like DeepL) is available and appears accurate in context, prefer it
+- Only make changes to professional translations when you are very confident there is a clear context-based error
 """
 
             # Add media info from TMDB if available
@@ -902,9 +913,31 @@ CONTEXT (FOLLOWING LINES):
 AVAILABLE TRANSLATIONS:
 """
             
+            # First check if a DeepL translation is available
+            deepl_translation = None
+            if "Deepl" in translations:
+                deepl_translation = translations["Deepl"]
+            
             for service, translation in translations.items():
                 if service != 'specialMeanings':  # Skip the special meanings entry if it exists
                     prompt += f"{service.upper()}: {translation}\n"
+
+            # Add special instructions for handling DeepL translations
+            if deepl_translation:
+                prompt += f"""
+SPECIAL INSTRUCTIONS FOR DEEPL TRANSLATIONS:
+DeepL translations are typically high quality and professionally done. Please be extremely cautious about changing the DeepL translation:
+- Only modify the DeepL translation if it contains a clear error in the context of the scene
+- Only change the DeepL translation if you are very confident (90%+ certainty) that it's incorrect
+- Common valid reasons to modify DeepL translations:
+  * It missed cultural references that are clear from context
+  * It translated names that should remain untranslated
+  * It misunderstood slang or colloquial expressions
+  * It didn't properly handle idiomatic expressions
+- Do NOT change the DeepL translation based on style preferences or minor wording differences
+- If the DeepL translation accurately conveys the meaning in context, prefer it over other options
+- When in doubt about whether to change the DeepL translation, default to keeping it as is
+"""
 
             # Add final reminder
             prompt += """
