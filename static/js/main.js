@@ -5,8 +5,10 @@ let currentPath = '';
 let selectedDirectory = '';
 let bulkProgressInterval = null;
 let currentJobId = null; // Keep track of the current single translation job
-// Track expanded history items by their line_number
+// Track expanded history items by their line_number - default to expanded
 let expandedHistoryItems = new Set();
+// Flag to expand all history items by default
+let expandAllByDefault = true;
 let browserVisible = false; // File Browser State Management
 let isTranslationActive = false; // Flag to track if a translation is running
 let selectedVideoPath = null;
@@ -823,7 +825,8 @@ function updateLiveStatusDisplay() {
                         }
                         
                         const lineNum = line.line_number;
-                        const isExpanded = expandedHistoryItems.has(lineNum);
+                        // Check if we should expand this item (either it's in the set or expandAllByDefault is true)
+                        const isExpanded = expandAllByDefault || expandedHistoryItems.has(lineNum);
                         statusHTML += `
                             <div class="history-item" data-line-number="${lineNum}">
                                 <div class="history-header">
@@ -911,42 +914,69 @@ function updateLiveStatusDisplay() {
 
 // ** NEW FUNCTION ** - Set up event handlers for history items
 function setupHistoryItemEventHandlers() {
-    // Use a proper event delegation approach that works with dynamically created elements
-    const historyContainer = document.getElementById('history-container');
-    
-    if (!historyContainer) {
-        console.log("History container not found - no history items to display yet");
-        return; // Exit gracefully - there are no history items yet
-    }
-    
-    // Remove any existing event listeners to prevent duplication
-    const newHistoryContainer = historyContainer.cloneNode(true);
-    historyContainer.parentNode.replaceChild(newHistoryContainer, historyContainer);
-    
-    // Add the event listener to the container for delegation
-    newHistoryContainer.addEventListener('click', function(event) {
-        // Check if the clicked element is an expand button or its parent header
-        const expandBtn = event.target.closest('.expand-btn');
-        if (expandBtn) {
-            const lineNum = parseInt(expandBtn.getAttribute('data-line-number'));
-            if (!isNaN(lineNum)) {
-                const historyContent = document.getElementById(`history-content-${lineNum}`);
-                if (historyContent) {
-                    // Toggle display state
-                    const isVisible = historyContent.style.display !== 'none';
-                    historyContent.style.display = isVisible ? 'none' : 'block';
-                    // Toggle the expand button icon
-                    expandBtn.textContent = isVisible ? '▼' : '▲';
-                    // Track expanded/collapsed state by line number
-                    if (!isVisible) {
-                        expandedHistoryItems.add(lineNum);
-                    } else {
-                        expandedHistoryItems.delete(lineNum);
+    // Set up click handlers for history item headers
+    document.querySelectorAll('.history-header').forEach(header => {
+        header.addEventListener('click', function(event) {
+            // Check if the clicked element is an expand button or its parent header
+            const expandBtn = event.target.closest('.expand-btn');
+            if (expandBtn) {
+                const lineNum = parseInt(expandBtn.getAttribute('data-line-number'));
+                if (!isNaN(lineNum)) {
+                    const historyContent = document.getElementById(`history-content-${lineNum}`);
+                    if (historyContent) {
+                        // Toggle display state
+                        const isVisible = historyContent.style.display !== 'none';
+                        historyContent.style.display = isVisible ? 'none' : 'block';
+                        // Toggle the expand button icon
+                        expandBtn.textContent = isVisible ? '▼' : '▲';
+                        // Track expanded/collapsed state by line number
+                        if (!isVisible) {
+                            expandedHistoryItems.add(lineNum);
+                        } else {
+                            expandedHistoryItems.delete(lineNum);
+                        }
                     }
                 }
             }
-        }
+        });
     });
+    
+    // Set up toggle all button
+    const toggleAllBtn = document.getElementById('toggle-all-history');
+    if (toggleAllBtn) {
+        toggleAllBtn.addEventListener('click', function() {
+            // Check the current state based on the button text
+            const isCollapsing = toggleAllBtn.textContent.includes('Collapse');
+            
+            // Get all history items
+            const historyItems = document.querySelectorAll('.history-item');
+            historyItems.forEach(item => {
+                const lineNum = parseInt(item.getAttribute('data-line-number'));
+                if (!isNaN(lineNum)) {
+                    const content = document.getElementById(`history-content-${lineNum}`);
+                    const expandBtn = item.querySelector('.expand-btn');
+                    
+                    if (content && expandBtn) {
+                        // Set all to collapsed or expanded based on the button state
+                        content.style.display = isCollapsing ? 'none' : 'block';
+                        expandBtn.textContent = isCollapsing ? '▼' : '▲';
+                        
+                        // Update our tracking set
+                        if (isCollapsing) {
+                            expandedHistoryItems.delete(lineNum);
+                        } else {
+                            expandedHistoryItems.add(lineNum);
+                        }
+                    }
+                }
+            });
+            
+            // Toggle the button text
+            toggleAllBtn.textContent = isCollapsing ? 'Expand All' : 'Collapse All';
+            // Update our global preference
+            expandAllByDefault = !isCollapsing;
+        });
+    }
     
     console.log("History item event handlers set up successfully");
 }

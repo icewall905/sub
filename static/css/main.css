@@ -516,14 +516,27 @@ input:focus, select:focus {
     border-radius: 6px;
     margin-top: 1rem;
     border: 1px solid #303030;
-    max-height: 50vh; /* Increased from 200px to 50% of viewport height */
+    max-height: 80vh; /* Increased to 80% of viewport height for more content */
     overflow-y: auto;
+    min-height: 500px; /* Set a minimum height to ensure visibility */
 }
 
 .live-feed h4 {
     color: #c0c0c0;
     font-size: 0.95em;
     margin-bottom: 0.5rem;
+}
+
+.live-feed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.live-feed-header button {
+    font-size: 0.8rem;
+    padding: 3px 8px;
 }
 
 #live-status-display p {
@@ -1253,6 +1266,92 @@ small {
 #live-status-display {
     margin-top: 10px;
     font-size: 0.95em;
+    line-height: 1.5;
+    padding-bottom: 50px; /* Add padding at the bottom for better scrolling */
+}
+
+.history-section {
+    margin-top: 20px;
+    border-top: 1px solid #444;
+    padding-top: 15px;
+}
+
+.history-section h3 {
+    font-size: 1.1em;
+    color: #ccc;
+    margin-bottom: 15px;
+}
+
+.history-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Increased spacing between history items */
+}
+
+.history-item {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.history-header {
+    background-color: #2a2a2a;
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-content {
+    padding: 12px;
+    border-top: 1px solid #333;
+    background-color: #1a1a1a;
+}
+
+.line-number {
+    font-weight: bold;
+    color: #aacfaa; /* Light green for line numbers */
+}
+
+.expand-btn {
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    color: #888;
+    transition: color 0.2s;
+}
+
+.expand-btn:hover {
+    color: #fff;
+}
+
+.history-content p {
+    margin-bottom: 8px;
+    border-left: 3px solid #333;
+    padding-left: 10px;
+}
+
+.history-content p:last-child {
+    margin-bottom: 0;
+}
+
+.history-content p strong {
+    color: #8eacbb; /* Light blue for labels */
+    min-width: 80px;
+    display: inline-block;
+}
+
+/* Special style for the final translation */
+.history-content p:last-of-type strong {
+    color: #aacfaa; /* Light green for the final translation label */
+}
+
+.history-content p:last-of-type {
+    border-left: 3px solid #4CAF50; /* Green border for the final translation */
+    background-color: rgba(76, 175, 80, 0.1); /* Very subtle green background */
 }
 
 /* Timing info styling */

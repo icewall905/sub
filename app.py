@@ -844,7 +844,9 @@ def live_status():
 
     # Check if log_live_status is set to true in config
     try:
-        log_live_status = config.getboolean('logging', 'log_live_status', fallback=False)
+        # Get the config from config_manager instead of using config directly
+        current_config = config_manager.get_config()
+        log_live_status = current_config.getboolean('logging', 'log_live_status', fallback=False)
         if log_live_status:
             logger.debug(f"Live status API response: {json.dumps(response_data)}")
     except ValueError:
