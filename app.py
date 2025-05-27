@@ -372,6 +372,41 @@ def api_view_subtitle(file_or_job_id):
         logger.error(f"Error reading subtitle file: {str(e)}")
         return jsonify({'success': False, 'message': f"Error reading file: {str(e)}"})
 
+@app.route('/api/delete_sub/<path:filename>', methods=['DELETE'])
+def api_delete_subtitle(filename):
+    """API endpoint for deleting a subtitle file."""
+    # Ensure the filename is safe
+    safe_filename = secure_filename(filename)
+    if safe_filename != filename:
+        return jsonify({'success': False, 'message': 'Invalid filename'})
+    
+    # Check if the file exists
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_filename)
+    if not os.path.exists(file_path):
+        return jsonify({'success': False, 'message': f'File not found: {filename}'})
+    
+    try:
+        # Delete the file
+        os.remove(file_path)
+        
+        # Also delete any associated report files
+        report_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{safe_filename}.report.txt")
+        alt_report_path = os.path.join(app.config['UPLOAD_FOLDER'], f"report_{safe_filename}.txt")
+        
+        if os.path.exists(report_path):
+            os.remove(report_path)
+        
+        if os.path.exists(alt_report_path):
+            os.remove(alt_report_path)
+        
+        return jsonify({
+            'success': True,
+            'message': f'File {filename} successfully deleted'
+        })
+    except Exception as e:
+        logger.error(f"Error deleting subtitle file: {str(e)}")
+        return jsonify({'success': False, 'message': f"Error deleting file: {str(e)}"})
+
 @app.route('/upload', methods=['POST'])
 def upload():
     """Handle subtitle file upload and translation."""
@@ -489,6 +524,31 @@ def api_list_subs():
     except Exception as e:
         logger.error(f"Failed to list subs folder: {e}")
         return jsonify({"files": [], "error": str(e)}), 500
+
+@app.route('/api/recent_files')
+def api_recent_files():
+    """API endpoint for getting recent subtitle files."""
+    try:
+        # Get the recent files from the get_recent_translations function
+        recent_files = get_recent_translations()
+        
+        # Format the response to match what the frontend expects
+        formatted_files = []
+        for file in recent_files:
+            # Assuming the recent_files function returns filenames
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], file)
+            if os.path.exists(file_path):
+                mod_time = os.path.getmtime(file_path)
+                formatted_files.append({
+                    'name': file,
+                    'path': file,
+                    'date': datetime.fromtimestamp(mod_time).isoformat()
+                })
+        
+        return jsonify({"status": "success", "files": formatted_files})
+    except Exception as e:
+        logger.error(f"Failed to get recent files: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/download_sub/<path:filename>')
 def download_sub_file(filename):

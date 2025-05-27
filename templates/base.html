@@ -11,41 +11,45 @@
     {% block head %}{% endblock %}
 </head>
 <body>
-    <div class="d-flex">
-        <div class="bg-dark border-end" id="sidebar-wrapper" style="min-height: 100vh;">
-            <div class="sidebar-heading border-bottom bg-dark text-light p-3">
-                <img src="{{ url_for('static', filename='images/sublogo.png') }}" alt="Site Logo" class="site-logo me-2" style="height: 30px;"> Subtitle Translator
-            </div>
-            <div class="list-group list-group-flush">
-                <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
-                    <i class="fas fa-language me-2"></i>Translate
-                </a>
-                <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'transcribe' %}active{% endif %}" href="{{ url_for('transcribe') }}">
-                    <i class="fas fa-video me-2"></i>Transcribe
-                </a>
-                <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'bulk_translate' %}active{% endif %}" href="{{ url_for('bulk_translate') }}">
-                    <i class="fas fa-folder-open me-2"></i>Bulk Translate
-                </a>
-                <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'archive' %}active{% endif %}" href="{{ url_for('archive') }}">
-                    <i class="fas fa-archive me-2"></i>Subtitle Archive
-                </a>
-                <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'config' %}active{% endif %}" href="{{ url_for('config') }}">
-                    <i class="fas fa-cog me-2"></i>Settings
-                </a>
-                <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'logs' %}active{% endif %}" href="{{ url_for('logs') }}">
-                    <i class="fas fa-clipboard-list me-2"></i>Logs
-                </a>
-            </div>
+    <!-- Fixed Sidebar -->
+    <div class="bg-dark border-end" id="sidebar-wrapper">
+        <div class="sidebar-heading border-bottom bg-dark text-light p-3">
+            <img src="{{ url_for('static', filename='images/sublogo.png') }}" alt="Site Logo" class="site-logo me-2" style="height: 30px;"> Subtitle Translator
         </div>
+        <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                <i class="fas fa-language me-2"></i>Translate
+            </a>
+            <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'transcribe' %}active{% endif %}" href="{{ url_for('transcribe') }}">
+                <i class="fas fa-video me-2"></i>Transcribe
+            </a>
+            <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'bulk_translate' %}active{% endif %}" href="{{ url_for('bulk_translate') }}">
+                <i class="fas fa-folder-open me-2"></i>Bulk Translate
+            </a>
+            <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'archive' %}active{% endif %}" href="{{ url_for('archive') }}">
+                <i class="fas fa-archive me-2"></i>Subtitle Archive
+            </a>
+            <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'config' %}active{% endif %}" href="{{ url_for('config') }}">
+                <i class="fas fa-cog me-2"></i>Settings
+            </a>
+            <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'logs' %}active{% endif %}" href="{{ url_for('logs') }}">
+                <i class="fas fa-clipboard-list me-2"></i>Logs
+            </a>
+        </div>  <!-- end list-group -->
+        <div class="sidebar-footer text-center text-light py-2">
+            Subs v. 0.1.0
+        </div>
+    </div>
 
-        <div id="page-content-wrapper">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom d-flex d-lg-none">
-                <div class="container-fluid">
-                    <button class="btn btn-primary" id="sidebarToggle">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                </div>
-            </nav>
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom d-flex d-lg-none">
+            <div class="container-fluid">
+                <button class="btn btn-primary" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </nav>
 
             <div class="container-fluid p-4">
                 <!-- Flash Messages -->
@@ -74,6 +78,21 @@
                     document.body.classList.toggle('sidebar-toggled');
                 });
             }
+            
+            // Handle responsive behavior
+            function checkWindowSize() {
+                if (window.innerWidth < 768) {
+                    document.body.classList.add('sidebar-toggled');
+                } else {
+                    document.body.classList.remove('sidebar-toggled');
+                }
+            }
+            
+            // Check on load
+            checkWindowSize();
+            
+            // Check on resize
+            window.addEventListener('resize', checkWindowSize);
         });
     </script>
     {% block scripts %}{% endblock %}

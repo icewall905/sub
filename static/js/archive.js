@@ -71,7 +71,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelectorAll('.delete-file-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const fileName = this.getAttribute('data-file');
-                        deleteSubtitleFile(fileName);
+                        const listItem = this.closest('.file-item');
+                        deleteSubtitleFile(fileName, listItem);
                     });
                 });
                 
@@ -86,36 +87,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error loading subtitle archive:', error);
                 archiveList.innerHTML = '<li class="error-state">Error loading archive: ' + error.message + '</li>';
-            });
-        }
-    };
-                                <a href="/download_sub/${encodeURIComponent(file.path)}" class="btn btn-sm btn-success">
-                                    <i class="fas fa-download"></i>
-                                </a>
-                                <button class="btn btn-sm btn-danger delete-file-btn" data-file="${file.path}">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
-                        `;
-                        
-                        // Add event listeners for the buttons
-                        li.querySelector('.view-file-btn').addEventListener('click', function() {
-                            viewSubtitleFile(this.getAttribute('data-file'));
-                        });
-                        
-                        li.querySelector('.delete-file-btn').addEventListener('click', function() {
-                            deleteSubtitleFile(this.getAttribute('data-file'), li);
-                        });
-                        
-                        archiveList.appendChild(li);
-                    });
-                } else {
-                    archiveList.innerHTML = `<li class="error-state">Error: ${data.message}</li>`;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                archiveList.innerHTML = `<li class="error-state">Error: ${error.message}</li>`;
             });
         }
     };
@@ -208,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`/api/view_subtitle/${encodeURIComponent(filePath)}`)
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
+            if (data.success) {
                 const modal = document.getElementById('modal');
                 const modalTitle = document.getElementById('modal-title');
                 const modalContent = document.getElementById('modal-text-content');
@@ -224,6 +195,56 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error viewing file:', error);
             alert('Error viewing file: ' + error.message);
         });
+    }
+    
+    // Function to display translation report
+    function showTranslationReport(filePath) {
+        fetch(`/api/translation_report/${encodeURIComponent(filePath)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const reportModal = document.getElementById('report-modal');
+                const reportTitle = document.getElementById('report-modal-title');
+                const reportContent = document.getElementById('report-modal-content');
+                
+                reportTitle.textContent = `Translation Report: ${data.filename || filePath}`;
+                
+                if (data.report) {
+                    reportContent.innerHTML = formatReportContent(data.report);
+                } else {
+                    reportContent.innerHTML = '<p>No report available for this file.</p>';
+                }
+                
+                reportModal.style.display = 'block';
+            } else {
+                alert('Error loading report: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading report:', error);
+            alert('Error loading report: ' + error.message);
+        });
+    }
+    
+    // Helper function to format report content with HTML
+    function formatReportContent(report) {
+        if (typeof report === 'string') {
+            // Assuming report is a string with line breaks
+            return report.split('\n').map(line => {
+                if (line.trim().length === 0) return '<br>';
+                if (line.includes(':')) {
+                    const [key, value] = line.split(':', 2);
+                    return `<strong>${key}:</strong> ${value}`;
+                }
+                return line;
+            }).join('<br>');
+        } else if (typeof report === 'object') {
+            // Assuming report is a JSON object
+            return Object.entries(report)
+                .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
+                .join('<br>');
+        }
+        return String(report);
     }
     
     // Function to delete subtitle file

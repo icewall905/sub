@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Log Viewer - Subtitle Translator{% endblock %}
+
+{% block extra_css %}
+<style>
+    .log-container {
+        margin-left: 260px; /* Account for fixed sidebar */
+        padding: 20px;
+        max-width: 1200px;
+    }
+    
+    .log-selector {
+        margin-bottom: 20px;
+    }
+    
+    .log-selector select {
+        margin-right: 10px;
+    }
+    
+    .log-content {
+        background-color: #1e1e1e;
+        color: #f8f8f2;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.4;
+        padding: 15px;
+        border-radius: 5px;
+        max-height: 600px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        border: 1px solid #444;
+    }
+    
+    .log-controls {
+        margin-bottom: 15px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .log-controls button {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+    
+    .log-info {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .log-level-error {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .log-level-warning {
+        color: #ffc107;
+        font-weight: bold;
+    }
+    
+    .log-level-info {
+        color: #17a2b8;
+    }
+    
+    .log-level-debug {
+        color: #6c757d;
+    }
+    
+    .auto-scroll {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .loading {
+        display: none;
+        color: #007bff;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="log-container">
+    <h2><i class="fas fa-file-alt"></i> Log Viewer</h2>
+    
+    <div class="log-info">
+        <strong>Current Log:</strong> <span id="current-log-name">{{ current_log }}</span><br>
+        <strong>Available Log Files:</strong> {{ log_files|length }} file(s)<br>
+        <strong>Auto-refresh:</strong> <span id="auto-refresh-status">Disabled</span>
+    </div>
+    
+    <div class="log-controls">
+        <div class="log-selector">
+            <label for="log-file-select">Select Log File:</label>
+            <select id="log-file-select" class="form-control" style="display: inline-block; width: auto;">
+                {% for log_file in log_files %}
+                <option value="{{ log_file }}" {% if log_file == current_log %}selected{% endif %}>{{ log_file }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button id="refresh-logs" class="btn btn-primary btn-sm">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        
+        <button id="clear-logs" class="btn btn-warning btn-sm">
+            <i class="fas fa-trash"></i> Clear Log
+        </button>
+        
+        <button id="auto-scroll-toggle" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-down"></i> Auto-scroll
+        </button>
+        
+        <button id="auto-refresh-toggle" class="btn btn-secondary btn-sm">
+            <i class="fas fa-clock"></i> Auto-refresh
+        </button>
+        
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Loading...
+        </div>
+    </div>
+    
+    <div class="log-content" id="log-content">{{ log_content|safe }}</div>
+</div>
+
+<script>
+let autoRefreshInterval = null;
+let autoScrollEnabled = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const logSelect = document.getElementById('log-file-select');
+    const logContent = document.getElementById('log-content');
+    const refreshBtn = document.getElementById('refresh-logs');
+    const clearBtn = document.getElementById('clear-logs');
+    const autoScrollBtn = document.getElementById('auto-scroll-toggle');
+    const autoRefreshBtn = document.getElementById('auto-refresh-toggle');
+    const loading = document.querySelector('.loading');
+    const currentLogName = document.getElementById('current-log-name');
+    const autoRefreshStatus = document.getElementById('auto-refresh-status');
+
+    // Format log content with syntax highlighting
+    formatLogContent();
+
+    // Log file selection change
+    logSelect.addEventListener('change', function() {
+        loadLogFile(this.value);
+    });
+
+    // Refresh button click
+    refreshBtn.addEventListener('click', function() {
+        const selectedLog = logSelect.value;
+        loadLogFile(selectedLog);
+    });
+
+    // Clear log button click
+    clearBtn.addEventListener('click', function() {
+        if (confirm('Are you sure you want to clear this log file?')) {
+            clearLogFile(logSelect.value);
+        }
+    });
+
+    // Auto-scroll toggle
+    autoScrollBtn.addEventListener('click', function() {
+        autoScrollEnabled = !autoScrollEnabled;
+        this.classList.toggle('auto-scroll', autoScrollEnabled);
+        this.innerHTML = autoScrollEnabled ? 
+            '<i class="fas fa-arrow-down"></i> Auto-scroll ON' : 
+            '<i class="fas fa-arrow-down"></i> Auto-scroll';
+        
+        if (autoScrollEnabled) {
+            scrollToBottom();
+        }
+    });
+
+    // Auto-refresh toggle
+    autoRefreshBtn.addEventListener('click', function() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+            this.classList.remove('auto-scroll');
+            this.innerHTML = '<i class="fas fa-clock"></i> Auto-refresh';
+            autoRefreshStatus.textContent = 'Disabled';
+        } else {
+            autoRefreshInterval = setInterval(() => {
+                loadLogFile(logSelect.value, true);
+            }, 5000); // Refresh every 5 seconds
+            this.classList.add('auto-scroll');
+            this.innerHTML = '<i class="fas fa-clock"></i> Auto-refresh ON';
+            autoRefreshStatus.textContent = 'Every 5 seconds';
+        }
+    });
+
+    function loadLogFile(filename, silent = false) {
+        if (!silent) {
+            loading.style.display = 'inline';
+        }
+        
+        fetch(`/api/logs?file=${encodeURIComponent(filename)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.logs) {
+                    logContent.textContent = data.logs.join('\n');
+                    currentLogName.textContent = filename;
+                    formatLogContent();
+                    
+                    if (autoScrollEnabled) {
+                        scrollToBottom();
+                    }
+                } else {
+                    logContent.textContent = 'No log content available.';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading log file:', error);
+                logContent.textContent = 'Error loading log file: ' + error.message;
+            })
+            .finally(() => {
+                loading.style.display = 'none';
+            });
+    }
+
+    function clearLogFile(filename) {
+        loading.style.display = 'inline';
+        
+        fetch('/api/clear_log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ file: filename })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadLogFile(filename);
+                alert('Log file cleared successfully.');
+            } else {
+                alert('Failed to clear log file.');
+            }
+        })
+        .catch(error => {
+            console.error('Error clearing log file:', error);
+            alert('Error clearing log file: ' + error.message);
+        })
+        .finally(() => {
+            loading.style.display = 'none';
+        });
+    }
+
+    function formatLogContent() {
+        const content = logContent.textContent;
+        const lines = content.split('\n');
+        let formattedContent = '';
+
+        lines.forEach(line => {
+            let className = '';
+            if (line.includes('ERROR')) {
+                className = 'log-level-error';
+            } else if (line.includes('WARNING') || line.includes('WARN')) {
+                className = 'log-level-warning';
+            } else if (line.includes('INFO')) {
+                className = 'log-level-info';
+            } else if (line.includes('DEBUG')) {
+                className = 'log-level-debug';
+            }
+
+            if (className) {
+                formattedContent += `<span class="${className}">${escapeHtml(line)}</span>\n`;
+            } else {
+                formattedContent += escapeHtml(line) + '\n';
+            }
+        });
+
+        logContent.innerHTML = formattedContent;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function scrollToBottom() {
+        logContent.scrollTop = logContent.scrollHeight;
+    }
+});
+</script>
+{% endblock %}
