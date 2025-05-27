@@ -1101,14 +1101,33 @@ def process_translation(job_id, cache_path, filename, source_language, target_la
         # Construct the target path for the 'subs' folder (app.config['UPLOAD_FOLDER'])
         original_filename_base, original_filename_ext = os.path.splitext(job['original_filename'])
         
-        # Use secure_filename on the modified name
-        translated_filename_stem = f"{original_filename_base}_translated_{job['target_language']}"
+        # Construct the new filename by replacing language code or adding target language code
+        # Try to identify and replace the language code in the original filename
+        src_lang = job['source_language']
+        tgt_lang = job['target_language']
+        
+        # Try to replace language code in filename if it exists
+        out_base = original_filename_base
+        replaced = False
+        patterns = [
+            f'.{src_lang}.', f'.{src_lang}-', f'.{src_lang}_',
+            f'{src_lang}.', f'-{src_lang}.', f'_{src_lang}.'
+        ]
+        import re
+        for pat in patterns:
+            if pat.lower() in original_filename_base.lower():
+                newpat = pat.replace(src_lang, tgt_lang)
+                out_base = re.sub(re.escape(pat), newpat, original_filename_base, flags=re.IGNORECASE)
+                replaced = True
+                break
+                
+        # If no language code pattern was found, add the target language code at the end
+        if not replaced:
+            out_base = f"{original_filename_base}.{tgt_lang}"
+            
         # Preserve original extension if it's .ass or .vtt, otherwise default to .srt
-        # However, pysrt usually saves as .srt. If you want to ensure .srt:
-        # final_translated_filename = secure_filename(f"{translated_filename_stem}.srt")
-        # If you want to try and keep original extension (but pysrt might still save as srt):
         output_extension = original_filename_ext if original_filename_ext.lower() in ['.ass', '.vtt'] else '.srt'
-        final_translated_filename = secure_filename(f"{translated_filename_stem}{output_extension}")
+        final_translated_filename = secure_filename(f"{out_base}{output_extension}")
 
         # Ensure UPLOAD_FOLDER (app.config['UPLOAD_FOLDER']) is used for the output path
         final_output_path = os.path.join(app.config['UPLOAD_FOLDER'], final_translated_filename)
