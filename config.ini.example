@@ -38,10 +38,10 @@ enabled = true
 server_url = http://localhost:11434
 endpoint = /api/generate
 model = gemma3:27b-it-qat
-# Performance settings for Ollamal
+# Performance settings for Ollama
 #num_gpu = 1      # Number of GPUs to use (increase for multi-GPU systems)
 #num_thread = 4   # Number of threads to use for computation
-#num_ctx = 4096   # Context window size (token limit for input+output)
+num_ctx = 2048    # Context window size (token limit for input+output)
 #use_mmap = true  # Memory-map the model (usually improves performance)
 #use_mlock = true # Lock the model in RAM (prevents swapping to disk)
 
