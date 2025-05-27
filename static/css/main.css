@@ -516,9 +516,8 @@ input:focus, select:focus {
     border-radius: 6px;
     margin-top: 1rem;
     border: 1px solid #303030;
-    max-height: 80vh; /* Increased to 80% of viewport height for more content */
-    overflow-y: auto;
-    min-height: 500px; /* Set a minimum height to ensure visibility */
+    min-height: 200px; /* Minimum height to ensure visibility even when empty */
+    /* Removed max-height and overflow-y to allow natural growth */
 }
 
 .live-feed h4 {
@@ -1294,6 +1293,7 @@ small {
     border-radius: 5px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px; /* Increased spacing between items */
 }
 
 .history-header {
@@ -1309,6 +1309,9 @@ small {
     padding: 12px;
     border-top: 1px solid #333;
     background-color: #1a1a1a;
+    /* Increased padding and added margin for better readability */
+    padding: 15px;
+    line-height: 1.5;
 }
 
 .line-number {
@@ -1382,8 +1385,6 @@ small {
 }
 
 .history-container {
-    max-height: 400px;
-    overflow-y: auto;
     padding-right: 5px;
 }
 

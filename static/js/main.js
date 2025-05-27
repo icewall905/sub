@@ -7,7 +7,7 @@ let bulkProgressInterval = null;
 let currentJobId = null; // Keep track of the current single translation job
 // Track expanded history items by their line_number - default to expanded
 let expandedHistoryItems = new Set();
-// Flag to expand all history items by default
+// Always expand all history items by default
 let expandAllByDefault = true;
 let browserVisible = false; // File Browser State Management
 let isTranslationActive = false; // Flag to track if a translation is running
