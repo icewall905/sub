@@ -4,6 +4,7 @@ import time
 import logging
 import re
 import os
+import difflib
 from typing import Dict, Optional, Any
 
 class TranslationService:
@@ -184,9 +185,18 @@ class TranslationService:
                     if "Deepl" in collected_translations:
                         deepl_translation = collected_translations["Deepl"]
                         if deepl_translation == ollama_final_result:
-                            self.logger.info("Ollama preserved the DeepL translation")
+                            self.logger.info("✓ Ollama preserved the DeepL translation")
                         else:
-                            self.logger.info("Ollama modified the DeepL translation")
+                            similarity_ratio = difflib.SequenceMatcher(None, deepl_translation, ollama_final_result).ratio()
+                            self.logger.info(f"⚠ Ollama modified the DeepL translation (similarity: {similarity_ratio:.2f})")
+                            self.logger.info(f"  DeepL: '{deepl_translation}'")
+                            self.logger.info(f"  Final: '{ollama_final_result}'")
+                            
+                            # If in debug mode, log more details about the changes
+                            if self.config.getboolean('general', 'debug_mode', fallback=False):
+                                import difflib
+                                diff = list(difflib.ndiff(deepl_translation, ollama_final_result))
+                                self.logger.debug(f"  Diff: {''.join(diff)}")
                             
                     result_details["final_text"] = ollama_final_result
                     result_details["first_pass_text"] = ollama_final_result # In this flow, Ollama's result is the first pass
@@ -800,8 +810,10 @@ IMPORTANT INSTRUCTIONS:
 - Do NOT translate any of the context lines - they are for understanding the scene only
 - Return ONLY your final translation, without quotes, explanations, or notes
 - Maintain formatting (especially HTML tags if present)
-- Be conservative when choosing between multiple translations - if a professional translation (like DeepL) is available and appears accurate in context, prefer it
-- Only make changes to professional translations when you are very confident there is a clear context-based error
+- When choosing between translations from different services, ALWAYS prioritize professional services:
+  1. DeepL translations should almost always be used unchanged (treat as gold standard)
+  2. Only deviate from professional translations when you are 100% certain there's a significant error
+- Your primary job is to SELECT the best translation, not to create a new one unless absolutely necessary
 """
 
             # Add media info from TMDB if available
@@ -918,25 +930,39 @@ AVAILABLE TRANSLATIONS:
             if "Deepl" in translations:
                 deepl_translation = translations["Deepl"]
             
+            # Display translations with DeepL highlighted as the professional service
             for service, translation in translations.items():
                 if service != 'specialMeanings':  # Skip the special meanings entry if it exists
-                    prompt += f"{service.upper()}: {translation}\n"
+                    if service == "Deepl":
+                        prompt += f"PROFESSIONAL TRANSLATION - {service.upper()}: {translation}\n"
+                    else:
+                        prompt += f"{service.upper()}: {translation}\n"
 
             # Add special instructions for handling DeepL translations
             if deepl_translation:
                 prompt += f"""
-SPECIAL INSTRUCTIONS FOR DEEPL TRANSLATIONS:
-DeepL translations are typically high quality and professionally done. Please be extremely cautious about changing the DeepL translation:
-- Only modify the DeepL translation if it contains a clear error in the context of the scene
-- Only change the DeepL translation if you are very confident (90%+ certainty) that it's incorrect
-- Common valid reasons to modify DeepL translations:
-  * It missed cultural references that are clear from context
-  * It translated names that should remain untranslated
-  * It misunderstood slang or colloquial expressions
-  * It didn't properly handle idiomatic expressions
-- Do NOT change the DeepL translation based on style preferences or minor wording differences
-- If the DeepL translation accurately conveys the meaning in context, prefer it over other options
-- When in doubt about whether to change the DeepL translation, default to keeping it as is
+CRITICALLY IMPORTANT INSTRUCTIONS FOR HANDLING DEEPL TRANSLATIONS:
+DeepL is a professional translation service of extremely high quality. You MUST follow these strict guidelines:
+
+1. DEFAULT BEHAVIOR: Use the DeepL translation AS-IS without any changes.
+
+2. VERY RARE EXCEPTIONS: Only modify the DeepL translation if ALL of the following conditions are met:
+   - You are 100% certain there is a serious error (not just a stylistic difference)
+   - The error significantly changes or distorts the meaning
+   - You can clearly see from context that DeepL misunderstood something critical
+
+3. EXAMPLES OF WHAT NOT TO CHANGE:
+   - Different but equally valid word choices
+   - Slight differences in sentence structure
+   - Formal vs. informal tone variations
+   - Different but valid translations of idioms
+   - Different formatting that preserves meaning
+
+4. BURDEN OF PROOF: The burden is on YOU to prove a change is necessary. When comparing DeepL to other translations, the DeepL version should be considered correct by default.
+
+5. IN CASE OF DOUBT: Always, without exception, use the DeepL translation unchanged.
+
+Remember: Modifying a DeepL translation should be extremely rare. In 95% or more of cases, you should use it exactly as provided.
 """
 
             # Add final reminder
