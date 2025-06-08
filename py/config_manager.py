@@ -1,5 +1,6 @@
 import os
 import configparser
+from typing import Dict, Any, Optional
 
 class ConfigManager:
     """
@@ -7,7 +8,7 @@ class ConfigManager:
     Handles reading, writing, and creating default configurations.
     """
     
-    def __init__(self, config_path):
+    def __init__(self, config_path: str) -> None:
         """
         Initialize the ConfigManager with the path to the config file.
         
@@ -21,7 +22,7 @@ class ConfigManager:
         if os.path.exists(config_path):
             self.config.read(config_path)
         
-    def get_config(self):
+    def get_config(self) -> configparser.ConfigParser:
         """
         Get the current configuration object.
         
@@ -30,12 +31,12 @@ class ConfigManager:
         """
         return self.config
     
-    def get_config_as_dict(self):
+    def get_config_as_dict(self) -> Dict[str, Dict[str, str]]:
         """
         Convert the current configuration to a dictionary.
         
         Returns:
-            dict: The configuration as a nested dictionary
+            Dict[str, Dict[str, str]]: The configuration as a nested dictionary
         """
         config_dict = {}
         for section in self.config.sections():
@@ -44,12 +45,12 @@ class ConfigManager:
                 config_dict[section][key] = value
         return config_dict
     
-    def save_config(self, config_dict):
+    def save_config(self, config_dict: Dict[str, Dict[str, Any]]) -> None:
         """
         Save a configuration dictionary to the config file.
         
         Args:
-            config_dict (dict): Configuration as a nested dictionary
+            config_dict (Dict[str, Dict[str, Any]]): Configuration as a nested dictionary
         """
         # Create a new ConfigParser
         new_config = configparser.ConfigParser()
@@ -69,7 +70,7 @@ class ConfigManager:
         # Update our config
         self.config = new_config
     
-    def create_default_config(self):
+    def create_default_config(self) -> None:
         """
         Create a default configuration file.
         """

@@ -6,7 +6,8 @@ import re
 import tempfile
 import zipfile
 import threading
-import traceback  # Add missing traceback import
+import traceback
+from typing import Optional, Dict, Any, Callable, cast
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash, send_from_directory
 from werkzeug.utils import secure_filename
 import configparser
@@ -21,11 +22,11 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # Import modules
 from py.config_manager import ConfigManager
 from py.subtitle_processor import SubtitleProcessor
+from py.secure_file_browser import SecureFileBrowser
 from py.translation_service import TranslationService
 from py.critic_service import CriticService
 from py.logger import setup_logger
-from py.video_transcriber import VideoTranscriber
-from py.secure_browser import SecureFileBrowser
+from py.video_transcriber import VideoTranscriber, transcribe_video_to_srt
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -42,8 +43,8 @@ os.makedirs(CACHE_DIR, exist_ok=True)  # Ensure the cache folder exists
 
 # Initialize config first
 config_manager = ConfigManager(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))
-config = config_manager.get_config()
- 
+config = cast(configparser.ConfigParser, config_manager.get_config())
+
 # Setup logging with correct level based on debug_mode
 debug_mode = config.getboolean('general', 'debug_mode', fallback=False)
 log_level = logging.DEBUG if debug_mode else logging.INFO
@@ -52,21 +53,18 @@ logger = setup_logger('app', os.path.join(os.path.dirname(os.path.abspath(__file
 if debug_mode:
     logger.debug("Debug mode is enabled - full LLM prompts will be logged")
 
-# Initialize the configuration manager
-config_manager = ConfigManager(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))
-
 # Translation jobs storage
-translation_jobs = {}
+translation_jobs: Dict[str, Dict[str, Any]] = {}
 
 # Locks for thread-safe access to shared resources
 progress_lock = threading.Lock()
-jobs_lock = threading.Lock()  # New lock for translation_jobs dictionary
+jobs_lock = threading.Lock()
 
 # Progress status file path
 PROGRESS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'translation_progress.json')
 
 # Global variable for bulk translation progress tracking
-bulk_translation_progress = {
+bulk_translation_progress: Dict[str, Any] = {
     "mode": "idle",
     "status": "idle", 
     "message": "",
@@ -76,12 +74,20 @@ bulk_translation_progress = {
     "zip_path": ""
 }
 
-# Progress data for individual transcription jobs (like local Whisper)
-# This will be populated by VideoTranscriber instances
-transcription_job_progress = {}
+# Progress data for individual transcription jobs
+transcription_job_progress: Dict[str, Dict[str, Any]] = {}
 
-# Load saved progress state if it exists
-def load_progress_state():
+def save_progress_state() -> None:
+    """Save the current progress state to file."""
+    try:
+        with progress_lock:
+            with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
+                json.dump(bulk_translation_progress, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"Failed to save progress state: {e}")
+
+def load_progress_state() -> None:
+    """Load the saved progress state from file."""
     global bulk_translation_progress
     try:
         if os.path.exists(PROGRESS_FILE):
@@ -98,17 +104,64 @@ def load_progress_state():
     except Exception as e:
         logger.error(f"Failed to load translation progress state: {e}")
 
-# Save current progress state to file
-def save_progress_state():
-    try:
-        with progress_lock:
-            with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(bulk_translation_progress, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        logger.error(f"Failed to save translation progress state: {e}")
-
 # Initialize by loading any saved state
 load_progress_state()
+
+def process_video_transcription(job_id: str, video_path: str, language: Optional[str] = None) -> None:
+    """
+    Process video transcription with progress tracking.
+    
+    Args:
+        job_id (str): Unique identifier for the transcription job
+        video_path (str): Path to the video file
+        language (Optional[str]): Language code for transcription, defaults to None for auto-detection
+    """
+    def update_progress(percent: float, message: str, status: str, current_job_id: str) -> None:
+        """Update the main progress dictionary with transcription progress."""
+        with progress_lock:
+            transcription_job_progress[current_job_id] = {
+                'percent': percent,
+                'message': message,
+                'status': status
+            }
+            save_progress_state()
+    
+    with jobs_lock:
+        job = translation_jobs[job_id]
+        job['status'] = 'processing'
+        job['message'] = 'Starting transcription...'
+    
+    try:
+        # Create output directory if it doesn't exist
+        output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Generate output path
+        output_filename = f"{os.path.splitext(os.path.basename(video_path))[0]}.srt"
+        output_path = os.path.join(output_dir, output_filename)
+        
+        # Call the transcription function with proper type handling
+        if language is None:
+            language = "auto"  # Use auto-detection if no language specified
+        
+        transcribe_video_to_srt(
+            video_path,
+            output_path,
+            language=language,
+            job_id=job_id,
+            external_progress_updater=update_progress
+        )
+        
+        with jobs_lock:
+            job['status'] = 'completed'
+            job['message'] = 'Transcription completed successfully'
+            job['output_file'] = output_path
+            
+    except Exception as e:
+        logger.error(f"Error in video transcription: {str(e)}")
+        with jobs_lock:
+            job['status'] = 'failed'
+            job['message'] = f'Transcription failed: {str(e)}'
 
 @app.route('/api/transcription_progress/<job_id>', methods=['GET'])
 def get_transcription_progress(job_id):
@@ -1970,112 +2023,6 @@ def api_check_whisper_server():
             "message": f"Error checking server: {str(e)}",
             "error_type": "exception"
         }), 500
-
-def process_video_transcription(job_id, video_path, language=None):
-    """Process a video transcription job using faster-whisper."""
-    with jobs_lock:
-        job = translation_jobs[job_id]
-    logger.info(f"Starting transcription job {job_id}: {job['original_filename']}")
-    
-    # Use the global progress dictionary for status updates
-    global bulk_translation_progress
-    
-    # Define a callback to update the main progress dictionary
-    def update_main_progress_dict(percent, message, status, current_job_id):
-        if current_job_id == job_id: # Ensure we're updating for the correct job
-            with progress_lock:
-                bulk_translation_progress["percent"] = percent
-                bulk_translation_progress["message"] = message
-                bulk_translation_progress["status"] = status
-                # current_file and mode should already be set
-                save_progress_state() # Persist changes
-            logger.debug(f"Callback updated bulk_translation_progress for {job_id}: {percent}% - {message} - {status}")
-
-    try:
-        # Reset and update global progress status for this job
-        # This is the initial setup for bulk_translation_progress for this job
-        with progress_lock:
-            bulk_translation_progress.clear()
-            bulk_translation_progress.update({
-                "mode": "transcription",
-                "status": "queued", # Will be updated by the transcriber almost immediately
-                "message": f'Queued transcription for {job["original_filename"]}',
-            "current_file": job["original_filename"],
-            "job_id": job_id,
-            "percent": 0,
-            # Ensure other fields are reset or initialized if needed
-            "current_line": 0,
-            "total_lines": 0, 
-            "done_files": 0,
-            "total_files": 0,
-            "current": {},
-            "processed_lines": []
-        })
-        
-        # Save initial progress state to file
-        save_progress_state()
-        
-        # Update job status in translation_jobs (this is the job-specific dict)
-        job['status'] = 'queued' 
-        job['message'] = 'Queued for transcription'
-        
-        # Initialize the video transcriber
-        current_config = config_manager.get_config() # Ensure fresh config
-        whisper_server = current_config.get('whisper', 'server_url', fallback='http://10.0.10.23:10300')
-        transcriber = VideoTranscriber(server_url=whisper_server, logger=logger)
-        
-        file_base = os.path.splitext(job['original_filename'])[0]
-        output_filename = f"{file_base}_whisper.srt"
-        output_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(output_filename))
-        
-        # Pass the callback to the transcriber
-        transcribe_success, transcribe_message = transcriber.transcribe_video_to_srt(
-            video_path,
-            output_path,
-            language=language,
-            job_id=job_id,
-            external_progress_updater=update_main_progress_dict # Pass the callback here
-        )
-        
-        # Final update to bulk_translation_progress is handled by the callback
-        # from the last step in transcribe_video_to_srt.
-
-        if transcribe_success:
-            job['status'] = 'completed'
-            job['target_path'] = output_path
-            job['output_filename'] = output_filename
-            job['message'] = 'Transcription completed successfully'
-            job['progress'] = 100 # This is for the job-specific dict
-            job['end_time'] = time.time()
-            logger.info(f"Transcription job {job_id} completed successfully: {output_path}")
-            # bulk_translation_progress should be 'complete' and 100% via callback
-        else:
-            # The callback in transcribe_video_to_srt's except/finally block should have set error status
-            job['status'] = 'failed'
-            job['message'] = transcribe_message # Error message from transcriber
-            job['progress'] = bulk_translation_progress.get("percent", 0) # Reflect last known percent
-            job['end_time'] = time.time()
-            logger.error(f"Transcription job {job_id} failed: {transcribe_message}")
-
-    except Exception as e:
-        error_message = f"Unhandled error in process_video_transcription for job {job_id}: {str(e)}"
-        logger.error(error_message)
-        logger.error(traceback.format_exc())
-        
-        job['status'] = 'failed'
-        job['message'] = error_message
-        job['progress'] = bulk_translation_progress.get("percent", 0)
-        job['end_time'] = time.time()
-        
-        # Ensure bulk_translation_progress reflects the error state
-        bulk_translation_progress["status"] = "failed"
-        bulk_translation_progress["message"] = error_message
-        # bulk_translation_progress["percent"] will be its last updated value
-        save_progress_state()
-    finally:
-        # The bulk_translation_progress state is saved by the callback or at the end of try/except.
-        # No need to clear it here, it will be overwritten by the next job.
-        pass
 
 @app.route('/api/job_status/<job_id>', methods=['GET'])
 def get_job_status(job_id):
