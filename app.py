@@ -7,8 +7,9 @@ import tempfile
 import zipfile
 import threading
 import traceback
-from typing import Optional, Dict, Any, Callable, cast
-from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash, send_from_directory
+from typing import Optional, Dict, Any, Callable, cast, List, Union, TypeVar, Tuple
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash, send_from_directory, Response
+from flask.typing import ResponseReturnValue  # This includes the tuple form of Response
 from werkzeug.utils import secure_filename
 import configparser
 import json
@@ -22,11 +23,11 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # Import modules
 from py.config_manager import ConfigManager
 from py.subtitle_processor import SubtitleProcessor
-from py.secure_file_browser import SecureFileBrowser
+from py.secure_browser import SecureFileBrowser
 from py.translation_service import TranslationService
 from py.critic_service import CriticService
 from py.logger import setup_logger
-from py.video_transcriber import VideoTranscriber, transcribe_video_to_srt
+from py.video_transcriber import VideoTranscriber
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -43,10 +44,14 @@ os.makedirs(CACHE_DIR, exist_ok=True)  # Ensure the cache folder exists
 
 # Initialize config first
 config_manager = ConfigManager(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini'))
-config = cast(configparser.ConfigParser, config_manager.get_config())
+app_config = config_manager.get_config()  # Use a different name to avoid shadowing the function name
 
 # Setup logging with correct level based on debug_mode
-debug_mode = config.getboolean('general', 'debug_mode', fallback=False)
+# Ensure 'general' section and 'debug_mode' option exist, providing fallbacks
+if app_config and app_config.has_section('general') and app_config.has_option('general', 'debug_mode'):
+    debug_mode = app_config.getboolean('general', 'debug_mode')
+else:
+    debug_mode = False # Default fallback
 log_level = logging.DEBUG if debug_mode else logging.INFO
 logger = setup_logger('app', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'translator.log'), level=log_level)
 
@@ -144,7 +149,12 @@ def process_video_transcription(job_id: str, video_path: str, language: Optional
         if language is None:
             language = "auto"  # Use auto-detection if no language specified
         
-        transcribe_video_to_srt(
+        # Get server URL from app_config
+        whisper_server = app_config.get('whisper', 'server_url', fallback='http://10.0.10.23:10300')
+        
+        # Initialize transcriber and use it to transcribe the video
+        transcriber = VideoTranscriber(server_url=whisper_server, logger=logger)
+        transcriber.transcribe_video_to_srt(
             video_path,
             output_path,
             language=language,
@@ -164,13 +174,19 @@ def process_video_transcription(job_id: str, video_path: str, language: Optional
             job['message'] = f'Transcription failed: {str(e)}'
 
 @app.route('/api/transcription_progress/<job_id>', methods=['GET'])
-def get_transcription_progress(job_id):
+def get_transcription_progress(job_id: str) -> ResponseReturnValue:
     # VideoTranscriber should be imported at the top of the file
     progress_data = VideoTranscriber.get_progress(job_id) # Uses the class method
     if progress_data:
         return jsonify(progress_data)
     else:
-        return jsonify({"status": "unknown", "job_id": job_id, "message": "No progress data found for this job ID.", "percent": 0}), 404
+        # Return a 200 response with a structured JSON response indicating no progress data
+        return jsonify({
+            "status": "unknown", 
+            "job_id": job_id, 
+            "message": "No transcription progress data found for this job ID.", 
+            "percent": 0
+        })
 
 # Language mapping
 LANGUAGES = [
@@ -192,7 +208,7 @@ LANGUAGES = [
 ]
 
 @app.route('/')
-def index():
+def index() -> ResponseReturnValue:
     """Render the home page with recent translations."""
     config = config_manager.get_config()
     # Use source_language and target_language from config instead of default_source_language and default_target_language
@@ -212,7 +228,7 @@ def index():
                           debug=debug_mode)
 
 @app.route('/transcribe')
-def transcribe():
+def transcribe() -> ResponseReturnValue:
     """Render the video transcription page."""
     config = config_manager.get_config()
     default_source = config.get('general', 'source_language', fallback='en')
@@ -223,7 +239,7 @@ def transcribe():
                           debug=debug_mode)
 
 @app.route('/bulk_translate')
-def bulk_translate():
+def bulk_translate() -> ResponseReturnValue:
     """Render the bulk translation page."""
     config = config_manager.get_config()
     default_source = config.get('general', 'source_language', fallback='en')
@@ -237,12 +253,12 @@ def bulk_translate():
                           debug=debug_mode)
 
 @app.route('/archive')
-def archive():
+def archive() -> ResponseReturnValue:
     """Render the subtitle archive page."""
     return render_template('archive.html', debug=debug_mode)
 
 @app.route('/logs')
-def logs():
+def logs() -> ResponseReturnValue:
     """Render the log viewer page."""
     log_files = get_log_files()
     current_log = 'translator.log'
@@ -254,40 +270,48 @@ def logs():
                           log_content=log_content)
 
 @app.route('/config')
-def config():
+def config_route() -> ResponseReturnValue:
     """Render the configuration editor page."""
     return render_template('config_editor.html')
 
 @app.route('/api/config', methods=['GET', 'POST'])
-def api_config():
-    """API endpoint for getting and setting configuration."""
-    if request.method == 'GET':
-        return jsonify(config_manager.get_config_as_dict())
-    elif request.method == 'POST':
+def api_config() -> ResponseReturnValue: 
+    if request.method == 'POST':
         try:
-            config_data = request.json
+            config_data = request.get_json()
+            if config_data is None:
+                logger.error("Received empty JSON payload for config update.")
+                return jsonify({"error": "Invalid JSON payload"}), 400
+            
             config_manager.save_config(config_data)
-            return jsonify({'success': True})
+            global app_config # Ensure we're updating the global app_config variable 
+            app_config = cast(configparser.ConfigParser, config_manager.get_config()) # Re-cast after update
+            logger.info("Configuration saved successfully.")
+            return jsonify({"message": "Configuration saved successfully"})
         except Exception as e:
-            logger.error(f"Error saving configuration: {str(e)}")
-            return jsonify({'success': False, 'message': str(e)})
+            logger.error(f"Error saving configuration: {e}")
+            return jsonify({"error": str(e)}), 500
+    else: # GET request
+        return jsonify(config_manager.get_config_as_dict())
 
-@app.route('/api/logs')
-def api_logs():
-    """API endpoint for getting logs."""
-    log_file = request.args.get('file', 'translator.log')
-    content = get_log_content(log_file)
+@app.route('/api/logs') # Assuming GET method by default
+def api_logs() -> ResponseReturnValue: 
+    log_file_name = request.args.get('file', 'translator.log')
+    # Ensure log_file_name is a string, even if it's from request.args.get
+    content = get_log_content(str(log_file_name))
     return jsonify({'logs': content.splitlines() if content else []})
 
 @app.route('/api/clear_log', methods=['POST'])
-def api_clear_log():
-    """API endpoint for clearing a log file."""
-    log_file = request.json.get('file', 'translator.log')
-    success = clear_log_file(log_file)
+def api_clear_log() -> ResponseReturnValue: 
+    data = request.get_json()
+    if data is None:
+        return jsonify({'success': False, 'message': 'Invalid JSON payload'}), 400
+    log_file_name = data.get('file', 'translator.log')
+    success = clear_log_file(str(log_file_name)) # Ensure string
     return jsonify({'success': success})
 
 @app.route('/api/translate', methods=['POST'])
-def api_translate():
+def api_translate() -> ResponseReturnValue:
     """Handle file upload and start translation."""
     try:
         # Check if a host file path was provided instead of a file upload
@@ -335,7 +359,8 @@ def api_translate():
                 
             file = request.files['file']
             
-            if file.filename == '':
+            # Check if a filename is present
+            if not file.filename:
                 return jsonify({"error": "No file selected"}), 400
                 
             if not allowed_file(file.filename):
@@ -383,7 +408,7 @@ def api_translate():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/download/<job_id>')
-def download_translation(job_id):
+def download_translation(job_id) -> ResponseReturnValue:
     """Endpoint for downloading a completed translation."""
     if job_id not in translation_jobs or translation_jobs[job_id]['status'] != 'completed':
         return redirect(url_for('index'))
@@ -394,7 +419,7 @@ def download_translation(job_id):
                      download_name=f"translated_{job['original_filename']}")
 
 @app.route('/api/view_subtitle/<path:file_or_job_id>')
-def api_view_subtitle(file_or_job_id):
+def api_view_subtitle(file_or_job_id) -> ResponseReturnValue:
     """API endpoint for viewing a subtitle file. Can accept either a job ID or a filename."""
     # First, try handling it as a job ID
     if file_or_job_id in translation_jobs:
@@ -426,7 +451,7 @@ def api_view_subtitle(file_or_job_id):
         return jsonify({'success': False, 'message': f"Error reading file: {str(e)}"})
 
 @app.route('/api/delete_sub/<path:filename>', methods=['DELETE'])
-def api_delete_subtitle(filename):
+def api_delete_subtitle(filename) -> ResponseReturnValue:
     """API endpoint for deleting a subtitle file."""
     # Ensure the filename is safe
     safe_filename = secure_filename(filename)
@@ -461,22 +486,25 @@ def api_delete_subtitle(filename):
         return jsonify({'success': False, 'message': f"Error deleting file: {str(e)}"})
 
 @app.route('/upload', methods=['POST'])
-def upload():
-    """Handle subtitle file upload and translation."""
+def upload() -> ResponseReturnValue: 
     if 'srtfile' not in request.files:
         flash("No SRT file part in the request.", "error")
         return redirect(url_for("index"))
         
     file = request.files['srtfile']
-    if file.filename == '':
+    
+    # Check if a filename is present
+    if not file.filename:
         flash("No selected file.", "error")
         return redirect(url_for("index"))
         
+    # Now that we know file.filename is not None or empty, we can use it
     if not file.filename.lower().endswith('.srt'):
         flash("Invalid file type. Please upload an SRT file.", "error")
         return redirect(url_for("index"))
 
     # Save the uploaded file temporarily for processing
+    # secure_filename is safe to call now
     temp_input_path = os.path.join(tempfile.gettempdir(), secure_filename(f"temp_{file.filename}"))
     try:
         file.save(temp_input_path)
@@ -487,11 +515,13 @@ def upload():
         return redirect(url_for("index"))
 
     # Get language codes from config
-    config = config_manager.get_config()
-    src_lang = config.get("general", "source_language", fallback="en")
-    tgt_lang = config.get("general", "target_language", fallback="da")
+    # Ensure global config is used if not shadowed
+    global_config = cast(configparser.ConfigParser, config_manager.get_config())
+    src_lang = global_config.get("general", "source_language", fallback="en")
+    tgt_lang = global_config.get("general", "target_language", fallback="da")
     
     # Determine output filename
+    # file.filename is guaranteed to be a string here
     base, ext = os.path.splitext(file.filename)
     out_base = base
     replaced = False
@@ -518,7 +548,7 @@ def upload():
     try:
         # Initialize subtitle processor and translation service
         subtitle_processor = SubtitleProcessor(logger)
-        translation_service = TranslationService(config, logger)
+        translation_service = TranslationService(app_config, logger)
         
         # Process the subtitles
         subtitles = subtitle_processor.parse_file(temp_input_path)
@@ -554,13 +584,13 @@ def upload():
     return redirect(url_for("index"))
 
 @app.route('/api/progress')
-def get_progress():
+def get_progress() -> ResponseReturnValue:
     """API endpoint for getting translation progress."""
     with progress_lock:
         return jsonify(bulk_translation_progress)
 
 @app.route('/api/list_subs')
-def api_list_subs():
+def api_list_subs() -> ResponseReturnValue:
     """API endpoint for listing subtitle files in the subs folder."""
     try:
         logger.info(f"Listing subtitle files in {app.config['UPLOAD_FOLDER']}")
@@ -579,7 +609,7 @@ def api_list_subs():
         return jsonify({"files": [], "error": str(e)}), 500
 
 @app.route('/api/recent_files')
-def api_recent_files():
+def api_recent_files() -> ResponseReturnValue:
     """API endpoint for getting recent subtitle files."""
     try:
         # Get the recent files from the get_recent_translations function
@@ -604,7 +634,7 @@ def api_recent_files():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/download_sub/<path:filename>')
-def download_sub_file(filename):
+def download_sub_file(filename) -> ResponseReturnValue:
     """Endpoint for downloading a specific subtitle file from the subs folder."""
     safe_filename = secure_filename(filename)
     if safe_filename != filename:  # Basic check against directory traversal attempts
@@ -629,7 +659,7 @@ def download_sub_file(filename):
         return "Error serving file", 500
 
 @app.route('/api/delete_sub/<path:filename>', methods=['DELETE'])
-def api_delete_sub(filename):
+def api_delete_sub(filename) -> ResponseReturnValue:
     """API endpoint for deleting a subtitle file from the subs folder."""
     try:
         safe_filename = secure_filename(filename)
@@ -649,7 +679,7 @@ def api_delete_sub(filename):
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/browse_dirs', methods=['GET'])
-def api_browse_dirs():
+def api_browse_dirs() -> ResponseReturnValue:
     """API endpoint to list directories for the file browser."""
     parent_path = request.args.get("path", "")
     
@@ -719,7 +749,7 @@ def api_browse_dirs():
         return jsonify({"error": f"Error accessing directory: {str(e)}"}), 500
 
 @app.route('/api/browse_files', methods=['GET'])
-def api_browse_files():
+def api_browse_files() -> ResponseReturnValue:
     """API endpoint to list files in a directory for the host file browser."""
     parent_path = request.args.get("path", "")
     
@@ -796,7 +826,7 @@ def api_browse_files():
         return jsonify({"error": f"Error accessing directory: {str(e)}"}), 500
 
 @app.route("/api/start-scan", methods=["POST"])
-def api_start_scan():
+def api_start_scan() -> ResponseReturnValue:
     """API endpoint to start a bulk scan and translation of a directory."""
     data = request.get_json(silent=True) or {}
     root = data.get("path", "").strip()
@@ -844,7 +874,7 @@ def api_start_scan():
     return jsonify({"ok": True})
 
 @app.route("/download-zip")
-def download_zip():
+def download_zip() -> ResponseReturnValue:
     """Endpoint for downloading a zip file of translated subtitles."""
     temp_path = request.args.get("temp", "")
     # Security check: Ensure the path is within an expected temp directory structure
@@ -869,7 +899,7 @@ def download_zip():
         return "Error serving file", 500
 
 @app.route('/api/live_status')
-def live_status():
+def live_status() -> ResponseReturnValue:
     """API endpoint to get the current live translation status.
     This now primarily relies on bulk_translation_progress which is updated by all job types.
     """
@@ -909,7 +939,7 @@ def live_status():
     return jsonify(response_data)
 
 @app.route('/api/translation_report/<path:filename>')
-def api_translation_report(filename):
+def api_translation_report(filename) -> ResponseReturnValue:
     """API endpoint for getting a detailed report of a translated subtitle file."""
     try:
         safe_filename = secure_filename(filename)
@@ -1363,7 +1393,10 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                     for extracted_file in extracted_files:
                         # The filename should contain language info from the extraction process
                         file_basename = os.path.basename(extracted_file)
-                        if src_lang_code in file_basename.lower() or (src_lang_code_3letter and src_lang_code_3letter in file_basename.lower()):
+                        has_src_lang = (src_lang_code is not None and src_lang_code in file_basename.lower())
+                        has_src_lang_3letter = (src_lang_code_3letter is not None and src_lang_code_3letter in file_basename.lower())
+                        
+                        if has_src_lang or has_src_lang_3letter:
                             logger.info(f"Marking extracted file as source language: {file_basename}")
                         else:
                             # If source language not in filename, check if it's in the extracted file's content
@@ -1685,6 +1718,7 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                     import shutil
                     shutil.copy2(archive_path, output_path)
                     
+                                       
                     # NEW CODE: Also save alongside the original file
                     original_dir = os.path.dirname(srt_file)
                     alongside_path = os.path.join(original_dir, translated_filename)
@@ -1769,12 +1803,12 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             logger.warning(f"Failed to clean up temporary directories: {cleanup_err}")
 
 @app.route('/api/special_meanings', methods=['GET'])
-def api_special_meanings():
+def api_special_meanings() -> ResponseReturnValue:
     """API endpoint to get special word meanings from the file."""
     try:
         # Initialize translation service to load meanings
         config = config_manager.get_config()
-        translation_service = TranslationService(config, logger)
+        translation_service = TranslationService(app_config, logger)
         
         # Get meanings from the translation service
         meanings = translation_service.special_meanings
@@ -1794,14 +1828,17 @@ def api_special_meanings():
         return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/api/special_meanings', methods=['POST'])
-def api_update_special_meanings():
+def api_update_special_meanings() -> ResponseReturnValue:
     """API endpoint to update special word meanings in the file."""
     try:
+        if request.json is None:
+            return jsonify({"error": "No JSON data provided"}), 400
+            
         meanings = request.json.get('meanings', [])
         
         # Initialize translation service
         config = config_manager.get_config()
-        translation_service = TranslationService(config, logger)
+        translation_service = TranslationService(app_config, logger)
         
         # Save to file
         success = translation_service.save_special_meanings(meanings)
@@ -1819,7 +1856,7 @@ def api_update_special_meanings():
         return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/api/browse_videos', methods=['GET'])
-def api_browse_videos():
+def api_browse_videos() -> ResponseReturnValue:
     """API endpoint to list video files in a directory for the host file browser."""
     parent_path = request.args.get("path", "")
     
@@ -1900,7 +1937,7 @@ def api_browse_videos():
         return jsonify({"error": f"Error accessing directory: {str(e)}"}), 500
 
 @app.route('/api/transcribe', methods=['POST'])
-def api_transcribe():
+def api_transcribe() -> ResponseReturnValue:
     """API endpoint to transcribe a video file to SRT format using faster-whisper."""
     try:
         # Check if a host file path was provided
@@ -1971,7 +2008,7 @@ def api_transcribe():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/whisper/check_server', methods=['GET'])
-def api_check_whisper_server():
+def api_check_whisper_server() -> ResponseReturnValue:
     """API endpoint to check if the faster-whisper server is reachable."""
     try:
         # Get server URL from config
@@ -2025,7 +2062,7 @@ def api_check_whisper_server():
         }), 500
 
 @app.route('/api/job_status/<job_id>', methods=['GET'])
-def get_job_status(job_id):
+def get_job_status(job_id) -> ResponseReturnValue:
     """API endpoint for checking translation job status."""
     # Check bulk_translation_progress first if it's for the requested job_id and is a transcription
     with progress_lock:
@@ -2139,12 +2176,12 @@ def add_security_headers(response):
     return response
 
 @app.errorhandler(404)
-def handle_404(error):
+def handle_404(error) -> ResponseReturnValue:
     logger.error(f"404 error: {error}")
     return jsonify({'error': 'Resource not found'}), 404
 
 @app.errorhandler(500)
-def handle_500(error):
+def handle_500(error) -> ResponseReturnValue:
     logger.error(f"500 error: {error}")
     return jsonify({'error': 'Internal server error'}), 500
 
@@ -2159,10 +2196,10 @@ if __name__ == '__main__':
         temp_config_manager.create_default_config()
     
     # Get host and port from config using the already initialized global config_manager
-    config = config_manager.get_config()
-    host = config.get('general', 'host', fallback='127.0.0.1')
-    port = config.getint('general', 'port', fallback=5089)
-    debug = config.getboolean('webui', 'debug', fallback=False)
+    config_data = config_manager.get_config() # Call get_config() and assign to config_data
+    host = config_data.get('general', 'host', fallback='127.0.0.1')
+    port = config_data.getint('general', 'port', fallback=5089)
+    debug = config_data.getboolean('webui', 'debug', fallback=False)
     
     # Start the app with a more accurate welcome message
     print("==========================================")

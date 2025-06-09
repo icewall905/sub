@@ -29,7 +29,7 @@
             <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'archive' %}active{% endif %}" href="{{ url_for('archive') }}">
                 <i class="fas fa-archive me-2"></i>Subtitle Archive
             </a>
-            <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'config' %}active{% endif %}" href="{{ url_for('config') }}">
+            <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'config_route' %}active{% endif %}" href="{{ url_for('config_route') }}">
                 <i class="fas fa-cog me-2"></i>Settings
             </a>
             <a class="list-group-item list-group-item-action list-group-item-dark p-3 {% if request.endpoint == 'logs' %}active{% endif %}" href="{{ url_for('logs') }}">

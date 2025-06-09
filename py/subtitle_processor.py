@@ -4,7 +4,7 @@ import time
 import json
 import logging
 import requests
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple, Any, Callable # Add Callable
 import sys
 import importlib.util
 
@@ -73,9 +73,9 @@ class SubtitleProcessor:
         """Convert a language name to its ISO code."""
         language_name = language_name.lower().strip('"\' ')
         return LANGUAGE_MAPPING.get(language_name, language_name)
-    
+
     def detect_and_extract_embedded_subtitles(self, video_file_path: str, output_dir: str, 
-                                             source_lang_code: str = None) -> List[str]:
+                                              source_lang_code: Optional[str] = None) -> List[str]:
         """
         Detect and extract embedded subtitles from a video file.
         
@@ -666,7 +666,9 @@ class SubtitleProcessor:
         
         return text.strip()
     
-    def translate_srt(self, input_path, output_path, cfg, progress_dict=None):
+    def translate_srt(self, input_path: str, output_path: str, cfg: Any, 
+                      progress_dict: Optional[Dict[str, Any]] = None, 
+                      save_progress_state_func: Optional[Callable[[], None]] = None):
         """Translate subtitle file with proper Ollama waiting and live status."""
         import pysrt
         from py.translation_service import TranslationService
@@ -759,8 +761,8 @@ class SubtitleProcessor:
                 progress_dict["total_lines"] = total_lines
                 progress_dict["current_line"] = 0
                 # Save progress state if there's a save function
-                if 'save_progress_state' in globals():
-                    save_progress_state()
+                if save_progress_state_func:
+                    save_progress_state_func()
                 # Manually log the progress dict structure
                 self.logger.debug(f"Progress dict before translation: {json.dumps(progress_dict, default=str)}")
             
@@ -808,8 +810,8 @@ class SubtitleProcessor:
                     # Manually log the line's progress data - important for debugging
                     self.logger.debug(f"Line {line_number} progress before translation: {json.dumps(progress_dict['current'], default=str)}")
                     # Save progress state after updating if there's a save function
-                    if 'save_progress_state' in globals():
-                        save_progress_state()
+                    if save_progress_state_func:
+                        save_progress_state_func()
                 
                 # Build context from surrounding subtitles
                 context_before = []
@@ -860,8 +862,8 @@ class SubtitleProcessor:
                     progress_dict["current"]["first_pass"] = first_pass
                     progress_dict["current"]["timing"]["first_pass"] = timing["first_pass"]
                     # Save progress state after first pass if there's a save function
-                    if 'save_progress_state' in globals():
-                        save_progress_state()
+                    if save_progress_state_func:
+                        save_progress_state_func()
                     # Manually log the translation status after first pass
                     self.logger.debug(f"Line {line_number} after first pass: {first_pass}")
 
@@ -915,20 +917,15 @@ class SubtitleProcessor:
 
                     # Update progress dict with critic result, timing, and action
                     if progress_dict is not None:
-                        progress_dict["current"]["standard_critic"] = critic_result_str or current_result  # Use current_result if critic didn't change
-                        progress_dict["current"]["critic_changed"] = critic_changed
-                        progress_dict["current"]["critic_action"] = {
-                            "score": critic_eval_result.get('score') if isinstance(critic_eval_result, dict) else None,
+                        progress_dict["current"]["standard_critic"] = {
                             "feedback": critic_feedback,
-                            "changed": critic_changed,
-                            "timing": timing["critic"]
+                            "changed_translation": critic_changed,
+                            "result_after_critic": critic_result_str
                         }
                         progress_dict["current"]["timing"]["critic"] = timing["critic"]
-                        # Save progress state after critic if there's a save function
-                        if 'save_progress_state' in globals():
-                            save_progress_state()
-                        # Manually log the translation status after critic
-                        self.logger.debug(f"Line {line_number} after critic: {critic_result_str or current_result}")
+                        # Save progress state after critic evaluation if there's a save function
+                        if save_progress_state_func:
+                            save_progress_state_func()
                     
                     # Display status after critic - Only if using live viewer
                     if has_display:
@@ -960,59 +957,31 @@ class SubtitleProcessor:
                 if progress_dict is not None:
                     progress_dict["current"]["final"] = final_result
                     progress_dict["current"]["timing"]["total"] = timing["total"]
-                    
-                    # Add to processed lines history (limited to last 10)
-                    line_history_item = {
-                        "line_number": line_number,
-                        "original": original_text,
-                        "first_pass": first_pass,
-                        "critic": critic_result_str,
-                        "critic_changed": critic_changed,
-                        "final": final_result,
-                        "timing": {k: round(v, 2) for k, v in timing.items() if v > 0}  # Round timings for display
-                    }
-                    
-                    # Add to history (no limit)
-                    progress_dict["processed_lines"].append(line_history_item)
-                    
-                    # Save progress state after line is complete if there's a save function
-                    if 'save_progress_state' in globals():
-                        save_progress_state()
-                    # Manually log the final translation status
-                    self.logger.debug(f"Line {line_number} complete translation: {final_result}")
-                
-                # Display final status - Only if using live viewer
-                if has_display:
-                    display_translation_status(
-                        line_number,
-                        original_text,
-                        translations,
-                        None, # current_result not shown
-                        first_pass,
-                        critic_result_str, # Pass critic's string result
-                        final_result
-                    )
-                else: # Fallback console print - Consolidated output at the end
-                    separator = "-" * 60
-                    print(separator)
-                    print(f"Line {line_number}:")
-                    print(f"  Original: \"{original_text}\"")
-                    # Print collected translations
-                    for service_name, translation_text in translations.items():
-                        print(f"  {service_name}: \"{translation_text}\"")
-                    # Print first pass result (e.g., from Ollama final)
-                    if first_pass:
-                        print(f"  First pass: \"{first_pass}\" ({timing['first_pass']:.2f}s)")
-                    # Print critic feedback if available
-                    if critic_feedback:
-                        change_indicator = " (REVISED)" if critic_changed and critic_result_str else ""
-                        print(f"  Critic: \"{critic_feedback}\"{change_indicator} ({timing['critic']:.2f}s)")
-                        if critic_result_str and critic_changed:
-                            print(f"    -> Revision: \"{critic_result_str}\"")
-                    # Print final result
-                    if final_result:
-                        print(f"  Final: \"{final_result}\" (Total: {timing['total']:.2f}s)")
-                    print(separator) # Print separator at the end for fallback
+                    # Save progress state after final result if there's a save function
+                    if save_progress_state_func:
+                        save_progress_state_func()
+
+                # Fallback console print for this line (if not using live viewer or as an addition)
+                separator = "-" * 60
+                print(separator)
+                print(f"Line {line_number}:")
+                print(f"  Original: \"{original_text}\"")
+                # Print collected translations
+                for service_name, translation_text in translations.items():
+                    print(f"  {service_name}: \"{translation_text}\"")
+                # Print first pass result (e.g., from Ollama final)
+                if first_pass:
+                    print(f"  First pass: \"{first_pass}\" ({timing['first_pass']:.2f}s)")
+                # Print critic feedback if available
+                if critic_feedback:
+                    change_indicator = " (REVISED)" if critic_changed and critic_result_str else ""
+                    print(f"  Critic: \"{critic_feedback}\"{change_indicator} ({timing['critic']:.2f}s)")
+                    if critic_result_str and critic_changed:
+                        print(f"    -> Revision: \"{critic_result_str}\"")
+                # Print final result
+                if final_result:
+                    print(f"  Final: \"{final_result}\" (Total: {timing['total']:.2f}s)")
+                print(separator) # Print separator at the end for fallback
                 
                 # Update subtitle text
                 if final_result:
@@ -1039,8 +1008,8 @@ class SubtitleProcessor:
                 # Store output path for reference
                 progress_dict["output_path"] = output_path
                 # Save final progress state if there's a save function
-                if 'save_progress_state' in globals():
-                    save_progress_state()
+                if save_progress_state_func:
+                    save_progress_state_func()
                 # Log final progress state
                 self.logger.debug(f"Translation complete. Final progress state: {json.dumps(progress_dict, default=str)}")
 

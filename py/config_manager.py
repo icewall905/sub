@@ -38,7 +38,7 @@ class ConfigManager:
         Returns:
             Dict[str, Dict[str, str]]: The configuration as a nested dictionary
         """
-        config_dict = {}
+        config_dict: Dict[str, Dict[str, str]] = {}
         for section in self.config.sections():
             config_dict[section] = {}
             for key, value in self.config[section].items():

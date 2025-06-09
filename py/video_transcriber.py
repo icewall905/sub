@@ -13,7 +13,7 @@ import importlib.util
 import textwrap
 import re
 from datetime import timedelta
-from typing import Dict, Any, Optional, Tuple, List, BinaryIO, Union
+from typing import Dict, Any, Optional, Tuple, List, BinaryIO, Union, Callable
 from urllib.parse import urlparse
 import wave  # add missing import for WAV handling
 
@@ -99,7 +99,7 @@ class VideoTranscriber:
             # Don't return False yet - we'll still try to use the server
             return True  # Return True anyway to avoid local fallback
     
-    def _wyoming_send_event(self, sock: socket.socket, event_dict: dict, payload: bytes = None) -> None:
+    def _wyoming_send_event(self, sock: socket.socket, event_dict: dict, payload: Optional[bytes] = None) -> None:
         """Send a Wyoming protocol event over a socket.
         The event_dict is the base header. If it contains a 'data' key, 
         that 'data' object is serialized as a separate JSON segment.
@@ -131,7 +131,7 @@ class VideoTranscriber:
             sock.sendall(data_segment_bytes)
 
         # Send payload if it exists
-        if header_fields['payload_length'] > 0:
+        if header_fields['payload_length'] > 0 and payload is not None:
             sock.sendall(payload)
 
     def _wyoming_receive_event(self, sock, timeout=30):
@@ -287,7 +287,7 @@ class VideoTranscriber:
             # Restore original timeout
             sock.settimeout(original_timeout)
 
-    def _wyming_send_event_with_timeout(self, sock: socket.socket, event: dict, payload: bytes = None, timeout: float = 10.0) -> None:
+    def _wyming_send_event_with_timeout(self, sock: socket.socket, event: dict, payload: Optional[bytes] = None, timeout: float = 10.0) -> None:
         """Send a Wyoming protocol event over a socket with a timeout."""
         # Set socket timeout
         original_timeout = sock.gettimeout()
@@ -301,13 +301,13 @@ class VideoTranscriber:
             sock.sendall(event_bytes)
             
             # Send the payload if any
-            if payload:
+            if payload is not None:
                 sock.sendall(payload)
         finally:
             # Restore original timeout
             sock.settimeout(original_timeout)
 
-    def _transcribe_audio_chunk_wyoming(self, audio_path: str, language: str = None) -> tuple:
+    def _transcribe_audio_chunk_wyoming(self, audio_path: str, language: Optional[str] = None) -> tuple:
         """
         Transcribe audio chunk using official Wyoming client (AsyncTcpClient, Transcribe, AudioStart, AudioChunk, AudioStop).
         This avoids custom protocol mismatch and leverages tested library code.
@@ -527,7 +527,7 @@ class VideoTranscriber:
             self.log('error', traceback.format_exc())
             return False, f"Error splitting audio: {str(e)}", []
     
-    def _fallback_to_local_transcription(self, audio_path: str, language: str = None) -> Tuple[bool, str, Dict]:
+    def _fallback_to_local_transcription(self, audio_path: str, language: Optional[str] = None) -> Tuple[bool, str, Dict]:
         """
         Fallback to local transcription when server methods fail.
         
@@ -553,12 +553,13 @@ class VideoTranscriber:
                 if os.path.exists(local_whisper_path):
                     # Import directly from the file using importlib
                     spec = importlib.util.spec_from_file_location("local_whisper", local_whisper_path)
-                    local_whisper = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(local_whisper)
-                    
-                    # Try to read settings from config.ini
-                    whisper_model = "large-v3-turbo"  # Default to the requested model
-                    whisper_device = "cuda"           # Default to CUDA
+                    if spec is not None and spec.loader is not None:
+                        local_whisper = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(local_whisper)
+                        
+                        # Try to read settings from config.ini
+                        whisper_model = "large-v3-turbo"  # Default to the requested model
+                        whisper_device = "cuda"           # Default to CUDA
                     whisper_compute_type = "float16"  # Default to float16
                     whisper_beam = 10                 # Default to beam size 10
                     whisper_lang = "en"               # Default to English
@@ -1113,8 +1114,8 @@ class VideoTranscriber:
                 chunks = []
                 if job_data and 'chunks' in job_data:
                     chunks = job_data['chunks']
-                elif hasattr(self, '_chunks_data'):
-                    chunks = self._chunks_data
+                elif hasattr(self, '_chunks_data') and isinstance(getattr(self, '_chunks_data', None), list):
+                    chunks = getattr(self, '_chunks_data', [])
                     
                 if chunks:
                     # Generate SRT from chunks
@@ -1669,8 +1670,8 @@ class VideoTranscriber:
         return srt_content
 
     def process_chunk_to_srt(self, wav_path: str, offset: float = 0.0, 
-                           duration: float = 30.0, language: str = "en", 
-                           model: str = None) -> str:
+                           duration: float = 30.0, language: Optional[str] = "en", 
+                           model: Optional[str] = None) -> str:
         """
         Process a single WAV chunk and return SRT content
         
@@ -1692,7 +1693,7 @@ class VideoTranscriber:
         try:
             from wyoming_client import WyomingClient # Moved import here
             # Create Wyoming client
-            client = WyomingClient(host=self.server_host, port=self.server_port, logger=self.logger)
+            client = WyomingClient(host=self.server_host, port=self.server_port)
             
             # Transcribe audio - don't pass model parameter to use already loaded one
             transcript = client.transcribe(wav_path, language=language)
@@ -1721,9 +1722,9 @@ class VideoTranscriber:
             # Return a minimal SRT with error message
             return f"1\n{self.format_timestamp(offset)} --> {self.format_timestamp(offset + duration)}\n[Transcription failed]\n\n"
 
-    def transcribe_video_to_srt(self, video_path: str, output_path: str, language: str = None, 
-                              chunk_duration: int = 30, model: str = None, job_id: str = None,
-                              external_progress_updater = None) -> Tuple[bool, str]:
+    def transcribe_video_to_srt(self, video_path: str, output_path: str, language: Optional[str] = None, 
+                              chunk_duration: int = 30, model: Optional[str] = None, job_id: Optional[str] = None,
+                              external_progress_updater: Optional[Callable[[float, str, str, str], None]] = None) -> Tuple[bool, str]:
         """
         Transcribe a video directly to an SRT file using Wyoming protocol
         
@@ -1752,12 +1753,12 @@ class VideoTranscriber:
                 
             # Initialize progress
             self._update_progress(job_id, 0, "Starting transcription...")
-            if external_progress_updater:
+            if external_progress_updater and job_id is not None:
                 external_progress_updater(0, "Starting transcription...", "processing", job_id)
             
             # Extract audio from video
             self._update_progress(job_id, 5, "Extracting audio from video...")
-            if external_progress_updater:
+            if external_progress_updater and job_id is not None:
                 external_progress_updater(5, "Extracting audio from video...", "processing", job_id)
                 
             extract_success, extract_message, audio_path = self.extract_audio(video_path)
@@ -1765,13 +1766,13 @@ class VideoTranscriber:
             if not extract_success or not audio_path:
                 self.log('error', f"Failed to extract audio: {extract_message}")
                 self._update_progress(job_id, 100, f"Failed: {extract_message}", status="error")
-                if external_progress_updater:
+                if external_progress_updater and job_id is not None:
                     external_progress_updater(100, f"Failed: {extract_message}", "error", job_id)
                 return False, f"Failed to extract audio: {extract_message}"
                 
             # Split audio into manageable chunks
             self._update_progress(job_id, 15, "Splitting audio into chunks...")
-            if external_progress_updater:
+            if external_progress_updater and job_id is not None:
                 external_progress_updater(15, "Splitting audio into chunks...", "processing", job_id)
                 
             split_success, split_message, chunk_paths = self.split_audio_into_chunks(
@@ -1782,14 +1783,14 @@ class VideoTranscriber:
             if not split_success:
                 self.log('error', f"Failed to split audio: {split_message}")
                 self._update_progress(job_id, 100, f"Failed: {split_message}", status="error")
-                if external_progress_updater:
+                if external_progress_updater and job_id is not None:
                     external_progress_updater(100, f"Failed: {split_message}", "error", job_id)
                 return False, f"Failed to split audio: {split_message}"
                 
             total_chunks = len(chunk_paths)
             self.log('info', f"Processing {total_chunks} audio chunks for SRT generation")
             self._update_progress(job_id, 20, f"Processing {total_chunks} audio chunks...")
-            if external_progress_updater:
+            if external_progress_updater and job_id is not None:
                 external_progress_updater(20, f"Processing {total_chunks} audio chunks...", "processing", job_id)
             
             # Process each chunk and collect SRT contents
@@ -1806,7 +1807,7 @@ class VideoTranscriber:
                     progress_message = f"Transcribing chunk {chunk_num}/{total_chunks} ({int((chunk_num/total_chunks)*100)}% done)"
                     
                     self._update_progress(job_id, int(progress_pct), progress_message)
-                    if external_progress_updater:
+                    if external_progress_updater and job_id is not None:
                         external_progress_updater(int(progress_pct), progress_message, "processing", job_id)
                         
                     self.log('info', f"Processing chunk {chunk_num}/{total_chunks} to SRT")
@@ -1831,14 +1832,14 @@ class VideoTranscriber:
                     progress_message = f"Completed chunk {chunk_num}/{total_chunks} ({chunk_percent}% complete)"
                     
                     self._update_progress(job_id, current_progress, progress_message)
-                    if external_progress_updater:
+                    if external_progress_updater and job_id is not None:
                         external_progress_updater(current_progress, progress_message, "processing", job_id)
             except Exception as chunk_error:
                 self.log('error', f"Error processing chunk {chunk_num}/{total_chunks}: {str(chunk_error)}")
                 # Continue with whatever chunks we have processed so far
                 if not srt_chunks:
                     error_message = f"Failed to process any chunks: {str(chunk_error)}"
-                    if external_progress_updater:
+                    if external_progress_updater and job_id is not None:
                         external_progress_updater(100, error_message, "error", job_id)
                     raise Exception(error_message)
                 else:
@@ -1846,14 +1847,14 @@ class VideoTranscriber:
             
             # Combine all SRT contents
             self._update_progress(job_id, 90, "Combining transcription chunks...")
-            if external_progress_updater:
+            if external_progress_updater and job_id is not None:
                 external_progress_updater(90, "Combining transcription chunks...", "processing", job_id)
                 
             combined_srt = self._combine_srt_chunks(srt_chunks)
             
             # Write to output file
             self._update_progress(job_id, 95, "Writing SRT file...")
-            if external_progress_updater:
+            if external_progress_updater and job_id is not None:
                 external_progress_updater(95, "Writing SRT file...", "processing", job_id)
                 
             os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
@@ -1862,7 +1863,7 @@ class VideoTranscriber:
                 
             self.log('info', f"SRT file generated: {output_path}")
             self._update_progress(job_id, 100, "Transcription complete!", status="complete")
-            if external_progress_updater:
+            if external_progress_updater and job_id is not None:
                 external_progress_updater(100, "Transcription complete!", "completed", job_id)
                 
             return True, f"SRT file generated: {output_path}"
@@ -1872,7 +1873,7 @@ class VideoTranscriber:
             import traceback
             self.log('error', traceback.format_exc())
             self._update_progress(job_id, 100, f"Error: {str(e)}", status="error")
-            if external_progress_updater:
+            if external_progress_updater and job_id is not None:
                 external_progress_updater(100, f"Error: {str(e)}", "failed", job_id)
                 
             return False, f"Error transcribing video to SRT: {str(e)}"
@@ -1916,7 +1917,7 @@ class VideoTranscriber:
         
         return combined_content
 
-    def _update_progress(self, job_id: str, percent: int, message: str, status: str = "processing"):
+    def _update_progress(self, job_id: Optional[str], percent: int, message: str, status: str = "processing"):
         """
         Update progress information for a transcription job
         
@@ -1926,6 +1927,10 @@ class VideoTranscriber:
             message: Status message
             status: Status indicator ("processing", "complete", "error")
         """
+        if job_id is None:
+            self.log('warning', f"Progress update with no job_id: {percent}% - {message}")
+            return
+            
         progress_info = {
             "job_id": job_id,
             "percent": percent,
