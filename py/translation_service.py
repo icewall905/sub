@@ -940,32 +940,38 @@ AVAILABLE TRANSLATIONS:
             if deepl_translation:
                 prompt += f"""
 Review Guidelines for DeepL Translations (with Context Awareness)
-DeepL normally delivers excellent results, so its output should usually be accepted unchanged.
-However, you also receive rich context – book titles, character names, glossaries, domain notes, etc. – that DeepL cannot always “see.” Use this extra knowledge to spot the rare places where a small edit will make the text unmistakably better.
 
-1 Default: keep DeepL untouched
-• For the vast majority of sentences (≈ 95 %), simply pass DeepL through.
+DeepL normally delivers excellent results, so its output should usually be accepted unchanged. However, you also receive rich context—book titles, character names, glossaries, domain notes, etc.—that DeepL cannot always “see.” Use this extra knowledge to spot the rare cases where a small edit will make the text unmistakably better.
 
-2 When an edit is warranted
-Change the DeepL wording only if all three conditions hold:
+1. DEFAULT: Keep DeepL’s translation as-is.
+   • In about 95% of sentences, accept the DeepL output without any edits.
 
-Condition	What it means	Example
-Clear error	DeepL’s choice is wrong in light of the provided context, not just different.	In Avatar: The Last Airbender material, DeepL renders “Earth” as “Jorden” (the planet). Context shows it refers to the element, so the correct Danish term is “Jord”.
-Meaning is affected	The mistranslation changes, hides, or confuses the author’s intent.	Technical spec mistranslates a parameter name, causing potential misuse.
-High certainty	The context (glossary, surrounding text, domain knowledge) leaves no reasonable doubt.	Character glossary lists “Fire Nation” ⇒ “Ildnationen”; DeepL outputs “Brandnation”—clearly inconsistent.
+2. WHEN TO EDIT: Only if **all** of these are true:
+   a. Clear error  
+      – DeepL’s choice is factually wrong given your context, not merely a stylistic difference.  
+      – Example: In *Avatar: The Last Airbender*, DeepL renders “Earth” as “Jorden” (the planet). Context shows it refers to the elemental “Earth,” so the correct Danish term is “Jord.”
+   b. Meaning affected  
+      – The mistranslation alters or obscures the author’s intent.
+   c. High certainty  
+      – The provided context (glossary entries, surrounding text, domain knowledge) leaves no reasonable doubt that DeepL misunderstood something critical.
 
-If any of these three is shaky, keep DeepL’s version.
+   If **any** of a, b or c is uncertain, leave DeepL’s translation unchanged.
 
-3 What not to tweak
-Do not edit for: alternative but accurate word choices, stylistic preferences, tone shifts (formal / informal), valid idiom renderings, or harmless formatting differences.
+3. WHAT NOT TO CHANGE:
+   – Alternate but accurate word choices  
+   – Minor shifts in sentence order or phrasing  
+   – Formal vs. informal tone variations that don’t alter meaning  
+   – Valid idiom translations or established set phrases  
+   – Formatting or layout differences that preserve meaning
 
-4 Presume DeepL is right
-Treat DeepL as correct by default. The onus is on you to justify any change with the provided context.
+4. PRESUMPTION OF CORRECTNESS:
+   – Treat DeepL’s version as correct by default.  
+   – The burden of proof is on you to demonstrate a change is necessary.
 
-5 Unsure? Keep it
-When in doubt, leave the DeepL text as is and move on.
+5. IF IN DOUBT:
+   – Keep the DeepL translation unchanged, without exception.
 
-Rule of thumb: Accept ≈ 19 out of every 20 DeepL outputs verbatim. Save your interventions for those rare spots where the surrounding context proves DeepL missed something important.
+Rule of thumb: Intervene in no more than about 5% of cases; let DeepL’s high-quality output stand whenever possible.```
 """
 
             # Add final reminder
