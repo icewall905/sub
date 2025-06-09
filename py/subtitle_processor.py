@@ -1007,6 +1007,12 @@ class SubtitleProcessor:
                         progress_dict["line_history"] = []
                     progress_dict["line_history"].append(current_line_snapshot)
                     
+                    # IMPORTANT: Copy line_history to processed_lines so frontend can access it
+                    # The frontend expects processed_lines from the /api/live_status endpoint
+                    if "processed_lines" not in progress_dict:
+                        progress_dict["processed_lines"] = []
+                    progress_dict["processed_lines"].append(current_line_snapshot)
+                    
                     # Optionally, save progress more frequently if desired, or rely on existing saves
                     if save_progress_state_func:
                         save_progress_state_func()

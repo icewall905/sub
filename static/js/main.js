@@ -661,16 +661,16 @@ function pollJobStatus(jobId) {
     const statusMessage = document.getElementById('status-message');
     const resultContainer = document.getElementById('result-container');
     const liveStatusDisplay = document.getElementById('live-status-display');
-    const viewHistoryBtn = document.getElementById('view-history-btn'); // This is the button inside resultContainer
+    // const viewHistoryBtnFromStatusContainer = document.getElementById('view-history-btn'); // Will get this inside .then
 
+    // REMOVED: Initial hiding of viewHistoryBtnFromStatusContainer.
+    // Its visibility will be controlled by currentLineHistory.length.
 
     if(progressBar) progressBar.style.width = '0%';
     if(progressText) progressText.textContent = '0%';
     if(statusMessage) statusMessage.textContent = 'Initializing...';
     if(resultContainer) resultContainer.style.display = 'none';
-    if(liveStatusDisplay) liveStatusDisplay.innerHTML = '<p>Waiting for job to start...</p>'; // Clear previous live status
-    // Hide the button that might be there from a previous job, it will be re-added if needed
-    if(viewHistoryBtn) viewHistoryBtn.style.display = 'none'; 
+    if(liveStatusDisplay) liveStatusDisplay.innerHTML = '<p>Waiting for job to start...</p>' // Clear previous live status
 
     // Start a new interval for this job
     const intervalId = setInterval(() => {
@@ -682,67 +682,67 @@ function pollJobStatus(jobId) {
                 return response.json();
             })
             .then(data => {
-                console.log("Job status data:", data);
+                console.log(`[DEBUG] pollJobStatus (${jobId}): Received data:`, data);
+                const progressBar = document.getElementById('progress-bar'); // Re-fetch or use outer scope var
                 if(progressBar) progressBar.style.width = data.progress + '%';
-                if(progressText) progressText.textContent = data.progress + '%';
-                if(statusMessage) statusMessage.textContent = data.message || 'Processing...';
+                if(progressText) progressText.textContent = data.progress + '%'; // Use outer scope var
+                if(statusMessage) statusMessage.textContent = data.message || 'Processing...'; // Use outer scope var
 
-                // Store line history from the polled data
-                if (data.line_history && Array.isArray(data.line_history)) {
+                // Only update currentLineHistory from /api/job_status if it provides a non-empty array.
+                // This prevents overwriting a potentially more detailed history from /api/live_status with an empty one from this poll.
+                if (data.line_history && Array.isArray(data.line_history) && data.line_history.length > 0) {
                     currentLineHistory = data.line_history;
                 }
 
-                if (data.status === 'completed' || data.status === 'failed') {
+                // Set button visibility based on the global currentLineHistory
+                const viewHistoryBtnFromStatusContainer = document.getElementById('view-history-btn');
+                if (viewHistoryBtnFromStatusContainer) {
+                    if (currentLineHistory && currentLineHistory.length > 0) {
+                        viewHistoryBtnFromStatusContainer.style.display = 'inline-block';
+                    } else {
+                        viewHistoryBtnFromStatusContainer.style.display = 'none';
+                    }
+                }
+
+                // IMPORTANT: Corrected condition for clearInterval. Only stop on terminal states.
+                if (data.status === 'completed' || data.status === 'error') {
                     clearInterval(intervalId); // Stop polling
                     console.log("Job finished, clearing interval for job ID:", jobId);
                     if (data.status === 'completed') {
                         if(progressBar) progressBar.style.backgroundColor = '#28a745'; // Green for success
                         if(statusMessage) statusMessage.textContent = data.message || 'Translation completed!';
-                        if(resultContainer) {
+                        if(resultContainer) { // Use outer scope var
                             resultContainer.style.display = 'block';
-                            // IMPORTANT: Ensure the button ID here is 'view-history-btn' to match the one in index.html
+                            // IMPORTANT: Removed the duplicate "View History" button from here.
                             resultContainer.innerHTML = `
                                 <p><strong>Translation successful!</strong></p>
                                 <p>Download your translated file:</p>
                                 <a href="/api/download/${data.job_id}/${encodeURIComponent(data.output_filename)}" class="btn btn-success" download>Download ${data.output_filename}</a>
-                                <button type="button" id="view-history-btn" class="btn btn-info btn-sm" style="margin-top: 0.5rem; display: none;">View Detailed History</button>
                             `; // Ensured template literal is correct
-                            // Re-attach event listener for the new history button
-                            const newViewHistoryBtn = document.getElementById('view-history-btn');
-                            if (newViewHistoryBtn && document.getElementById('history-modal')) {
-                                newViewHistoryBtn.addEventListener('click', function() {
-                                    populateAndShowHistoryModal();
-                                });
-                                // Show button if history exists
-                                if (currentLineHistory.length > 0) {
-                                    newViewHistoryBtn.style.display = 'inline-block';
-                                }
-                            }
+                            // Event listener for history button is already on viewHistoryBtnFromStatusContainer (globally or via DOMContentLoaded)
                         }
                         loadSubtitleArchive(); // Refresh archive list
-                    } else { // Failed
+                    } else { // Failed (data.status === 'error')
                         if(progressBar) progressBar.style.backgroundColor = '#dc3545'; // Red for failure
                         if(statusMessage) statusMessage.textContent = data.message || 'Translation failed.';
-                        if(resultContainer) {
+                        if(resultContainer) { // Use outer scope var
                              resultContainer.style.display = 'block';
                              resultContainer.innerHTML = `<p class="error-message"><strong>Translation failed:</strong> ${data.message || 'Unknown error'}</p>`; // Ensured template literal is correct
                         }
                     }
-                    // Show history button (if it was created and history exists), even on failure
-                    const finalViewHistoryBtn = document.getElementById('view-history-btn');
-                    if (finalViewHistoryBtn && currentLineHistory.length > 0) {
-                        finalViewHistoryBtn.style.display = 'inline-block';
-                    }
+                    // The View History button in status-container is already handled by the logic
+                    // that checks currentLineHistory.length after fetching data.
+                    // The 'finalViewHistoryBtn' logic previously here is no longer needed.
                 } else if (data.status === 'processing' || data.status === 'translating') {
                     // Live status updates are handled by updateLiveStatusDisplay
+                    // History can arrive during these states, making the button visibility update (done above) important.
                 }
             })
             .catch(error => {
-                console.error('Error fetching job status:', error);
-                if(statusMessage) statusMessage.textContent = 'Error fetching status. Please check console.';
-                if(progressBar) progressBar.style.backgroundColor = '#ffc107'; // Yellow for error in polling
-                clearInterval(intervalId); // Stop polling on error
-                console.log("Error in polling, clearing interval for job ID:", jobId);
+                console.error(`[DEBUG] Error polling job status for ${jobId}:`, error);
+                // Optionally update status message on error
+                // bulkStatusMessage.textContent = 'Error checking progress.';
+                // Consider stopping polling after multiple errors?
             });
     }, 2000); // Poll every 2 seconds
 }
@@ -827,6 +827,7 @@ function escapeHtml(unsafe) {
 
 // --- Live Status Updates ---
 function updateLiveStatusDisplay() {
+    let critic_changed = false; // Defensively declare critic_changed
     fetch('/api/live_status')
         .then(response => response.json())
         .then(data => {
@@ -982,8 +983,24 @@ function updateLiveStatusDisplay() {
                 const processedLines = data.processed_lines || 
                                      (data.current && data.current.processed_lines) || 
                                      [];
-                                     
+            
+                // Update global currentLineHistory if processed_lines has data from live_status
+                // This allows pollJobStatus to also show the View History button based on these live updates
                 if (processedLines.length > 0) {
+                    currentLineHistory = processedLines; // Assign directly from live updates
+                    console.log("[DEBUG] updateLiveStatusDisplay: Updated global currentLineHistory. Length:", currentLineHistory.length);
+
+                    // Attempt to show the button immediately for responsiveness
+                    const viewHistoryBtn = document.getElementById('view-history-btn');
+                    if (viewHistoryBtn && viewHistoryBtn.style.display === 'none') {
+                        viewHistoryBtn.style.display = 'inline-block';
+                        console.log("[DEBUG] updateLiveStatusDisplay: Made view-history-btn visible directly.");
+                    }
+                }
+                // Note: pollJobStatus will also manage button visibility based on currentLineHistory.
+                // Hiding the button if history becomes empty is primarily handled by pollJobStatus.
+                                     
+                if (processedLines.length > 0) { // This is the existing block for building HTML for display
                     statusHTML += `<div class="history-section">
                         <h3>Recent Translation History</h3>
                         <div class="history-container" id="history-container">`; // Ensured template literal is correct
@@ -1518,18 +1535,14 @@ function loadDirectories(path) {
                     // Single click: Select visually and store path
                     directoryList.querySelectorAll('.directory-item').forEach(i => i.classList.remove('selected'));
                     this.classList.add('selected');
-                    selectedDirectory = this.dataset.path;
-                });
-                 item.addEventListener('dblclick', function() {
-                    // Double click: Navigate into directory
-                    const newPath = this.dataset.path;
-                    loadDirectories(newPath);
+                    selectedDirectory = this.getAttribute('data-path');
+                    console.log("Selected directory:", selectedDirectory);
                 });
             });
         })
         .catch(error => {
             console.error('Error loading directories:', error);
-            directoryList.innerHTML = '<li class="error-message">Error loading directories</li>';
+            directoryList.innerHTML = '<li class="error">Error loading directories</li>';
         });
 }
 
