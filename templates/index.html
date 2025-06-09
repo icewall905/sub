@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Translate - Subtitle Translator{% endblock %}
+{% block title %}Translate -                <div id="special-meanings-container">
+                    <!-- JS will populate this -->
+                </div>
+                <div class="btn-group" style="margin-top: 0.5rem;">
+                    <button type="button" id="add-meaning-btn" class="btn btn-secondary btn-sm">Add Meaning</button>
+                    <button type="button" id="save-meanings-btn" class="btn btn-primary btn-sm">Save Meanings</button>
+                    <span id="special-meanings-status" class="status-text ml-2"></span>
+                </div>
+                <div class="info-text">
+                    <small>Define specific translations for words or phrases. Useful for names, jargon, or correcting common mistranslations.</small>
+                </div>le Translator{% endblock %}
 
 {% block content %}
     <!-- Single File Translation Card -->
@@ -56,7 +66,11 @@
                 <div id="special-meanings-container">
                     <!-- JS will populate this -->
                 </div>
-                <button type="button" id="add-special-meaning-btn" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;">Add Meaning</button>
+                <div class="btn-group" style="margin-top: 0.5rem;">
+                    <button type="button" id="add-special-meaning-btn" class="btn btn-secondary btn-sm">Add Meaning</button>
+                    <button type="button" id="save-meanings-btn" class="btn btn-primary btn-sm">Save Meanings</button>
+                    <span id="special-meanings-status" class="status-text ml-2"></span>
+                </div>
                 <div class="info-text">
                     <small>Define specific translations for words or phrases. Useful for names, jargon, or correcting common mistranslations.</small>
                 </div>
@@ -135,6 +149,19 @@
                     }
                 });
             }
+            
+            // Add event listener for the save meanings button
+            const saveMeaningsBtn = document.getElementById('save-meanings-btn');
+            if (saveMeaningsBtn) {
+                saveMeaningsBtn.addEventListener('click', function() {
+                    if (typeof saveSpecialMeanings === 'function') {
+                        saveSpecialMeanings();
+                    } else {
+                        console.error('saveSpecialMeanings function not found.');
+                    }
+                });
+            }
+            
             // Load initial special meanings if the function exists
             if (typeof loadSpecialMeaningsFromFile === 'function') {
                 loadSpecialMeaningsFromFile();

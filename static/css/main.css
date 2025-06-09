@@ -439,6 +439,7 @@ input:focus, select:focus {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    margin-bottom: 8px;
 }
 
 .special-meaning-row input[type="text"] {
@@ -467,6 +468,21 @@ input:focus, select:focus {
 .info-text small {
     color: #888;
     font-size: 0.85em;
+}
+
+/* Status Messages */
+.success-message {
+    color: #4CAF50;
+    font-weight: bold;
+    animation: fadeOut 3s forwards;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 /* Progress Feedback */
@@ -1279,7 +1295,7 @@ small {
 .history-section {
     margin-top: 20px;
     border-top: 1px solid #444;
-    padding-top: 15px;
+    padding-top: 10px;
 }
 
 .history-section h3 {

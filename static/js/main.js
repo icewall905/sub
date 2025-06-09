@@ -1791,6 +1791,9 @@ function setupRemoveButtons() {
         newButton.addEventListener('click', function() {
             const row = this.parentNode;
             row.remove();
+            
+            // Automatically save changes when a meaning is removed
+            saveSpecialMeanings();
         });
     });
 }
@@ -1904,7 +1907,15 @@ function saveSpecialMeanings() {
     .then(({ status, body }) => {
         console.log("[DEBUG] saveSpecialMeanings: /api/special_meanings POST response JSON body:", body);
         if (body.success) {
-            alert(`Saved ${meanings.length} special meanings to file`); // Ensured template literal is correct
+            // Show success message on the page
+            const statusElem = document.getElementById('special-meanings-status');
+            if (statusElem) {
+                statusElem.textContent = `Saved ${meanings.length} meanings`;
+                statusElem.className = 'success-message';
+                setTimeout(() => {
+                    statusElem.textContent = '';
+                }, 3000);
+            }
         } else {
             alert(`Error saving special meanings: ${body.message || 'Unknown error'}`); // Ensured template literal is correct
         }

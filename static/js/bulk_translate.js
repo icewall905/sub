@@ -27,6 +27,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Add event listener for the save special meanings button
+    const saveSpecialMeaningsBtn = document.getElementById('save-special-meanings-btn');
+    if (saveSpecialMeaningsBtn) {
+        saveSpecialMeaningsBtn.addEventListener('click', function() {
+            saveSpecialMeanings();
+        });
+    }
+
+    // Add event listener for the add special meaning button
+    const addSpecialMeaningBtn = document.getElementById('add-special-meaning-btn');
+    if (addSpecialMeaningBtn) {
+        addSpecialMeaningBtn.addEventListener('click', function() {
+            window.addSpecialMeaningRow();
+        });
+    }
+
     if (toggleBrowserBtn) {
         toggleBrowserBtn.addEventListener('click', function() {
             if (inlineFileBrowser.style.display === 'none' || !inlineFileBrowser.style.display) {
@@ -269,6 +285,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const removeBtn = row.querySelector('.remove-meaning-btn');
         removeBtn.addEventListener('click', function() {
             row.remove();
+            // Save special meanings after removal
+            saveSpecialMeanings();
         });
         
         specialMeaningsContainer.appendChild(row);
@@ -279,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/special_meanings')
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success' && data.meanings && data.meanings.length > 0) {
+            if (data.success && data.meanings && data.meanings.length > 0) {
                 specialMeaningsContainer.innerHTML = ''; // Clear existing
                 
                 data.meanings.forEach(meaning => {
@@ -287,8 +305,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.className = 'special-meaning-row';
                     row.innerHTML = `
                         <div class="meaning-inputs">
-                            <input type="text" class="form-control source-text" value="${meaning.source}" placeholder="Original text">
-                            <input type="text" class="form-control target-text" value="${meaning.target}" placeholder="Translation">
+                            <input type="text" class="form-control source-text" value="${meaning.word || ''}" placeholder="Original text">
+                            <input type="text" class="form-control target-text" value="${meaning.meaning || ''}" placeholder="Translation">
                         </div>
                         <button type="button" class="btn btn-danger btn-sm remove-meaning-btn">
                             <i class="fas fa-times"></i>
@@ -299,6 +317,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const removeBtn = row.querySelector('.remove-meaning-btn');
                     removeBtn.addEventListener('click', function() {
                         row.remove();
+                        // Save special meanings after removal
+                        saveSpecialMeanings();
                     });
                     
                     specialMeaningsContainer.appendChild(row);
@@ -310,6 +330,66 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
     
+    // Function to collect all special meanings as an array of objects
+    function collectSpecialMeanings() {
+        console.log("Collecting special meanings from bulk translate page");
+        const specialMeanings = [];
+        const rows = document.querySelectorAll('.special-meaning-row');
+        
+        rows.forEach(row => {
+            const sourceInput = row.querySelector('.source-text');
+            const targetInput = row.querySelector('.target-text');
+            
+            if (sourceInput && targetInput) {
+                const word = sourceInput.value.trim();
+                const meaning = targetInput.value.trim();
+                
+                if (word && meaning) {
+                    specialMeanings.push({ word, meaning });
+                }
+            }
+        });
+        
+        console.log('Collected special meanings:', specialMeanings.length);
+        return specialMeanings;
+    }
+    
+    // Function to save special meanings to the file
+    function saveSpecialMeanings() {
+        console.log("Saving special meanings from bulk translate page");
+        const meanings = collectSpecialMeanings();
+        
+        fetch('/api/special_meanings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ meanings: meanings })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log(`Saved ${meanings.length} special meanings to file`);
+                // Show a success message
+                const statusElem = document.getElementById('special-meanings-status');
+                if (statusElem) {
+                    statusElem.textContent = `Saved ${meanings.length} meanings`;
+                    statusElem.className = 'success-message';
+                    setTimeout(() => {
+                        statusElem.textContent = '';
+                    }, 3000);
+                }
+            } else {
+                console.error("Error saving special meanings:", data.message || "Unknown error");
+                alert(`Error saving special meanings: ${data.message || 'Unknown error'}`);
+            }
+        })
+        .catch(error => {
+            console.error("Error saving special meanings:", error);
+            alert(`Error saving special meanings: ${error.message}`);
+        });
+    }
+
     // Close modals when clicking outside
     window.addEventListener('click', function(event) {
         const reportModal = document.getElementById('report-modal');
