@@ -992,9 +992,12 @@ function updateLiveStatusDisplay() {
 
                     // Attempt to show the button immediately for responsiveness
                     const viewHistoryBtn = document.getElementById('view-history-btn');
-                    if (viewHistoryBtn && viewHistoryBtn.style.display === 'none') {
-                        viewHistoryBtn.style.display = 'inline-block';
-                        console.log("[DEBUG] updateLiveStatusDisplay: Made view-history-btn visible directly.");
+                    if (viewHistoryBtn) {
+                        const computedStyle = window.getComputedStyle(viewHistoryBtn);
+                        if (computedStyle.display === 'none' || viewHistoryBtn.style.display === 'none') {
+                            viewHistoryBtn.style.display = 'inline-block';
+                            console.log("[DEBUG] updateLiveStatusDisplay: Made view-history-btn visible directly.");
+                        }
                     }
                 }
                 // Note: pollJobStatus will also manage button visibility based on currentLineHistory.
