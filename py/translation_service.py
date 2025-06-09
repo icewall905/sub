@@ -810,9 +810,8 @@ IMPORTANT INSTRUCTIONS:
 - Return ONLY your final translation, without quotes, explanations, or notes
 - Maintain formatting (especially HTML tags if present)
 - When choosing between translations from different services, ALWAYS prioritize professional services:
-  1. DeepL translations should almost always be used unchanged (treat as gold standard)
-  2. Only deviate from professional translations when you are 100% certain there's a significant error
-- Your primary job is to SELECT the best translation, not to create a new one unless absolutely necessary
+  1. DeepL translations should mostly be used unchanged (treat as gold standard)
+  2. Only deviate from professional translations when you are sure there is an error, that the service fails to understand because of missing context that you possess.
 """
 
             # Add media info from TMDB if available
@@ -940,28 +939,33 @@ AVAILABLE TRANSLATIONS:
             # Add special instructions for handling DeepL translations
             if deepl_translation:
                 prompt += f"""
-CRITICALLY IMPORTANT INSTRUCTIONS FOR HANDLING DEEPL TRANSLATIONS:
-DeepL is a professional translation service of extremely high quality. You MUST follow these strict guidelines:
+Review Guidelines for DeepL Translations (with Context Awareness)
+DeepL normally delivers excellent results, so its output should usually be accepted unchanged.
+However, you also receive rich context – book titles, character names, glossaries, domain notes, etc. – that DeepL cannot always “see.” Use this extra knowledge to spot the rare places where a small edit will make the text unmistakably better.
 
-1. DEFAULT BEHAVIOR: Use the DeepL translation AS-IS without any changes.
+1 Default: keep DeepL untouched
+• For the vast majority of sentences (≈ 95 %), simply pass DeepL through.
 
-2. VERY RARE EXCEPTIONS: Only modify the DeepL translation if ALL of the following conditions are met:
-   - You are 100% certain there is a serious error (not just a stylistic difference)
-   - The error significantly changes or distorts the meaning
-   - You can clearly see from context that DeepL misunderstood something critical
+2 When an edit is warranted
+Change the DeepL wording only if all three conditions hold:
 
-3. EXAMPLES OF WHAT NOT TO CHANGE:
-   - Different but equally valid word choices
-   - Slight differences in sentence structure
-   - Formal vs. informal tone variations
-   - Different but valid translations of idioms
-   - Different formatting that preserves meaning
+Condition	What it means	Example
+Clear error	DeepL’s choice is wrong in light of the provided context, not just different.	In Avatar: The Last Airbender material, DeepL renders “Earth” as “Jorden” (the planet). Context shows it refers to the element, so the correct Danish term is “Jord”.
+Meaning is affected	The mistranslation changes, hides, or confuses the author’s intent.	Technical spec mistranslates a parameter name, causing potential misuse.
+High certainty	The context (glossary, surrounding text, domain knowledge) leaves no reasonable doubt.	Character glossary lists “Fire Nation” ⇒ “Ildnationen”; DeepL outputs “Brandnation”—clearly inconsistent.
 
-4. BURDEN OF PROOF: The burden is on YOU to prove a change is necessary. When comparing DeepL to other translations, the DeepL version should be considered correct by default.
+If any of these three is shaky, keep DeepL’s version.
 
-5. IN CASE OF DOUBT: Always, without exception, use the DeepL translation unchanged.
+3 What not to tweak
+Do not edit for: alternative but accurate word choices, stylistic preferences, tone shifts (formal / informal), valid idiom renderings, or harmless formatting differences.
 
-Remember: Modifying a DeepL translation should be extremely rare. In 95% or more of cases, you should use it exactly as provided.
+4 Presume DeepL is right
+Treat DeepL as correct by default. The onus is on you to justify any change with the provided context.
+
+5 Unsure? Keep it
+When in doubt, leave the DeepL text as is and move on.
+
+Rule of thumb: Accept ≈ 19 out of every 20 DeepL outputs verbatim. Save your interventions for those rare spots where the surrounding context proves DeepL missed something important.
 """
 
             # Add final reminder
