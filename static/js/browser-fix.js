@@ -21,10 +21,10 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("Applying browser visibility fixes...");
     
     // Get direct references to relevant elements
-    const inlineBrowser = document.getElementById('inline-file-browser');
+    let inlineBrowser = document.getElementById('inline-file-browser'); // Changed const to let
     const browseBtn = document.getElementById('browse-btn');
     const toggleBtn = document.getElementById('toggle-browser-btn');
-    const dirList = document.getElementById('inline-directory-list');
+    let dirList = document.getElementById('inline-directory-list');
     
     // Ensure toggle button is visible
     if (toggleBtn) {
@@ -56,8 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (container) {
             container.appendChild(newBrowser);
             // Update our reference
-            inlineBrowser = newBrowser;
-            dirList = newBrowser.querySelector('.directory-list');
+            inlineBrowser = newBrowser; // This is now allowed
+            dirList = newBrowser.querySelector('.directory-list'); // Ensure dirList is also updated if inlineBrowser is new
             console.log("Created new browser element");
         } else {
             console.error("Could not find container for browser element");

@@ -7,6 +7,7 @@ import requests
 from typing import Dict, List, Optional, Tuple, Any, Callable # Add Callable
 import sys
 import importlib.util
+import copy # Add copy for deepcopy
 
 # Import live_translation_viewer if available
 try:
@@ -766,6 +767,10 @@ class SubtitleProcessor:
                 # Manually log the progress dict structure
                 self.logger.debug(f"Progress dict before translation: {json.dumps(progress_dict, default=str)}")
             
+            # Initialize line history in progress_dict
+            if progress_dict is not None:
+                progress_dict["line_history"] = []
+
             # Process each subtitle line
             for i, sub in enumerate(subs):
                 line_number = i + 1
@@ -780,7 +785,9 @@ class SubtitleProcessor:
                 # Initialize data for this line
                 translations = {}
                 first_pass = None
-                critic_result = None
+                critic_feedback_for_display: Optional[str] = None 
+                critic_revised_text_for_display: Optional[str] = None
+                critic_made_change_for_display: bool = False
                 final_result = None
                 
                 # Initialize timing dict for this line
@@ -794,8 +801,8 @@ class SubtitleProcessor:
                 
                 # Update progress dictionary *before* translation starts for this line
                 if progress_dict is not None:
-                    progress_dict["current_line"] = line_number
-                    progress_dict["status"] = "translating"  # Ensure status is set correctly
+                    # ... (existing progress_dict updates for "current") ...
+                    # Ensure 'current' is initialized
                     if "current" not in progress_dict:
                         progress_dict["current"] = {}
                     progress_dict["current"].update({
@@ -805,14 +812,10 @@ class SubtitleProcessor:
                         "first_pass": None,
                         "standard_critic": None,
                         "final": None,
-                        "timing": timing
+                        "timing": timing # Make sure timing is initialized before this
                     })
-                    # Manually log the line's progress data - important for debugging
-                    self.logger.debug(f"Line {line_number} progress before translation: {json.dumps(progress_dict['current'], default=str)}")
-                    # Save progress state after updating if there's a save function
-                    if save_progress_state_func:
-                        save_progress_state_func()
-                
+                    # ... (existing logging and save_progress_state_func call) ...
+
                 # Build context from surrounding subtitles
                 context_before = []
                 for j in range(max(0, i - context_size_before), i):
@@ -894,33 +897,29 @@ class SubtitleProcessor:
                     
                     # Check if critic returned a dict with score and feedback
                     if isinstance(critic_eval_result, dict):
-                        critic_feedback = critic_eval_result.get('feedback', 'No feedback provided.')
-                        # Check if critic provided a revised translation (optional feature, not standard)
-                        if 'revised_translation' in critic_eval_result:
-                             critic_result_str = critic_eval_result['revised_translation']
-                             critic_changed = critic_result_str != current_result
-                             self.logger.info(f"Critic suggested revision: {critic_result_str}")
+                        critic_feedback_for_display = critic_eval_result.get('feedback', 'No feedback provided.')
+                        if 'revised_translation' in critic_eval_result and critic_eval_result['revised_translation'] is not None:
+                             critic_revised_text_for_display = critic_eval_result['revised_translation']
+                             critic_made_change_for_display = critic_revised_text_for_display != current_result
+                             self.logger.info(f"Critic suggested revision: {critic_revised_text_for_display}")
                         else:
-                             # Standard critic just provides score/feedback
-                             self.logger.info(f"Critic evaluation: Score {critic_eval_result.get('score', 'N/A')}, Feedback: {critic_feedback}")
-                             critic_result_str = None # No revision provided
-                             critic_changed = False
+                             # Corrected logger call with proper string formatting for score
+                             self.logger.info(f"Critic evaluation: Score {critic_eval_result.get('score', 'N/A')}, Feedback: {critic_feedback_for_display}")
+                             critic_revised_text_for_display = None 
+                             critic_made_change_for_display = False
                     else:
-                        # Handle unexpected critic result format
                         self.logger.warning(f"Critic returned unexpected result format: {critic_eval_result}")
-                        critic_result_str = None
-                        critic_changed = False
-                        critic_feedback = f"Unexpected result: {critic_eval_result}"
+                        critic_revised_text_for_display = None
+                        critic_made_change_for_display = False
+                        critic_feedback_for_display = f"Unexpected result: {critic_eval_result}"
                     
-                    # Record critic timing
                     timing["critic"] = time.time() - critic_start_time
 
-                    # Update progress dict with critic result, timing, and action
                     if progress_dict is not None:
                         progress_dict["current"]["standard_critic"] = {
-                            "feedback": critic_feedback,
-                            "changed_translation": critic_changed,
-                            "result_after_critic": critic_result_str
+                            "feedback": critic_feedback_for_display,
+                            "changed_translation": critic_made_change_for_display,
+                            "result_after_critic": critic_revised_text_for_display
                         }
                         progress_dict["current"]["timing"]["critic"] = timing["critic"]
                         # Save progress state after critic evaluation if there's a save function
@@ -935,17 +934,14 @@ class SubtitleProcessor:
                             translations,
                             None, # current_result not shown yet
                             first_pass,
-                            critic_result_str # Display the string result or None
+                            critic_revised_text_for_display # Display the revised text or None
                         )
-                    # Fallback console print moved to the end
                     
-                    # Use critic result only if it's a valid string and different
-                    if critic_result_str and critic_changed:
-                        current_result = critic_result_str # Update the main result
+                    if critic_revised_text_for_display and critic_made_change_for_display:
+                        current_result = critic_revised_text_for_display 
                         self.logger.info("Using critic's revised translation.")
-                    elif critic_result_str:
+                    elif critic_revised_text_for_display:
                          self.logger.info("Critic agreed or provided same translation.")
-                    # If critic_result_str is None or not changed, we keep the previous current_result
                 
                 # Final result is the current result after all processing
                 final_result = current_result
@@ -973,11 +969,11 @@ class SubtitleProcessor:
                 if first_pass:
                     print(f"  First pass: \"{first_pass}\" ({timing['first_pass']:.2f}s)")
                 # Print critic feedback if available
-                if critic_feedback:
-                    change_indicator = " (REVISED)" if critic_changed and critic_result_str else ""
-                    print(f"  Critic: \"{critic_feedback}\"{change_indicator} ({timing['critic']:.2f}s)")
-                    if critic_result_str and critic_changed:
-                        print(f"    -> Revision: \"{critic_result_str}\"")
+                if critic_feedback_for_display: 
+                    change_indicator = " (REVISED)" if critic_made_change_for_display and critic_revised_text_for_display else ""
+                    print(f"  Critic: \"{critic_feedback_for_display}\"{change_indicator} ({timing['critic']:.2f}s)")
+                    if critic_revised_text_for_display and critic_made_change_for_display:
+                        print(f"    -> Revision: \"{critic_revised_text_for_display}\"")
                 # Print final result
                 if final_result:
                     print(f"  Final: \"{final_result}\" (Total: {timing['total']:.2f}s)")
@@ -991,15 +987,32 @@ class SubtitleProcessor:
                     self.logger.warning(f"Translation failed for line {line_number}, keeping original text: {original_text}")
                     sub.text = original_text # Keep original if final_result is None or empty
 
-            # Save translated subs
-            self.logger.info(f"Saving translated subtitles to {output_path}")
-            subs.save(output_path, encoding='utf-8')
-            self.logger.info(f"Saved translated subtitles to {output_path}")
-            
-            # Calculate overall process time
-            total_process_time = time.time() - start_time
-            
-            # Update final progress status
+                # Accumulate history for the current line
+                if progress_dict is not None:
+                    current_line_snapshot = copy.deepcopy(progress_dict.get("current", {}))
+                    # Ensure all data is present; 'current' should already have most of it
+                    current_line_snapshot['line_number'] = line_number # Redundant if already in 'current' but safe
+                    current_line_snapshot['original'] = original_text
+                    current_line_snapshot['suggestions'] = translations # From translation_service.translate
+                    current_line_snapshot['first_pass'] = first_pass # From translation_service.translate
+                    # Store detailed critic info for history
+                    current_line_snapshot['standard_critic'] = {
+                        "feedback": critic_feedback_for_display,
+                        "revised_text": critic_revised_text_for_display,
+                        "made_change": critic_made_change_for_display
+                    } if agent_critic_enabled and critic_service else None
+                    current_line_snapshot['final'] = final_result
+                    
+                    if "line_history" not in progress_dict: 
+                        progress_dict["line_history"] = []
+                    progress_dict["line_history"].append(current_line_snapshot)
+                    
+                    # Optionally, save progress more frequently if desired, or rely on existing saves
+                    if save_progress_state_func:
+                        save_progress_state_func()
+
+            # After loop, update overall status to completed (or error if applicable)
+            total_process_time = time.time() - start_time # Define total_process_time
             if progress_dict is not None:
                 progress_dict["status"] = "completed"
                 progress_dict["message"] = f"Translation completed for {os.path.basename(input_path)} in {total_process_time:.2f}s"
@@ -1013,8 +1026,9 @@ class SubtitleProcessor:
                 # Log final progress state
                 self.logger.debug(f"Translation complete. Final progress state: {json.dumps(progress_dict, default=str)}")
 
-            return True
-            
+            subs.save(output_path, encoding='utf-8')
+            self.logger.info(f"Successfully translated and saved: {output_path}")
+
         except Exception as e:
             self.logger.error(f"Error translating subtitle file {input_path}: {e}")
             import traceback
@@ -1023,7 +1037,8 @@ class SubtitleProcessor:
             if progress_dict is not None:
                 progress_dict["status"] = "failed"
                 progress_dict["message"] = f"Error translating subtitle: {e}"
-            return False
+                if save_progress_state_func:
+                    save_progress_state_func()
         finally:
             end_time = time.time()
             # Check if start_time was defined (it should be now)

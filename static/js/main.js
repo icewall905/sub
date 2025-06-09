@@ -5,6 +5,8 @@ let currentPath = '';
 let selectedDirectory = '';
 let bulkProgressInterval = null;
 let currentJobId = null; // Keep track of the current single translation job
+let currentLineHistory = []; // Store line history for the current job
+
 // Track expanded history items by their line_number - default to expanded
 let expandedHistoryItems = new Set();
 // Always expand all history items by default
@@ -17,6 +19,7 @@ let currentVideoPath = '';
 
 // Helper function to log debug messages
 function debug(message) {
+    // Corrected: Ensure template literals are properly formatted.
     console.log(`[DEBUG] ${message}`);
 }
 
@@ -91,75 +94,134 @@ document.addEventListener('DOMContentLoaded', function() {
     if (uploadForm) {
         uploadForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log("Form submitted, preparing to upload file");
+            console.log("Form submitted, attempting to process and send request.");
 
-            const fileInput = document.getElementById('subtitle-file');
-            const hostFilePath = document.getElementById('host-file-path').value;
+            try { // Add a top-level try-catch for the handler's synchronous part
+                const fileInput = document.getElementById('subtitle-file');
+                const hostFilePathInput = document.getElementById('host-file-path'); // Get the input element
+                const hostFilePath = hostFilePathInput ? hostFilePathInput.value : ''; // Get its value safely
 
-            // Check if we have either a file upload or a host file path
-            if (!fileInput.files.length && !hostFilePath) {
-                alert("Please select a subtitle file to translate");
-                return;
-            }
-
-            console.log("Using host file path:", hostFilePath);
-            console.log("Selected file:", fileInput.files.length ? fileInput.files[0].name : "None (using host file)");
-
-            const formData = new FormData();
-            
-            // If we have a host file path, add it to the form data
-            if (hostFilePath) {
-                formData.append('host_file_path', hostFilePath);
-            } else {
-                // Otherwise use the file upload
-                formData.append('file', fileInput.files[0]);
-            }
-            
-            formData.append('source_language', document.getElementById('source-language').value);
-            formData.append('target_language', document.getElementById('target-language').value);
-            
-            // Collect special word meanings and add to the form data if any exist
-            const specialMeanings = collectSpecialMeanings();
-            if (specialMeanings.length > 0) {
-                formData.append('special_meanings', JSON.stringify(specialMeanings));
-            }
-
-            const statusContainer = document.getElementById('status-container');
-            if (statusContainer) {
-                statusContainer.style.display = 'block';
-                // Clear previous live status on new upload
-                const liveStatusDisplay = document.getElementById('live-status-display');
-                if (liveStatusDisplay) {
-                    liveStatusDisplay.innerHTML = '<p>Initializing translation...</p>';
+                // Check if we have either a file upload or a host file path
+                if (!fileInput.files.length && !hostFilePath) {
+                    alert("Please select a subtitle file to translate or provide a host file path.");
+                    console.log("[DEBUG] Validation failed: No file selected and no host file path provided.");
+                    return;
                 }
-                console.log("Showing status container and initializing live display");
-            }
 
-            const resultContainer = document.getElementById('result-container');
-            if (resultContainer) resultContainer.style.display = 'none';
+                console.log("Using host file path:", hostFilePath);
+                console.log("Selected file:", fileInput.files.length ? fileInput.files[0].name : "None (using host file)");
 
-            fetch('/api/translate', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Translation job API response:", data);
-                if (data.job_id) {
-                    console.log("Job ID received:", data.job_id);
-                    pollJobStatus(data.job_id); // Start polling job status
-                    // No need to call updateLiveStatusDisplay here, interval handles it
+                const formData = new FormData();
+                
+                if (hostFilePath) {
+                    formData.append('host_file_path', hostFilePath);
+                } else if (fileInput.files.length > 0) { // Ensure files[0] exists
+                    formData.append('file', fileInput.files[0]);
                 } else {
-                    console.error("No job ID received:", data.message || "Unknown error");
-                    alert("Error: " + (data.message || "Failed to start translation job"));
-                    if (statusContainer) statusContainer.style.display = 'none'; // Hide status if start failed
+                    console.error("[DEBUG] Critical error: No file source available despite passing validation.");
+                    alert("Critical error: No file source identified. Please try again.");
+                    return;
                 }
-            })
-            .catch(error => {
-                console.error("Error starting translation:", error);
-                alert("Error: " + error.message);
-                 if (statusContainer) statusContainer.style.display = 'none'; // Hide status on error
-            });
+                
+                formData.append('source_language', document.getElementById('source-language').value);
+                formData.append('target_language', document.getElementById('target-language').value);
+                
+                console.log("[DEBUG] #upload-form submit: Collecting special meanings...");
+                const specialMeanings = collectSpecialMeanings();
+                console.log("[DEBUG] #upload-form submit: Collected special meanings:", JSON.stringify(specialMeanings));
+                if (specialMeanings && specialMeanings.length > 0) { // Added null check for specialMeanings
+                    const specialMeaningsJson = JSON.stringify(specialMeanings);
+                    formData.append('special_meanings', specialMeaningsJson);
+                    console.log("[DEBUG] #upload-form submit: Appended special_meanings to formData:", specialMeaningsJson);
+                } else {
+                    console.log("[DEBUG] #upload-form submit: No special meanings to append or specialMeanings is null/empty.");
+                }
+
+                currentLineHistory = [];
+                const viewHistoryBtn = document.getElementById('view-history-btn');
+                if (viewHistoryBtn) {
+                    viewHistoryBtn.style.display = 'none';
+                }
+
+                const statusContainer = document.getElementById('status-container');
+                if (statusContainer) {
+                    statusContainer.style.display = 'block';
+                    const liveStatusDisplay = document.getElementById('live-status-display');
+                    if (liveStatusDisplay) {
+                        liveStatusDisplay.innerHTML = '<p>Initializing translation...</p>';
+                    }
+                    console.log("Showing status container and initializing live display");
+                }
+
+                const resultContainer = document.getElementById('result-container');
+                if (resultContainer) resultContainer.style.display = 'none';
+
+                console.log("[DEBUG] #upload-form submit: Preparing to send POST request to /api/translate.");
+                console.log("[DEBUG] FormData entries to be sent:");
+                for (var pair of formData.entries()) {
+                    console.log(`[DEBUG] FormData: ${pair[0]} = ${pair[1]}`);
+                }
+
+                fetch('/api/translate', {
+                    method: 'POST',
+                    body: formData
+                    // IMPORTANT: Do NOT manually set 'Content-Type': 'multipart/form-data'.
+                    // The browser handles this automatically for FormData, including the boundary.
+                })
+                .then(response => {
+                    console.log("[DEBUG] /api/translate RAW response object:", response);
+                    console.log("[DEBUG] /api/translate response status:", response.status);
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            console.error(`[DEBUG] /api/translate non-OK response text (status ${response.status}): ${text}`);
+                            let errorMsg = `Server error: ${response.status} ${response.statusText}.`;
+                            try {
+                                const jsonError = JSON.parse(text);
+                                if (jsonError && jsonError.message) {
+                                    errorMsg += ` Message: ${jsonError.message}`;
+                                } else if (jsonError && jsonError.error) {
+                                    errorMsg += ` Error: ${jsonError.error}`;
+                                } else if (text) {
+                                    errorMsg += ` Details: ${text.substring(0, 200)}`;
+                                }
+                            } catch (e) {
+                                if (text) {
+                                     errorMsg += ` Details: ${text.substring(0,200)}`;
+                                }
+                            }
+                            throw new Error(errorMsg);
+                        }).catch(textError => {
+                            console.error("[DEBUG] Error processing non-OK response text:", textError);
+                            // Fallback error if response.text() or subsequent processing fails
+                            throw new Error(`Server error: ${response.status} ${response.statusText}. Failed to retrieve detailed error message.`);
+                        });
+                    }
+                    return response.json().then(data => ({ status: response.status, body: data }));
+                })
+                .then(({ status, body }) => {
+                    console.log("[DEBUG] /api/translate response JSON body:", body);
+                    if (body.job_id) {
+                        console.log("Job ID received:", body.job_id);
+                        pollJobStatus(body.job_id);
+                    } else {
+                        const errorMessage = body.message || body.error || "Unknown error, no job ID received.";
+                        console.error("[DEBUG] No job ID received from /api/translate. Message:", errorMessage);
+                        alert("Error: " + errorMessage);
+                        if (statusContainer) statusContainer.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error("[DEBUG] Error in fetch chain for /api/translate:", error);
+                    alert("Error during translation request: " + error.message);
+                    if (statusContainer) statusContainer.style.display = 'none';
+                });
+
+            } catch (syncError) {
+                console.error("[DEBUG] Synchronous error in uploadForm submit handler BEFORE fetch:", syncError);
+                alert("A client-side error occurred before sending the request: " + syncError.message);
+                const statusContainer = document.getElementById('status-container');
+                if (statusContainer) statusContainer.style.display = 'none';
+            }
         });
     } else {
         console.error("Upload form not found!");
@@ -173,10 +235,31 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.style.display = 'none';
         });
     }
+
+    // --- History Modal Handling ---
+    const historyModal = document.getElementById('history-modal');
+    const closeHistoryModalBtn = document.getElementById('close-history-modal-btn');
+    const viewHistoryBtnGlobal = document.getElementById('view-history-btn'); // Renamed to avoid conflict in pollJobStatus
+
+    if (closeHistoryModalBtn && historyModal) {
+        closeHistoryModalBtn.addEventListener('click', function() {
+            historyModal.style.display = 'none';
+        });
+    }
+
+    // Event listener for the initial view history button (if it exists before polling)
+    if (viewHistoryBtnGlobal && historyModal) {
+        viewHistoryBtnGlobal.addEventListener('click', function() {
+            populateAndShowHistoryModal();
+        });
+    }
     
     window.addEventListener('click', function(event) {
         if (event.target == modal && modal) {
             modal.style.display = 'none';
+        }
+        if (event.target == historyModal && historyModal) { // Close history modal on outside click
+            historyModal.style.display = 'none';
         }
     });
 
@@ -196,13 +279,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Always reload directory content
             const lastPath = localStorage.getItem('lastBrowsedPath') || '';
-            debug(`Browsing to directory: ${lastPath || 'root'}`);
+            debug(`Browsing to directory: ${lastPath || 'root'}`); // Ensured template literal is correct
             browseInlineDirectory(lastPath);
             
             // Check if browser is visible after changes
             const browser = document.getElementById('inline-file-browser');
             if (browser) {
-                debug(`Browser display state after click: ${getComputedStyle(browser).display}`);
+                debug(`Browser display state after click: ${getComputedStyle(browser).display}`); // Ensured template literal is correct
             }
         });
     } else {
@@ -318,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to load directories for the video file browser
     function loadVideoDirectories(path) {
-        debug(`Loading video directories for path: ${path}`);
+        debug(`Loading video directories for path: ${path}`); // Ensured template literal is correct
         currentVideoPath = path;
         
         // Use the cache if available
@@ -327,17 +410,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        fetch(`/api/browse_videos?path=${encodeURIComponent(path)}`)
+        fetch(`/api/browse_videos?path=${encodeURIComponent(path)}`) // Ensured template literal is correct
             .then(response => {
                 if (!response.ok) {
                     // Try to parse error message from JSON response
                     return response.json()
                         .then(data => {
-                            throw new Error(data.error || `Server error: ${response.status}`);
+                            throw new Error(data.error || `Server error: ${response.status}`); // Ensured template literal is correct
                         })
                         .catch(jsonError => {
                             // If not JSON, throw with status
-                            throw new Error(`Error ${response.status}: ${response.statusText}`);
+                            throw new Error(`Error ${response.status}: ${response.statusText}`); // Ensured template literal is correct
                         });
                 }
                 
@@ -377,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dirsHtml += `<div class="dir-item parent-dir" data-path="${data.parent_path}">
                 <span class="dir-icon">📁</span>
                 <span class="dir-name">..</span>
-            </div>`;
+            </div>`; // Ensured template literal is correct
         }
         
         // Add all directories
@@ -386,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 dirsHtml += `<div class="dir-item" data-path="${dir.path}">
                     <span class="dir-icon">📁</span>
                     <span class="dir-name">${dir.name}</span>
-                </div>`;
+                </div>`; // Ensured template literal is correct
             });
         } else if (!data.parent_path) {
             dirsHtml += '<div class="no-dirs">No directories found</div>';
@@ -409,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 filesHtml += `<div class="file-item" data-path="${file.path}">
                     <span class="file-icon">🎬</span>
                     <span class="file-name">${file.name}</span>
-                </div>`;
+                </div>`; // Ensured template literal is correct
             });
         } else {
             filesHtml = '<div class="no-files">No video files found</div>';
@@ -435,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedVideoPathSpan.title = filePath;
                 videoFileBrowser.style.display = 'none';
                 
-                debug(`Selected video file: ${filePath}`);
+                debug(`Selected video file: ${filePath}`); // Ensured template literal is correct
             });
         });
     }
@@ -485,23 +568,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         startVideoTranscription();
                     } else {
                         // Server is not reachable at all
-                        if(statusMessage) statusMessage.textContent = `Error: ${data.message}`;
+                        if(statusMessage) statusMessage.textContent = `Error: ${data.message}`; // Ensured template literal is correct
                         if(progressBar) progressBar.style.backgroundColor = '#ff4444';
                         if(liveStatusDisplay) liveStatusDisplay.innerHTML = `
                             <p class="error-message">Cannot connect to the transcription server at ${data.server_url}</p>
                             <p>Please check that the server is running and accessible from your network.</p>
                             <p>Error details: ${data.message}</p>
-                        `;
+                        `; // Ensured template literal is correct
                     }
                 })
                 .catch(error => {
                     console.error('Error checking server availability:', error);
-                    if(statusMessage) statusMessage.textContent = `Error checking server: ${error.message}`;
+                    if(statusMessage) statusMessage.textContent = `Error checking server: ${error.message}`; // Ensured template literal is correct
                     if(progressBar) progressBar.style.backgroundColor = '#ff4444';
                     if(liveStatusDisplay) liveStatusDisplay.innerHTML = `
                         <p class="error-message">Network error while checking server availability.</p>
                         <p>Please check your network connection and try again.</p>
-                    `;
+                    `; // Ensured template literal is correct
                 });
         });
     }
@@ -545,13 +628,13 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error starting transcription:', error);
-            if(statusMessage) statusMessage.textContent = `Error: ${error.message}`;
+            if(statusMessage) statusMessage.textContent = `Error: ${error.message}`; // Ensured template literal is correct
             const progressBar = document.getElementById('progress-bar');
             if(progressBar) progressBar.style.backgroundColor = '#ff4444';
             if(liveStatusDisplay) liveStatusDisplay.innerHTML = `
                 <p class="error-message">Error starting transcription:</p>
                 <p>${error.message}</p>
-            `;
+            `; // Ensured template literal is correct
         });
     }
 
@@ -563,105 +646,186 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Poll for overall job completion status (distinct from live line-by-line status)
 function pollJobStatus(jobId) {
-    console.log(`[Job ${jobId}] Starting to poll job status.`);
     currentJobId = jobId; // Store the current job ID
+    console.log("Polling status for job ID:", jobId);
 
-    function checkStatus() {
-        fetch(`/api/job_status/${jobId}`)
+    // Clear any existing interval for bulk progress if it's running
+    if (bulkProgressInterval) {
+        clearInterval(bulkProgressInterval);
+        bulkProgressInterval = null;
+    }
+    
+    // Reset UI elements for a new job
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const statusMessage = document.getElementById('status-message');
+    const resultContainer = document.getElementById('result-container');
+    const liveStatusDisplay = document.getElementById('live-status-display');
+    const viewHistoryBtn = document.getElementById('view-history-btn'); // This is the button inside resultContainer
+
+
+    if(progressBar) progressBar.style.width = '0%';
+    if(progressText) progressText.textContent = '0%';
+    if(statusMessage) statusMessage.textContent = 'Initializing...';
+    if(resultContainer) resultContainer.style.display = 'none';
+    if(liveStatusDisplay) liveStatusDisplay.innerHTML = '<p>Waiting for job to start...</p>'; // Clear previous live status
+    // Hide the button that might be there from a previous job, it will be re-added if needed
+    if(viewHistoryBtn) viewHistoryBtn.style.display = 'none'; 
+
+    // Start a new interval for this job
+    const intervalId = setInterval(() => {
+        fetch(`/api/job_status/${jobId}`) // Ensured template literal is correct
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status}`); // Ensured template literal is correct
                 }
                 return response.json();
             })
             .then(data => {
-                console.log(`[Job ${jobId}] Status:`, data);
-                const statusMessageEl = document.getElementById('status-message');
-                const progressBarEl = document.getElementById('progress-bar');
-                const progressTextEl = document.getElementById('progress-text'); // Changed from progress-percent
+                console.log("Job status data:", data);
+                if(progressBar) progressBar.style.width = data.progress + '%';
+                if(progressText) progressText.textContent = data.progress + '%';
+                if(statusMessage) statusMessage.textContent = data.message || 'Processing...';
 
-                // Update general job status message first
-                if(statusMessageEl) statusMessageEl.textContent = data.message || `Job ${data.status}.`;
+                // Store line history from the polled data
+                if (data.line_history && Array.isArray(data.line_history)) {
+                    currentLineHistory = data.line_history;
+                }
 
-                if (data.status === 'completed' || data.status === 'failed' || data.status === 'error') {
-                    if (progressBarEl) progressBarEl.style.width = (data.status === 'completed' ? '100%' : '0%');
-                    if (progressTextEl) progressTextEl.textContent = (data.status === 'completed' ? '100%' : '0%');
-                    
-                    // Stop polling if job is done or failed
-                    console.log(`[Job ${jobId}] Polling stopped. Status: ${data.status}`);
-                    // Refresh archive on completion or failure to reflect new files or states
-                    loadSubtitleArchive(); 
-                    return; 
-                } else if (data.status === 'processing' || data.status === 'transcribing' || data.status === 'queued') {
-                    // If job is ongoing (processing, transcribing, or even queued and about to start), 
-                    // fetch detailed transcription progress.
-                    fetch(`/api/transcription_progress/${jobId}`)
-                        .then(response => {
-                            if (!response.ok) {
-                                // If the job ID is not found, it might be an old job or an error.
-                                if (response.status === 404) {
-                                    console.warn(`[Job ${jobId}] Transcription progress not found (404). Job might be initializing or completed elsewhere.`);
-                                    // Keep general status message from job_status
-                                    return null; // Or a default object: { percent: 0, message: "Waiting for progress..."}
+                if (data.status === 'completed' || data.status === 'failed') {
+                    clearInterval(intervalId); // Stop polling
+                    console.log("Job finished, clearing interval for job ID:", jobId);
+                    if (data.status === 'completed') {
+                        if(progressBar) progressBar.style.backgroundColor = '#28a745'; // Green for success
+                        if(statusMessage) statusMessage.textContent = data.message || 'Translation completed!';
+                        if(resultContainer) {
+                            resultContainer.style.display = 'block';
+                            // IMPORTANT: Ensure the button ID here is 'view-history-btn' to match the one in index.html
+                            resultContainer.innerHTML = `
+                                <p><strong>Translation successful!</strong></p>
+                                <p>Download your translated file:</p>
+                                <a href="/api/download/${data.job_id}/${encodeURIComponent(data.output_filename)}" class="btn btn-success" download>Download ${data.output_filename}</a>
+                                <button type="button" id="view-history-btn" class="btn btn-info btn-sm" style="margin-top: 0.5rem; display: none;">View Detailed History</button>
+                            `; // Ensured template literal is correct
+                            // Re-attach event listener for the new history button
+                            const newViewHistoryBtn = document.getElementById('view-history-btn');
+                            if (newViewHistoryBtn && document.getElementById('history-modal')) {
+                                newViewHistoryBtn.addEventListener('click', function() {
+                                    populateAndShowHistoryModal();
+                                });
+                                // Show button if history exists
+                                if (currentLineHistory.length > 0) {
+                                    newViewHistoryBtn.style.display = 'inline-block';
                                 }
-                                throw new Error(`HTTP error! status: ${response.status}`);
                             }
-                            return response.json();
-                        })
-                        .then(progressData => {
-                            if (progressData) { // Check if progressData is not null
-                                console.log(`[Job ${jobId}] Transcription Progress:`, progressData);
-                                if (statusMessageEl) {
-                                    // Prefer the more specific message from transcription_progress if available
-                                    statusMessageEl.textContent = progressData.message || data.message || 'Processing...';
-                                }
-                                if (progressBarEl) {
-                                    progressBarEl.style.width = `${progressData.percent || 0}%`;
-                                    progressBarEl.style.backgroundColor = '#28a745'; // Green for progress
-                                }
-                                if (progressTextEl) {
-                                    progressTextEl.textContent = `${progressData.percent || 0}%`;
-                                }
-                            } else {
-                                // Handle case where progressData is null (e.g., 404 handled above)
-                                // Keep the general status message from job_status
-                                if (progressBarEl) progressBarEl.style.width = `${data.progress || 0}%`; // Fallback to job's overall progress
-                                if (progressTextEl) progressTextEl.textContent = `${data.progress || 0}%`;
-                            }
-                        })
-                        .catch(error => {
-                            console.error(`[Job ${jobId}] Error fetching transcription progress:`, error);
-                            // Keep the general status message from job_status if detailed progress fails
-                            if(statusMessageEl) statusMessageEl.textContent = data.message || 'Processing...';
-                            if (progressBarEl) progressBarEl.style.backgroundColor = '#ffc107'; // Yellow for warning/error in fetch
-                        });
-                    // Continue polling for the main job status
-                    setTimeout(checkStatus, 2000);
-                } else {
-                     console.warn(`[Job ${jobId}] Unexpected status: ${data.status}. Message: ${data.message}`);
-                     if(statusMessageEl) statusMessageEl.textContent = data.message || 'Processing...';
-                     // Still poll, but maybe less frequently or log this state
-                     setTimeout(checkStatus, 5000); 
+                        }
+                        loadSubtitleArchive(); // Refresh archive list
+                    } else { // Failed
+                        if(progressBar) progressBar.style.backgroundColor = '#dc3545'; // Red for failure
+                        if(statusMessage) statusMessage.textContent = data.message || 'Translation failed.';
+                        if(resultContainer) {
+                             resultContainer.style.display = 'block';
+                             resultContainer.innerHTML = `<p class="error-message"><strong>Translation failed:</strong> ${data.message || 'Unknown error'}</p>`; // Ensured template literal is correct
+                        }
+                    }
+                    // Show history button (if it was created and history exists), even on failure
+                    const finalViewHistoryBtn = document.getElementById('view-history-btn');
+                    if (finalViewHistoryBtn && currentLineHistory.length > 0) {
+                        finalViewHistoryBtn.style.display = 'inline-block';
+                    }
+                } else if (data.status === 'processing' || data.status === 'translating') {
+                    // Live status updates are handled by updateLiveStatusDisplay
                 }
             })
             .catch(error => {
-                console.error(`[Job ${jobId}] Error checking job status:`, error);
-                const statusMessageEl = document.getElementById('status-message');
-                if(statusMessageEl) statusMessageEl.textContent = 'Error checking job status. Retrying...';
-                const progressBarEl = document.getElementById('progress-bar');
-                if (progressBarEl) progressBarEl.style.backgroundColor = '#dc3545'; // Red for error
-                
-                // Don't stop polling on network errors, just wait longer
-                setTimeout(checkStatus, 5000);
+                console.error('Error fetching job status:', error);
+                if(statusMessage) statusMessage.textContent = 'Error fetching status. Please check console.';
+                if(progressBar) progressBar.style.backgroundColor = '#ffc107'; // Yellow for error in polling
+                clearInterval(intervalId); // Stop polling on error
+                console.log("Error in polling, clearing interval for job ID:", jobId);
             });
+    }, 2000); // Poll every 2 seconds
+}
+
+function populateAndShowHistoryModal() {
+    const historyModal = document.getElementById('history-modal');
+    const historyModalContent = document.getElementById('history-modal-content');
+
+    if (!historyModal || !historyModalContent) {
+        console.error("History modal elements not found!");
+        return;
     }
 
-    // Start the first check
-    checkStatus();
+    if (currentLineHistory.length === 0) {
+        historyModalContent.innerHTML = '<p>No detailed history available for this translation.</p>';
+    } else {
+        let htmlContent = '<dl class="history-list">';
+        currentLineHistory.forEach(item => {
+            htmlContent += `<dt>Line ${item.line_number}</dt>`; // Ensured template literal is correct
+            htmlContent += '<dd>';
+            htmlContent += `<strong>Original:</strong> <pre>${escapeHtml(item.original)}</pre>`; // Ensured template literal is correct
+            
+            if (item.suggestions && Object.keys(item.suggestions).length > 0) {
+                htmlContent += '<strong>Suggestions:</strong><ul>';
+                for (const [service, text] of Object.entries(item.suggestions)) {
+                    htmlContent += `<li><em>${escapeHtml(service)}:</em> <pre>${escapeHtml(text)}</pre></li>`; // Ensured template literal is correct
+                }
+                htmlContent += '</ul>';
+            } else {
+                htmlContent += '<strong>Suggestions:</strong> <p>None provided.</p>';
+            }
+
+            htmlContent += `<strong>First Pass:</strong> <pre>${item.first_pass ? escapeHtml(item.first_pass) : 'N/A'}</pre>`; // Ensured template literal is correct
+
+            if (item.standard_critic) {
+                htmlContent += '<strong>Critic Review:</strong>';
+                htmlContent += '<ul>';
+                htmlContent += `<li><em>Feedback:</em> <pre>${escapeHtml(item.standard_critic.feedback)}</pre></li>`; // Ensured template literal is correct
+                if (item.standard_critic.made_change) {
+                    htmlContent += `<li><em>Revised Text:</em> <pre>${escapeHtml(item.standard_critic.revised_text)}</pre></li>`; // Ensured template literal is correct
+                    htmlContent += '<li><em>Critic Made Change:</em> Yes</li>';
+                } else {
+                    htmlContent += '<li><em>Critic Made Change:</em> No</li>';
+                }
+                htmlContent += '</ul>';
+            } else {
+                htmlContent += '<strong>Critic Review:</strong> <p>Not available or not enabled.</p>';
+            }
+
+            htmlContent += `<strong>Final Translation:</strong> <pre>${item.final ? escapeHtml(item.final) : 'N/A'}</pre>`; // Ensured template literal is correct
+
+            if (item.timing) {
+                htmlContent += '<strong>Timing (seconds):</strong><ul>';
+                if (typeof item.timing.preprocessing === 'number') htmlContent += `<li><em>Preprocessing:</em> ${item.timing.preprocessing.toFixed(3)}s</li>`; // Ensured template literal is correct
+                if (typeof item.timing.first_pass === 'number') htmlContent += `<li><em>First Pass:</em> ${item.timing.first_pass.toFixed(3)}s</li>`; // Ensured template literal is correct
+                if (typeof item.timing.critic === 'number') htmlContent += `<li><em>Critic:</em> ${item.timing.critic.toFixed(3)}s</li>`; // Ensured template literal is correct
+                if (typeof item.timing.total === 'number') htmlContent += `<li><em>Total Line Time:</em> ${item.timing.total.toFixed(3)}s</li>`; // Ensured template literal is correct
+                htmlContent += '</ul>';
+            }
+            htmlContent += '</dd>';
+        });
+        htmlContent += '</dl>';
+        historyModalContent.innerHTML = htmlContent;
+    }
+
+    historyModal.style.display = 'block';
+}
+
+function escapeHtml(unsafe) {
+    if (unsafe === null || typeof unsafe === 'undefined') {
+        return '';
+    }
+    return unsafe
+         .toString()
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
 }
 
 
-// Update the live status display based on /api/live_status
+// --- Live Status Updates ---
 function updateLiveStatusDisplay() {
     fetch('/api/live_status')
         .then(response => response.json())
@@ -728,12 +892,12 @@ function updateLiveStatusDisplay() {
                     statusContainer.style.display = 'block';
                 }
 
-                let statusHTML = `<div class="current-translation">`;
+                let statusHTML = `<div class="current-translation">`; // Ensured template literal is correct
 
                 // Filename
                 const filename = data.filename || data.current_file || '';
                 if (filename) { 
-                    statusHTML += `<p><strong>File:</strong> ${filename}</p>`;
+                    statusHTML += `<p><strong>File:</strong> ${filename}</p>`; // Ensured template literal is correct
                 }
 
                 // Progress (Line number / Total)
@@ -747,14 +911,14 @@ function updateLiveStatusDisplay() {
                         <div class="progress-bar-container">
                             <div class="progress-bar" style="width: ${percent}%"></div>
                         </div>
-                    `;
+                    `; // Ensured template literal is correct
                 } else if (currentLine > 0) {
-                    statusHTML += `<p><strong>Processing Line:</strong> ${currentLine}</p>`;
+                    statusHTML += `<p><strong>Processing Line:</strong> ${currentLine}</p>`; // Ensured template literal is correct
                 }
 
                 // Current line details
-                statusHTML += `<div class="translation-item current">`;
-                statusHTML += `<h3>Current Line</h3>`;
+                statusHTML += `<div class="translation-item current">`; // Ensured template literal is correct
+                statusHTML += `<h3>Current Line</h3>`; // Ensured template literal is correct
                 
                 // Extract current line details from either data.current or directly from data
                 const original = data.current ? data.current.original : data.original;
@@ -765,15 +929,15 @@ function updateLiveStatusDisplay() {
                 const timing = data.current && data.current.timing ? data.current.timing : (data.timing || {});
                 
                 if (original) {
-                    statusHTML += `<p><strong>Original:</strong> ${original}</p>`;
+                    statusHTML += `<p><strong>Original:</strong> ${original}</p>`; // Ensured template literal is correct
                 }
                 
                 if (firstPass) {
                     let timingInfo = '';
                     if (timing.first_pass) {
-                        timingInfo = ` <span class="timing">(${timing.first_pass.toFixed(2)}s)</span>`;
+                        timingInfo = ` <span class="timing">(${timing.first_pass.toFixed(2)}s)</span>`; // Ensured template literal is correct
                     }
-                    statusHTML += `<p><strong>First Pass:</strong> ${firstPass}${timingInfo}</p>`;
+                    statusHTML += `<p><strong>First Pass:</strong> ${firstPass}${timingInfo}</p>`; // Ensured template literal is correct
                 }
                 
                 if (critic) {
@@ -781,17 +945,17 @@ function updateLiveStatusDisplay() {
                     let actionInfo = '';
                     
                     if (timing.critic) {
-                        timingInfo = ` <span class="timing">(${timing.critic.toFixed(2)}s)</span>`;
+                        timingInfo = ` <span class="timing">(${timing.critic.toFixed(2)}s)</span>`; // Ensured template literal is correct
                     }
                     
                     // Critic feedback if available
                     if (data.critic_action && data.critic_action.feedback) {
-                        actionInfo = `<div class="critic-feedback"><em>${data.critic_action.feedback}</em></div>`;
+                        actionInfo = `<div class="critic-feedback"><em>${data.critic_action.feedback}</em></div>`; // Ensured template literal is correct
                     } else if (data.current && data.current.critic_action && data.current.critic_action.feedback) {
-                        actionInfo = `<div class="critic-feedback"><em>${data.current.critic_action.feedback}</em></div>`;
+                        actionInfo = `<div class="critic-feedback"><em>${data.current.critic_action.feedback}</em></div>`; // Ensured template literal is correct
                     }
                     
-                    statusHTML += `<p><strong>Critic:</strong> ${critic} ${criticChanged ? '<span class="improved">(Improved)</span>' : ''}${timingInfo}</p>`;
+                    statusHTML += `<p><strong>Critic:</strong> ${critic} ${criticChanged ? '<span class="improved">(Improved)</span>' : ''}${timingInfo}</p>`; // Ensured template literal is correct
                     statusHTML += actionInfo;
                 }
                 
@@ -800,19 +964,19 @@ function updateLiveStatusDisplay() {
                 if (finalToShow) {
                     let timingInfo = '';
                     if (timing.total) {
-                        timingInfo = ` <span class="timing">(Total: ${timing.total.toFixed(2)}s)</span>`;
+                        timingInfo = ` <span class="timing">(Total: ${timing.total.toFixed(2)}s)</span>`; // Ensured template literal is correct
                     }
                     
                     // Include critic feedback in parentheses after the final translation if available
                     let feedbackInfo = '';
                     if (critic_changed && data.current && data.current.critic_action && data.current.critic_action.feedback) {
-                        feedbackInfo = ` <span class="critic-comment">(${data.current.critic_action.feedback})</span>`;
+                        feedbackInfo = ` <span class="critic-comment">(${data.current.critic_action.feedback})</span>`; // Ensured template literal is correct
                     }
                     
-                    statusHTML += `<p><strong>Current Best:</strong> ${finalToShow}${feedbackInfo}${timingInfo}</p>`;
+                    statusHTML += `<p><strong>Current Best:</strong> ${finalToShow}${feedbackInfo}${timingInfo}</p>`; // Ensured template literal is correct
                 }
-                statusHTML += `</div>`; // End translation-item
-                statusHTML += `</div>`; // End current-translation
+                statusHTML += `</div>`; // End translation-item // Ensured template literal is correct
+                statusHTML += `</div>`; // End current-translation // Ensured template literal is correct
 
                 // Process history data
                 const processedLines = data.processed_lines || 
@@ -822,13 +986,13 @@ function updateLiveStatusDisplay() {
                 if (processedLines.length > 0) {
                     statusHTML += `<div class="history-section">
                         <h3>Recent Translation History</h3>
-                        <div class="history-container" id="history-container">`;
+                        <div class="history-container" id="history-container">`; // Ensured template literal is correct
                     
                     // Show the history items in reverse order (newest first)
                     processedLines.slice().reverse().forEach((line, index) => {
                         let timingInfo = '';
                         if (line.timing && line.timing.total) {
-                            timingInfo = ` <span class="timing">(${line.timing.total.toFixed(2)}s)</span>`;
+                            timingInfo = ` <span class="timing">(${line.timing.total.toFixed(2)}s)</span>`; // Ensured template literal is correct
                         }
                         
                         const lineNum = line.line_number;
@@ -842,15 +1006,15 @@ function updateLiveStatusDisplay() {
                                     ${timingInfo}
                                 </div>
                                 <div class="history-content" id="history-content-${lineNum}" style="display: ${isExpanded ? 'block' : 'none'};">
-                                    <p><strong>Original:</strong> ${line.original || ''}</p>`;
+                                    <p><strong>Original:</strong> ${line.original || ''}</p>`; // Ensured template literal is correct
                                     
                         if (line.first_pass) {
-                            statusHTML += `<p><strong>First Pass:</strong> ${line.first_pass || ''}</p>`;
+                            statusHTML += `<p><strong>First Pass:</strong> ${line.first_pass || ''}</p>`; // Ensured template literal is correct
                         }
                         
                         if (line.critic || line.standard_critic) {
                             const criticText = line.critic || line.standard_critic;
-                            statusHTML += `<p><strong>Critic:</strong> ${criticText} ${line.critic_changed ? '<span class="improved">(Improved)</span>' : ''}</p>`;
+                            statusHTML += `<p><strong>Critic:</strong> ${criticText} ${line.critic_changed ? '<span class="improved">(Improved)</span>' : ''}</p>`; // Ensured template literal is correct
                         }
                         
                         // Always show final translation
@@ -859,15 +1023,15 @@ function updateLiveStatusDisplay() {
                         // Include critic feedback in parentheses after the final translation if available
                         let feedbackInfo = '';
                         if (line.critic_changed && line.critic_action && line.critic_action.feedback) {
-                            feedbackInfo = ` <span class="critic-comment">(${line.critic_action.feedback})</span>`;
+                            feedbackInfo = ` <span class="critic-comment">(${line.critic_action.feedback})</span>`; // Ensured template literal is correct
                         }
                         
                         statusHTML += `<p><strong>Final:</strong> ${lineFinal}${feedbackInfo}</p>
                                 </div>
-                            </div>`;
+                            </div>`; // Ensured template literal is correct
                     });
                     
-                    statusHTML += `</div></div>`; // End history-container and history-section
+                    statusHTML += `</div></div>`; // End history-container and history-section // Ensured template literal is correct
                 }
 
                 // Update the DOM with our generated HTML
@@ -882,7 +1046,7 @@ function updateLiveStatusDisplay() {
                 if (statusContainer && statusContainer.style.display === 'none') {
                     statusContainer.style.display = 'block';
                 }
-                liveStatusDisplay.innerHTML = `<p>Initializing translation, please wait...</p>`;
+                liveStatusDisplay.innerHTML = `<p>Initializing translation, please wait...</p>`; // Ensured template literal is correct
                 liveStatusDisplay.style.display = 'block';
                 
                 // Check for progress data and manually trigger a progress check
@@ -906,14 +1070,14 @@ function updateLiveStatusDisplay() {
             } else if (data.status === 'idle' || data.status === 'completed' || data.status === 'failed') {
                 // Show appropriate waiting message based on status
                 if (!currentJobId && !window.bulkTranslationActive) { 
-                    liveStatusDisplay.innerHTML = `<p>Waiting for translation to start...</p>`;
+                    liveStatusDisplay.innerHTML = `<p>Waiting for translation to start...</p>`; // Ensured template literal is correct
                 } else {
-                    liveStatusDisplay.innerHTML = `<p>Waiting for next line data...</p>`;
+                    liveStatusDisplay.innerHTML = `<p>Waiting for next line data...</p>`; // Ensured template literal is correct
                 }
             } else {
                 // Default fallback
                 if (!currentJobId && !window.bulkTranslationActive) {
-                    liveStatusDisplay.innerHTML = `<p>Waiting for translation to start...</p>`;
+                    liveStatusDisplay.innerHTML = `<p>Waiting for translation to start...</p>`; // Ensured template literal is correct
                 }
             }
         })
@@ -921,7 +1085,7 @@ function updateLiveStatusDisplay() {
             console.error("Error fetching live status:", error);
             const liveStatusDisplay = document.getElementById('live-status-display');
             if (liveStatusDisplay) {
-                liveStatusDisplay.innerHTML = `<p class="error">Error fetching live status updates.</p>`;
+                liveStatusDisplay.innerHTML = `<p class="error">Error fetching live status updates.</p>`; // Ensured template literal is correct
             }
         });
 }
@@ -936,7 +1100,7 @@ function setupHistoryItemEventHandlers() {
             if (expandBtn) {
                 const lineNum = parseInt(expandBtn.getAttribute('data-line-number'));
                 if (!isNaN(lineNum)) {
-                    const historyContent = document.getElementById(`history-content-${lineNum}`);
+                    const historyContent = document.getElementById(`history-content-${lineNum}`); // Ensured template literal is correct
                     if (historyContent) {
                         // Toggle display state
                         const isVisible = historyContent.style.display !== 'none';
@@ -967,7 +1131,7 @@ function setupHistoryItemEventHandlers() {
             historyItems.forEach(item => {
                 const lineNum = parseInt(item.getAttribute('data-line-number'));
                 if (!isNaN(lineNum)) {
-                    const content = document.getElementById(`history-content-${lineNum}`);
+                    const content = document.getElementById(`history-content-${lineNum}`); // Ensured template literal is correct
                     const expandBtn = item.querySelector('.expand-btn');
                     
                     if (content && expandBtn) {
@@ -1036,7 +1200,7 @@ function renderSubtitleArchive(files) {
                     <button class="delete" data-file="${file}">Delete</button>
                 </div>
             </li>
-        `;
+        `; // Ensured template literal is correct
     });
     html += '</ul>';
     subtitleArchiveContainer.innerHTML = html;
@@ -1045,14 +1209,14 @@ function renderSubtitleArchive(files) {
 // Make download/delete/view functions globally accessible
 // These are now primarily triggered by event delegation in DOMContentLoaded
 window.downloadSubtitle = function(filename) {
-    window.location.href = `/download_sub/${encodeURIComponent(filename)}`;
+    window.location.href = `/download_sub/${encodeURIComponent(filename)}`; // Ensured template literal is correct
 };
 
 window.deleteSubtitle = function(filename) {
-    if (confirm(`Are you sure you want to delete ${filename}?`)) {
-        fetch(`/api/delete_sub/${encodeURIComponent(filename)}`, { method: 'DELETE' })
+    if (confirm(`Are you sure you want to delete ${filename}?`)) { // Ensured template literal is correct
+        fetch(`/api/delete_sub/${encodeURIComponent(filename)}`, { method: 'DELETE' }) // Ensured template literal is correct
             .then(response => response.json())
-            .then(data => {
+            .then(data => { // Corrected: added parentheses around data
                 if (data.success) {
                     loadSubtitleArchive(); // Reload the archive
                 } else {
@@ -1099,7 +1263,7 @@ window.viewSubtitle = function(fileIdOrName) {
 };
 
 window.viewTranslationReport = function(filename) {
-    console.log(`Opening translation report for: ${filename}`);
+    console.log(`Opening translation report for: ${filename}`); // Ensured template literal is correct
     
     // Create or get the report modal
     let reportModal = document.getElementById('report-modal');
@@ -1118,7 +1282,7 @@ window.viewTranslationReport = function(filename) {
                 <div id="report-loading">Loading report data...</div>
                 <div id="report-content" class="report-content"></div>
             </div>
-        `;
+        `; // Ensured template literal is correct
         
         // Add modal to the body
         document.body.appendChild(reportModal);
@@ -1150,7 +1314,7 @@ window.viewTranslationReport = function(filename) {
     if (reportContent) reportContent.innerHTML = '';
     
     // Fetch the translation report data
-    fetch(`/api/translation_report/${encodeURIComponent(filename)}`)
+    fetch(`/api/translation_report/${encodeURIComponent(filename)}`) // Ensured template literal is correct
         .then(response => response.json())
         .then(data => {
             console.log('Received translation report data:', data);
@@ -1158,7 +1322,7 @@ window.viewTranslationReport = function(filename) {
             
             if (data.success) {
                 // Set the title
-                if (reportTitle) reportTitle.textContent = `Translation Report: ${data.filename}`;
+                if (reportTitle) reportTitle.textContent = `Translation Report: ${data.filename}`; // Ensured template literal is correct
                 
                 // Build the report HTML
                 let reportHTML = `
@@ -1215,7 +1379,7 @@ window.viewTranslationReport = function(filename) {
                                 <div class="subtitle-time">${sample.time}</div>
                                 <div class="subtitle-text">${sample.text}</div>
                             </div>
-                        `;
+                        `; // Ensured template literal is correct
                     });
                     
                     reportHTML += `
@@ -1231,7 +1395,7 @@ window.viewTranslationReport = function(filename) {
                             <h3>Content Preview</h3>
                             <pre class="content-preview">${data.content_preview}</pre>
                         </div>
-                    `;
+                    `; // Ensured template literal is correct
                 }
                 
                 // Display the report
@@ -1245,7 +1409,7 @@ window.viewTranslationReport = function(filename) {
                             <p>Error retrieving translation report:</p>
                             <p>${data.message || 'Unknown error'}</p>
                         </div>
-                    `;
+                    `; // Ensured template literal is correct
                 }
             }
         })
@@ -1259,7 +1423,7 @@ window.viewTranslationReport = function(filename) {
                         <p>Network error while trying to fetch the translation report.</p>
                         <p>${error.message}</p>
                     </div>
-                `;
+                `; // Ensured template literal is correct
             }
         });
 };
@@ -1306,17 +1470,17 @@ function loadDirectories(path) {
         return;
     }
 
-    fetch(`/api/browse_dirs?path=${encodeURIComponent(path)}`)
+    fetch(`/api/browse_dirs?path=${encodeURIComponent(path)}`) // Ensured template literal is correct
         .then(response => {
             if (!response.ok) {
                 // Try to parse error message from JSON response
                 return response.json()
                     .then(data => {
-                        throw new Error(data.error || `Server error: ${response.status}`);
+                        throw new Error(data.error || `Server error: ${response.status}`); // Ensured template literal is correct
                     })
                     .catch(jsonError => {
                         // If not JSON, throw with status
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                        throw new Error(`Error ${response.status}: ${response.statusText}`); // Ensured template literal is correct
                     });
             }
             
@@ -1329,22 +1493,17 @@ function loadDirectories(path) {
             return response.json();
         })
         .then(data => {
-            if (data.error) {
-                alert(data.error);
-                return;
-            }
-
             currentPath = data.current_path;
-            currentPathDisplay.textContent = `Current: ${currentPath || '/'}`; // Show '/' for root
+            currentPathDisplay.textContent = `Current: ${currentPath || '/'}`; // Ensured template literal is correct
 
             let html = '';
             if (data.parent_path !== null && data.parent_path !== undefined) { // Check parent path exists
-                html += `<li class="directory-item up-level" data-path="${data.parent_path}">.. (Up)</li>`;
+                html += `<li class="directory-item up-level" data-path="${data.parent_path}">.. (Up)</li>`; // Ensured template literal is correct
             }
 
             if (data.directories && data.directories.length > 0) {
                 data.directories.forEach(dir => {
-                    html += `<li class="directory-item" data-path="${dir.path}">${dir.name}/</li>`;
+                    html += `<li class="directory-item" data-path="${dir.path}">${dir.name}/</li>`; // Ensured template literal is correct
                 });
             } else if (!data.parent_path && (!data.directories || data.directories.length === 0)) { // Only show if no parent and no dirs
                  html += '<li class="empty-message">No subdirectories found</li>';
@@ -1414,7 +1573,7 @@ function startBulkTranslation(directory) {
             if (bulkProgressInterval) clearInterval(bulkProgressInterval);
             bulkProgressInterval = setInterval(checkBulkProgress, 2000); // Check every 2 seconds
         } else {
-            bulkStatusMessage.textContent = `Error: ${data.error || 'Failed to start bulk translation'}`;
+            bulkStatusMessage.textContent = `Error: ${data.error || 'Failed to start bulk translation'}`; // Ensured template literal is correct
         }
     })
     .catch(error => {
@@ -1445,11 +1604,11 @@ function checkBulkProgress() {
 
             if (data.total_files > 0) {
                 const progress = Math.round((data.done_files / data.total_files) * 100);
-                bulkProgressBar.style.width = `${progress}%`;
-                bulkProgressText.textContent = `${progress}%`;
+                bulkProgressBar.style.width = `${progress}%`; // Ensured template literal is correct
+                bulkProgressText.textContent = `${progress}%`; // Ensured template literal is correct
             } else {
-                 bulkProgressBar.style.width = `0%`; // Reset if no total files yet
-                 bulkProgressText.textContent = `0%`;
+                 bulkProgressBar.style.width = `0%`; // Ensured template literal is correct
+                 bulkProgressText.textContent = `0%`; // Ensured template literal is correct
             }
 
             // Force update of live translation status display if there's line-by-line data
@@ -1474,13 +1633,13 @@ function checkBulkProgress() {
                      bulkProgressBar.style.width = '100%';
                      bulkProgressText.textContent = '100%';
                      if (data.zip_path) {
-                        downloadZipLink.href = `/download-zip?temp=${encodeURIComponent(data.zip_path)}`;
+                        downloadZipLink.href = `/download-zip?temp=${encodeURIComponent(data.zip_path)}`; // Ensured template literal is correct
                         bulkDownloadLink.style.display = 'block';
                     }
                     loadSubtitleArchive(); // Refresh archive
                 } else {
                     // Failed state already covered by message update
-                     bulkStatusMessage.textContent = `Error: ${data.message || 'Bulk translation failed'}`;
+                     bulkStatusMessage.textContent = `Error: ${data.message || 'Bulk translation failed'}`; // Ensured template literal is correct
                 }
             }
         })
@@ -1489,316 +1648,6 @@ function checkBulkProgress() {
             // Optionally update status message on error
             // bulkStatusMessage.textContent = 'Error checking progress.';
             // Consider stopping polling after multiple errors?
-        });
-}
-
-// --- File Browser Functions ---
-
-// Show inline file browser
-function showInlineFileBrowser() {
-    debug("In showInlineFileBrowser()");
-    const browser = document.getElementById('inline-file-browser');
-    if (!browser) {
-        console.error("Inline file browser element not found");
-        return;
-    }
-    
-    browser.classList.add('active');
-    browser.style.display = 'block'; // Override the inline style
-    browser.style.zIndex = '100'; // Ensure it appears above other content
-    browser.style.opacity = '1'; // Make sure it's fully visible
-    
-    const toggleBtn = document.getElementById('toggle-browser-btn');
-    if (toggleBtn) {
-        toggleBtn.style.display = 'block'; // Make toggle visible
-        toggleBtn.textContent = '🔽';
-        toggleBtn.title = 'Hide file browser';
-    }
-    
-    browserVisible = true;
-    localStorage.setItem('inlineFileBrowserVisible', 'true');
-    debug("Inline file browser shown");
-}
-
-// Hide inline file browser
-function hideInlineFileBrowser() {
-    debug("In hideInlineFileBrowser()");
-    const browser = document.getElementById('inline-file-browser');
-    if (!browser) {
-        console.error("Inline file browser element not found");
-        return;
-    }
-    
-    browser.classList.remove('active');
-    browser.style.display = 'none'; // Override the inline style
-    
-    const toggleBtn = document.getElementById('toggle-browser-btn');
-    if (toggleBtn) {
-        toggleBtn.textContent = '🔍';
-        toggleBtn.title = 'Show file browser';
-    }
-    
-    browserVisible = false;
-    localStorage.setItem('inlineFileBrowserVisible', 'false');
-    debug("Inline file browser hidden");
-}
-
-// Browse directory - inline version
-function browseInlineDirectory(path) {
-    debug(`In browseInlineDirectory(), path: ${path}`);
-    const dirList = document.getElementById('inline-directory-list');
-    if (!dirList) {
-        console.error("Directory list element not found");
-        return;
-    }
-
-    dirList.innerHTML = '<li class="loading">Loading directories...</li>';
-    
-    // Update current path display
-    const pathDisplay = document.getElementById('current-path-display');
-    if (pathDisplay) {
-        pathDisplay.textContent = path || 'Root Directory';
-    }
-    
-    // Save the current path to localStorage
-    if (path) {
-        localStorage.setItem('lastBrowsedPath', path);
-    }
-    
-    // Fetch directories from the server
-    debug(`Fetching directories from: /api/browse_dirs?path=${encodeURIComponent(path)}`);
-    fetch(`/api/browse_dirs?path=${encodeURIComponent(path)}`)
-        .then(response => {
-            if (!response.ok) {
-                // Try to parse error message from JSON response
-                return response.json()
-                    .then(data => {
-                        throw new Error(data.error || `Server error: ${response.status}`);
-                    })
-                    .catch(jsonError => {
-                        // If not JSON, throw with status
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
-                    });
-            }
-            
-            // Check for JSON content type
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Server returned non-JSON response (HTML instead of JSON)');
-            }
-            
-            return response.json();
-        })
-        .then(data => {
-            debug("Directory data received:", data);
-            // Clear existing list
-            dirList.innerHTML = '';
-            
-            // Get parent path from API response
-            const parentPath = data.parent_path || '';
-            const currentPath = data.current_path || path || '';
-            
-            // Add parent directory option if not at root
-            if (parentPath && parentPath !== currentPath) {
-                const parentItem = document.createElement('li');
-                parentItem.className = 'directory-item parent';
-                parentItem.innerHTML = '<span class="dir-icon">📁</span> <span class="dir-name">..</span>';
-                parentItem.addEventListener('click', function() {
-                    browseInlineDirectory(parentPath);
-                });
-                dirList.appendChild(parentItem);
-            }
-            
-            // Process the directories array from the API response
-            const directories = data.directories || [];
-            if (directories.length > 0) {
-                directories.forEach(dir => {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'directory-item';
-                    
-                    // Create icon and name elements
-                    const icon = document.createElement('span');
-                    icon.className = 'dir-icon';
-                    icon.textContent = '📁';
-                    
-                    const name = document.createElement('span');
-                    name.className = 'dir-name';
-                    name.textContent = dir.name;
-                    
-                    // Add to list item
-                    listItem.appendChild(icon);
-                    listItem.appendChild(name);
-                    
-                    // Add click handler for directories
-                    listItem.addEventListener('click', function() {
-                        browseInlineDirectory(dir.path);
-                    });
-                    
-                    dirList.appendChild(listItem);
-                });
-                
-                // Special option to select the current directory
-                const selectCurrentDirItem = document.createElement('li');
-                selectCurrentDirItem.className = 'directory-item select-current';
-                selectCurrentDirItem.innerHTML = '<span class="dir-icon">✓</span> <span class="dir-name">Select this directory</span>';
-                selectCurrentDirItem.addEventListener('click', function() {
-                    selectedDirectory = currentPath;
-                    
-                    // Update the display with the selected directory
-                    const pathDisplay = document.getElementById('current-path-display');
-                    if (pathDisplay) {
-                        pathDisplay.innerHTML = `<strong>Selected:</strong> ${selectedDirectory}`;
-                    }
-                    
-                    localStorage.setItem('selectedDirectory', selectedDirectory);
-                });
-                dirList.appendChild(selectCurrentDirItem);
-            } else {
-                const emptyItem = document.createElement('li');
-                emptyItem.className = 'empty-message';
-                emptyItem.textContent = 'No directories found';
-                dirList.appendChild(emptyItem);
-            }
-            
-            // Update the selected directory
-            selectedDirectory = currentPath;
-            localStorage.setItem('selectedDirectory', selectedDirectory);
-        })
-        .catch(error => {
-            console.error('Error browsing directories:', error);
-            dirList.innerHTML = `<li class="error-message">${error.message}</li>`;
-        });
-}
-
-// Start bulk translation process
-function startBulkTranslation(directoryPath) {
-    console.log(`Starting bulk translation for directory: ${directoryPath}`);
-    
-    // Show the bulk translation status
-    const bulkStatus = document.getElementById('bulk-translation-status');
-    if (bulkStatus) {
-        bulkStatus.style.display = 'block';
-    }
-    
-    // Update UI
-    const statusMessage = document.getElementById('bulk-status-message');
-    const progressBar = document.getElementById('bulk-progress-bar');
-    const progressText = document.getElementById('bulk-progress-text');
-    const downloadLink = document.getElementById('bulk-download-link');
-    
-    if (statusMessage) {
-        statusMessage.textContent = `Starting bulk translation for ${directoryPath}...`;
-    }
-    if (progressBar) {
-        progressBar.style.width = '0%';
-    }
-    if (progressText) {
-        progressText.textContent = '0%';
-    }
-    if (downloadLink) {
-        downloadLink.style.display = 'none';
-    }
-    
-    // Call the API to start the scan
-    fetch('/api/start-scan', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ path: directoryPath })
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.error || 'Failed to start bulk translation');
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.ok) {
-            // Start polling for progress updates
-            startProgressPolling();
-        } else {
-            throw new Error(data.error || 'Unknown error starting translation');
-        }
-    })
-    .catch(error => {
-        console.error('Error starting bulk translation:', error);
-        if (statusMessage) {
-            statusMessage.textContent = `Error: ${error.message}`;
-        }
-        if (progressBar) {
-            progressBar.style.width = '0%';
-        }
-    });
-}
-
-// Poll for translation progress
-let progressInterval = null;
-function startProgressPolling() {
-    // Clear any existing interval
-    if (progressInterval) {
-        clearInterval(progressInterval);
-    }
-    
-    // Poll every 2 seconds
-    progressInterval = setInterval(updateBulkProgress, 2000);
-    
-    // Initial update
-    updateBulkProgress();
-}
-
-// Update the bulk translation progress
-function updateBulkProgress() {
-    fetch('/api/progress')
-        .then(response => response.json())
-        .then(data => {
-            // Update status message
-            const statusMessage = document.getElementById('bulk-status-message');
-            const progressBar = document.getElementById('bulk-progress-bar');
-            const progressText = document.getElementById('bulk-progress-text');
-            const downloadLink = document.getElementById('bulk-download-link');
-            const downloadZipLink = document.getElementById('download-zip-link');
-            
-            if (statusMessage) {
-                statusMessage.textContent = data.message || 'Processing...';
-            }
-            
-            // Calculate and update progress bar
-            let progressPercent = 0;
-            if (data.total_files > 0) {
-                progressPercent = Math.round((data.done_files / data.total_files) * 100);
-            }
-            
-            if (progressBar) {
-                progressBar.style.width = `${progressPercent}%`;
-            }
-            if (progressText) {
-                progressText.textContent = `${progressPercent}%`;
-            }
-            
-            // Check if the process is complete
-            if (data.status === 'completed') {
-                clearInterval(progressInterval);
-                
-                // Show download link if available
-                if (data.zip_path && downloadLink && downloadZipLink) {
-                    downloadZipLink.href = `/download-zip?temp=${encodeURIComponent(data.zip_path)}`;
-                    downloadLink.style.display = 'block';
-                }
-            }
-            
-            // Check if the process failed
-            if (data.status === 'failed') {
-                clearInterval(progressInterval);
-                if (statusMessage) {
-                    statusMessage.textContent = `Error: ${data.message}`;
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error updating progress:', error);
         });
 }
 
@@ -1846,7 +1695,7 @@ function checkForActiveTranslations() {
                 if (data.mode === 'single' && data.job_id) {
                     currentJobId = data.job_id;
                     // Start job polling with the recovered job ID
-                    console.log(`Reconnected to translation job ${currentJobId}`);
+                    console.log(`Reconnected to translation job ${currentJobId}`); // Ensured template literal is correct
                     pollJobStatus(currentJobId);
                 }
             } else if (data.status === 'completed') {
@@ -1858,7 +1707,7 @@ function checkForActiveTranslations() {
                 const resultMessage = document.getElementById('result-message');
                 
                 if (resultContainer) resultContainer.style.display = 'block';
-                if (resultMessage) resultMessage.innerHTML = `<p>Translation completed: ${data.message || 'Translation completed successfully!'}</p>`;
+                if (resultMessage) resultMessage.innerHTML = `<p>Translation completed: ${data.message || 'Translation completed successfully!'}</p>`; // Ensured template literal is correct
                 
                 // Show download link if zip file is available for bulk translations
                 if (data.mode === 'bulk' && data.zip_path) {
@@ -1866,7 +1715,7 @@ function checkForActiveTranslations() {
                     const downloadZipLink = document.getElementById('download-zip-link');
                     
                     if (bulkDownloadLink && downloadZipLink) {
-                        downloadZipLink.href = `/download-zip?temp=${encodeURIComponent(data.zip_path)}`;
+                        downloadZipLink.href = `/download-zip?temp=${encodeURIComponent(data.zip_path)}`; // Ensured template literal is correct
                         bulkDownloadLink.style.display = 'block';
                     }
                 }
@@ -1906,7 +1755,7 @@ function addSpecialMeaningRow() {
         <input type="text" class="word-input" placeholder="Word or phrase">
         <input type="text" class="meaning-input" placeholder="Meaning/context">
         <button type="button" class="remove-meaning-btn">×</button>
-    `;
+    `; // Ensured template literal is correct
     
     // Add the new row to the container
     container.appendChild(newRow);
@@ -1932,6 +1781,7 @@ function setupRemoveButtons() {
 
 // Function to collect all special meanings as an array of objects
 function collectSpecialMeanings() {
+    console.log("[DEBUG] collectSpecialMeanings: Function called.");
     const specialMeanings = [];
     const rows = document.querySelectorAll('.special-meaning-row');
     
@@ -1949,19 +1799,23 @@ function collectSpecialMeanings() {
         }
     });
     
-    console.log('Collected special meanings:', specialMeanings);
+    console.log('[DEBUG] collectSpecialMeanings: Collected special meanings:', JSON.stringify(specialMeanings));
     return specialMeanings;
 }
 
 // Function to load special meanings from the file when the page loads
 function loadSpecialMeaningsFromFile() {
-    console.log("Loading special meanings from file...");
+    console.log("[DEBUG] loadSpecialMeaningsFromFile: Function called.");
     
     fetch('/api/special_meanings')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.meanings && data.meanings.length > 0) {
-                console.log(`Loaded ${data.meanings.length} special meanings from file:`, data.meanings);
+        .then(response => {
+            console.log("[DEBUG] loadSpecialMeaningsFromFile: /api/special_meanings response status:", response.status);
+            return response.json().then(data => ({ status: response.status, body: data }));
+        })
+        .then(({ status, body }) => {
+            console.log("[DEBUG] loadSpecialMeaningsFromFile: /api/special_meanings response JSON body:", body);
+            if (body.success && body.meanings && body.meanings.length > 0) {
+                console.log(`[DEBUG] loadSpecialMeaningsFromFile: Loaded ${body.meanings.length} special meanings from file:`, JSON.stringify(body.meanings));
                 
                 // Get the container element
                 const container = document.getElementById('special-meanings-container');
@@ -1974,7 +1828,7 @@ function loadSpecialMeaningsFromFile() {
                 container.innerHTML = '';
                 
                 // Create a row for each meaning
-                data.meanings.forEach(meaning => {
+                body.meanings.forEach(meaning => {
                     const row = document.createElement('div');
                     row.className = 'special-meaning-row';
                     
@@ -1982,7 +1836,7 @@ function loadSpecialMeaningsFromFile() {
                         <input type="text" class="word-input" placeholder="Word or phrase" value="${escapeHtml(meaning.word)}">
                         <input type="text" class="meaning-input" placeholder="Meaning/context" value="${escapeHtml(meaning.meaning)}">
                         <button type="button" class="remove-meaning-btn">×</button>
-                    `;
+                    `; // Ensured template literal is correct
                     
                     container.appendChild(row);
                 });
@@ -2006,17 +1860,19 @@ function loadSpecialMeaningsFromFile() {
                     }
                 }
             } else {
-                console.log("No special meanings found in file or error loading");
+                console.log("[DEBUG] loadSpecialMeaningsFromFile: No special meanings found in file or error loading. Response success:", body.success);
             }
         })
         .catch(error => {
-            console.error("Error loading special meanings from file:", error);
+            console.error("[DEBUG] loadSpecialMeaningsFromFile: Error loading special meanings from file:", error);
         });
 }
 
 // Function to save special meanings to the file
 function saveSpecialMeanings() {
+    console.log("[DEBUG] saveSpecialMeanings: Function called.");
     const meanings = collectSpecialMeanings();
+    console.log("[DEBUG] saveSpecialMeanings: Meanings to save:", JSON.stringify(meanings));
     
     fetch('/api/special_meanings', {
         method: 'POST',
@@ -2025,33 +1881,27 @@ function saveSpecialMeanings() {
         },
         body: JSON.stringify({ meanings: meanings })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(`Saved ${meanings.length} special meanings to file`);
+    .then(response => {
+        console.log("[DEBUG] saveSpecialMeanings: /api/special_meanings POST response status:", response.status);
+        return response.json().then(data => ({ status: response.status, body: data }));
+    })
+    .then(({ status, body }) => {
+        console.log("[DEBUG] saveSpecialMeanings: /api/special_meanings POST response JSON body:", body);
+        if (body.success) {
+            alert(`Saved ${meanings.length} special meanings to file`); // Ensured template literal is correct
         } else {
-            alert(`Error saving special meanings: ${data.message || 'Unknown error'}`);
+            alert(`Error saving special meanings: ${body.message || 'Unknown error'}`); // Ensured template literal is correct
         }
     })
     .catch(error => {
-        console.error("Error saving special meanings:", error);
-        alert(`Error saving special meanings: ${error.message}`);
+        console.error("[DEBUG] saveSpecialMeanings: Error saving special meanings:", error);
+        alert(`Error saving special meanings: ${error.message}`); // Ensured template literal is correct
     });
-}
-
-// Helper function to escape HTML to prevent XSS
-function escapeHtml(str) {
-    return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 }
 
 // --- Host File Browser Functions ---
 function browseHostFiles(path) {
-    console.log(`Browsing host files at path: ${path}`);
+    console.log(`Browsing host files at path: ${path}`); // Ensured template literal is correct
     const hostFileList = document.getElementById('host-file-list');
     
     // Show loading indicator
@@ -2066,11 +1916,11 @@ function browseHostFiles(path) {
                 // Try to parse error message from JSON response
                 return response.json()
                     .then(data => {
-                        throw new Error(data.error || `Server error: ${response.status}`);
+                        throw new Error(data.error || `Server error: ${response.status}`); // Ensured template literal is correct
                     })
                     .catch(jsonError => {
                         // If not JSON, throw with status
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                        throw new Error(`Error ${response.status}: ${response.statusText}`); // Ensured template literal is correct
                     });
             }
             
@@ -2102,7 +1952,7 @@ function browseHostFiles(path) {
                 data.directories.forEach(dir => {
                     const dirItem = document.createElement('li');
                     dirItem.className = 'directory-item';
-                    dirItem.innerHTML = `<span class="dir-icon">📁</span> <span class="dir-name">${dir.name}</span>`;
+                    dirItem.innerHTML = `<span class="dir-icon">📁</span> <span class="dir-name">${dir.name}</span>`; // Ensured template literal is correct
                     dirItem.dataset.path = dir.path;
                     hostFileList.appendChild(dirItem);
                 });
@@ -2113,7 +1963,7 @@ function browseHostFiles(path) {
                 data.files.forEach(file => {
                     const fileItem = document.createElement('li');
                     fileItem.className = 'file-item';
-                    fileItem.innerHTML = `<span class="file-icon">📄</span> <span class="file-name">${file.name}</span>`;
+                    fileItem.innerHTML = `<span class="file-icon">📄</span> <span class="file-name">${file.name}</span>`; // Ensured template literal is correct
                     fileItem.dataset.path = file.path;
                     hostFileList.appendChild(fileItem);
                 });
@@ -2135,13 +1985,13 @@ function browseHostFiles(path) {
         })
         .catch(error => {
             console.error('Error browsing files:', error);
-            hostFileList.innerHTML = `<li class="error-message">${error.message}</li>`;
+            hostFileList.innerHTML = `<li class="error-message">${error.message}</li>`; // Ensured template literal is correct
         });
 }
 
 // Function to select a host file for translation
 function selectHostFile(filePath, fileName) {
-    console.log(`Selected host file: ${filePath}`);
+    console.log(`Selected host file: ${filePath}`); // Ensured template literal is correct
     
     // Hide the file browser
     const hostFileBrowser = document.getElementById('host-file-browser');

@@ -84,6 +84,7 @@
         </div>
         <div id="result-container" style="display:none; margin-top: 1rem;">
             <!-- Results like download links will be injected here by JS -->
+            <button type="button" id="view-history-btn" class="btn btn-info btn-sm" style="margin-top: 0.5rem; display: none;">View Detailed History</button>
         </div>
     </div>
 
@@ -104,6 +105,17 @@
             <h3 id="report-modal-title">Translation Report</h3>
             <div id="report-loading">Loading report data...</div>
             <div id="report-content" class="report-content"></div>
+        </div>
+    </div>
+
+    <!-- New Modal for Detailed Translation History -->
+    <div id="history-modal" class="modal" style="display:none;">
+        <div class="modal-content card large-modal"> <!-- Consider adding .large-modal CSS for width -->
+            <span id="close-history-modal-btn" class="btn btn-sm btn-secondary" style="position:absolute; top:10px; right:10px; cursor:pointer;">&times;</span>
+            <h3 id="history-modal-title">Detailed Translation History</h3>
+            <div id="history-modal-content" class="modal-pre" style="max-height: 70vh; overflow-y: auto; text-align: left; padding: 15px;">
+                <!-- History content will be populated by JS -->
+            </div>
         </div>
     </div>
 {% endblock %}
