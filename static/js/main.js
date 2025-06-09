@@ -2045,3 +2045,179 @@ function selectHostFile(filePath, fileName) {
         form.dataset.useHostFile = 'true';
     }
 }
+
+// Show inline file browser
+function showInlineFileBrowser() {
+    debug("In showInlineFileBrowser()");
+    const browser = document.getElementById('inline-file-browser');
+    if (!browser) {
+        console.error("Inline file browser element not found");
+        return;
+    }
+    
+    browser.classList.add('active');
+    browser.style.display = 'block'; // Override the inline style
+    browser.style.zIndex = '100'; // Ensure it appears above other content
+    browser.style.opacity = '1'; // Make sure it's fully visible
+    
+    const toggleBtn = document.getElementById('toggle-browser-btn');
+    if (toggleBtn) {
+        toggleBtn.style.display = 'block'; // Make toggle visible
+        toggleBtn.textContent = '🔽';
+        toggleBtn.title = 'Hide file browser';
+    }
+    
+    browserVisible = true;
+    localStorage.setItem('inlineFileBrowserVisible', 'true');
+    debug("Inline file browser shown");
+}
+
+// Hide inline file browser
+function hideInlineFileBrowser() {
+    debug("In hideInlineFileBrowser()");
+    const browser = document.getElementById('inline-file-browser');
+    if (!browser) {
+        console.error("Inline file browser element not found");
+        return;
+    }
+    
+    browser.classList.remove('active');
+    browser.style.display = 'none'; // Override the inline style
+    
+    const toggleBtn = document.getElementById('toggle-browser-btn');
+    if (toggleBtn) {
+        toggleBtn.textContent = '🔍';
+        toggleBtn.title = 'Show file browser';
+    }
+    
+    browserVisible = false;
+    localStorage.setItem('inlineFileBrowserVisible', 'false');
+    debug("Inline file browser hidden");
+}
+
+// Browse directory - inline version
+function browseInlineDirectory(path) {
+    debug(`In browseInlineDirectory(), path: ${path}`);
+    const dirList = document.getElementById('inline-directory-list');
+    if (!dirList) {
+        console.error("Directory list element not found");
+        return;
+    }
+
+    dirList.innerHTML = '<li class="loading">Loading directories...</li>';
+    
+    // Update current path display
+    const pathDisplay = document.getElementById('current-path-display');
+    if (pathDisplay) {
+        pathDisplay.textContent = path || 'Root Directory';
+    }
+    
+    // Save the current path to localStorage
+    if (path) {
+        localStorage.setItem('lastBrowsedPath', path);
+    }
+    
+    // Fetch directories from the server
+    debug(`Fetching directories from: /api/browse_dirs?path=${encodeURIComponent(path)}`);
+    fetch(`/api/browse_dirs?path=${encodeURIComponent(path)}`)
+        .then(response => {
+            if (!response.ok) {
+                // Try to parse error message from JSON response
+                return response.json()
+                    .then(data => {
+                        throw new Error(data.error || `Server error: ${response.status}`);
+                    })
+                    .catch(jsonError => {
+                        // If not JSON, throw with status
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    });
+            }
+            
+            // Check for JSON content type
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response (HTML instead of JSON)');
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            debug("Directory data received:", data);
+            // Clear existing list
+            dirList.innerHTML = '';
+            
+            // Get parent path from API response
+            const parentPath = data.parent_path || '';
+            const currentPath = data.current_path || path || '';
+            
+            // Add parent directory option if not at root
+            if (parentPath && parentPath !== currentPath) {
+                const parentItem = document.createElement('li');
+                parentItem.className = 'directory-item parent';
+                parentItem.innerHTML = '<span class="dir-icon">📁</span> <span class="dir-name">..</span>';
+                parentItem.addEventListener('click', function() {
+                    browseInlineDirectory(parentPath);
+                });
+                dirList.appendChild(parentItem);
+            }
+            
+            // Process the directories array from the API response
+            const directories = data.directories || [];
+            if (directories.length > 0) {
+                directories.forEach(dir => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'directory-item';
+                    
+                    // Create icon and name elements
+                    const icon = document.createElement('span');
+                    icon.className = 'dir-icon';
+                    icon.textContent = '📁';
+                    
+                    const name = document.createElement('span');
+                    name.className = 'dir-name';
+                    name.textContent = dir.name;
+                    
+                    // Add to list item
+                    listItem.appendChild(icon);
+                    listItem.appendChild(name);
+                    
+                    // Add click handler for directories
+                    listItem.addEventListener('click', function() {
+                        browseInlineDirectory(dir.path);
+                    });
+                    
+                    dirList.appendChild(listItem);
+                });
+                
+                // Special option to select the current directory
+                const selectCurrentDirItem = document.createElement('li');
+                selectCurrentDirItem.className = 'directory-item select-current';
+                selectCurrentDirItem.innerHTML = '<span class="dir-icon">✓</span> <span class="dir-name">Select this directory</span>';
+                selectCurrentDirItem.addEventListener('click', function() {
+                    selectedDirectory = currentPath;
+                    
+                    // Update the display with the selected directory
+                    const pathDisplay = document.getElementById('current-path-display');
+                    if (pathDisplay) {
+                        pathDisplay.innerHTML = `<strong>Selected:</strong> ${selectedDirectory}`;
+                    }
+                    
+                    localStorage.setItem('selectedDirectory', selectedDirectory);
+                });
+                dirList.appendChild(selectCurrentDirItem);
+            } else {
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'empty-message';
+                emptyItem.textContent = 'No directories found';
+                dirList.appendChild(emptyItem);
+            }
+            
+            // Update the selected directory
+            selectedDirectory = currentPath;
+            localStorage.setItem('selectedDirectory', selectedDirectory);
+        })
+        .catch(error => {
+            console.error('Error browsing directories:', error);
+            dirList.innerHTML = `<li class="error-message">${error.message}</li>`;
+        });
+}

@@ -1,0 +1,80 @@
+/* Font Awesome Fallback CSS
+ * This file provides fallback styling when Font Awesome webfonts are missing
+ */
+
+/* Hide Font Awesome icons when fonts are missing and provide text fallbacks */
+.fa, .fas, .far, .fab, .fal, .fad {
+    font-family: Arial, sans-serif;
+    font-weight: normal;
+    font-style: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Common icon replacements with Unicode symbols */
+.fa-home:before { content: "🏠"; }
+.fa-user:before { content: "👤"; }
+.fa-cog:before, .fa-gear:before { content: "⚙️"; }
+.fa-search:before, .fa-magnifying-glass:before { content: "🔍"; }
+.fa-download:before { content: "⬇️"; }
+.fa-upload:before { content: "⬆️"; }
+.fa-file:before { content: "📄"; }
+.fa-folder:before { content: "📁"; }
+.fa-folder-open:before { content: "📂"; }
+.fa-trash:before, .fa-trash-can:before { content: "🗑️"; }
+.fa-edit:before, .fa-pen:before { content: "✏️"; }
+.fa-check:before { content: "✓"; }
+.fa-times:before, .fa-xmark:before { content: "✗"; }
+.fa-plus:before { content: "+"; }
+.fa-minus:before { content: "-"; }
+.fa-chevron-up:before { content: "▲"; }
+.fa-chevron-down:before { content: "▼"; }
+.fa-chevron-left:before { content: "◀"; }
+.fa-chevron-right:before { content: "▶"; }
+.fa-arrow-up:before { content: "↑"; }
+.fa-arrow-down:before { content: "↓"; }
+.fa-arrow-left:before { content: "←"; }
+.fa-arrow-right:before { content: "→"; }
+.fa-play:before { content: "▶"; }
+.fa-pause:before { content: "⏸"; }
+.fa-stop:before { content: "⏹"; }
+.fa-refresh:before, .fa-sync:before { content: "🔄"; }
+.fa-spinner:before { content: "⟳"; }
+.fa-info:before, .fa-info-circle:before { content: "ℹ️"; }
+.fa-warning:before, .fa-exclamation-triangle:before { content: "⚠️"; }
+.fa-error:before, .fa-times-circle:before { content: "❌"; }
+.fa-success:before, .fa-check-circle:before { content: "✅"; }
+
+/* Ensure icons are displayed inline */
+.fa:before,
+.fas:before,
+.far:before,
+.fab:before,
+.fal:before,
+.fad:before {
+    display: inline-block;
+    margin-right: 0.2em;
+}
+
+/* Remove any spinning animations that might fail without proper fonts */
+.fa-spin {
+    animation: none;
+}
+
+/* Provide basic styling for common Font Awesome utility classes */
+.fa-fw {
+    width: 1.28571429em;
+    text-align: center;
+}
+
+.fa-lg {
+    font-size: 1.33333333em;
+    line-height: 0.75em;
+    vertical-align: -15%;
+}
+
+.fa-2x { font-size: 2em; }
+.fa-3x { font-size: 3em; }
+.fa-4x { font-size: 4em; }
+.fa-5x { font-size: 5em; }
