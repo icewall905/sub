@@ -194,7 +194,6 @@ class TranslationService:
                             
                             # If in debug mode, log more details about the changes
                             if self.config.getboolean('general', 'debug_mode', fallback=False):
-                                import difflib
                                 diff = list(difflib.ndiff(deepl_translation, ollama_final_result))
                                 self.logger.debug(f"  Diff: {''.join(diff)}")
                             
@@ -888,7 +887,7 @@ The following terms have special meanings defined by the user and must be transl
             # Legacy format check - in case we still receive specialMeanings through the translations dictionary
             elif isinstance(translations, dict) and isinstance(translations.get('specialMeanings'), list):
                 special_meanings = translations.get('specialMeanings')
-                if len(special_meanings) > 0:
+                if special_meanings and len(special_meanings) > 0:
                     prompt += f"""
 USER-DEFINED SPECIAL MEANINGS:
 The following terms have special meanings defined by the user and must be translated appropriately:
@@ -900,7 +899,7 @@ The following terms have special meanings defined by the user and must be transl
                     self.logger.info(f"Added {len(special_meanings)} user-defined special meanings to Ollama prompt (from translations dict)")
 
             # Add context lines before if available
-            if context_before and len(context_before) > 0:
+            if context_before is not None and len(context_before) > 0:
                 prompt += f"""
 CONTEXT (PREVIOUS LINES):
 {context_before}
@@ -914,7 +913,7 @@ TEXT TO TRANSLATE: {text}
 """
 
             # Add context lines after if available
-            if context_after and len(context_after) > 0:
+            if context_after is not None and len(context_after) > 0:
                 prompt += f"""
 CONTEXT (FOLLOWING LINES):
 {context_after}
