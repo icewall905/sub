@@ -1,5 +1,6 @@
 # Configuration files with personal settings
 config.ini
+files/meaning.json
 
 # Virtual environment
 venv/
