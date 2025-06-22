@@ -801,6 +801,19 @@ class TranslationService:
 
     def _translate_with_ollama_as_final(self, text: str, source_lang: str, target_lang: str, translations: dict, context_before=None, context_after=None, media_info=None, special_meanings=None) -> Optional[str]:
         try:
+            # Get conservativeness level from config
+            conservativeness = self.config.getint("translation", "translation_conservativeness", fallback=3)
+            
+            # Log the conservativeness level being used
+            conservativeness_labels = {
+                1: "Very Conservative",
+                2: "Conservative", 
+                3: "Balanced",
+                4: "Context-Aware",
+                5: "Aggressive"
+            }
+            self.logger.info(f"Using translation conservativeness level: {conservativeness} ({conservativeness_labels.get(conservativeness, 'Unknown')})")
+            
             # Improved prompt with clearer instructions and structure
             prompt = f"""You are a subtitle translation expert. Your task is to translate ONLY the line marked as "TEXT TO TRANSLATE" below.
 
@@ -810,8 +823,10 @@ IMPORTANT INSTRUCTIONS:
 - Return ONLY your final translation, without quotes, explanations, or notes
 - Maintain formatting (especially HTML tags if present)
 - When choosing between translations from different services, ALWAYS prioritize professional services:
-  1. DeepL translations should mostly be used unchanged (treat as gold standard)
-  2. Only deviate from professional translations when you are sure there is an error, that the service fails to understand because of missing context that you possess.
+  1. DeepL translations should be used unchanged in 99% of cases (treat as gold standard)
+  2. Only modify DeepL translations when you have definitive contextual information that DeepL could not access
+  3. Be extremely conservative - when in doubt, keep the professional translation
+  4. Your role is to be a careful reviewer, not an aggressive editor
 """
 
             # Add media info from TMDB if available
@@ -938,41 +953,151 @@ AVAILABLE TRANSLATIONS:
 
             # Add special instructions for handling DeepL translations
             if deepl_translation:
-                prompt += f"""
-Review Guidelines for DeepL Translations (with Context Awareness)
+                # Adjust guidelines based on conservativeness level
+                if conservativeness <= 2:
+                    # Most conservative
+                    deepl_guidelines = f"""
+CRITICAL: DeepL Translation Review Guidelines (CONSERVATIVE MODE)
 
-DeepL normally delivers excellent results, so its output should usually be accepted unchanged. However, you also receive rich context—book titles, character names, glossaries, domain notes, etc.—that DeepL cannot always “see.” Use this extra knowledge to spot the rare cases where a small edit will make the text unmistakably better.
+DeepL is a professional translation service with exceptional accuracy. You should ONLY modify DeepL translations in extremely rare cases where you have definitive contextual information that DeepL could not possibly have access to.
 
-1. DEFAULT: Keep DeepL’s translation as-is.
-   • In about 95% of sentences, accept the DeepL output without any edits.
+STRICT RULES FOR MODIFYING DEEPL TRANSLATIONS:
 
-2. WHEN TO EDIT: Only if **all** of these are true:
-   a. Clear error  
-      – DeepL’s choice is factually wrong given your context, not merely a stylistic difference.  
-      – Example: In *Avatar: The Last Airbender*, DeepL renders “Earth” as “Jorden” (the planet). Context shows it refers to the elemental “Earth,” so the correct Danish term is “Jord.”
-   b. Meaning affected  
-      – The mistranslation alters or obscures the author’s intent.
-   c. High certainty  
-      – The provided context (glossary entries, surrounding text, domain knowledge) leaves no reasonable doubt that DeepL misunderstood something critical.
+1. PRESUMPTION OF CORRECTNESS (99.5% of cases):
+   - DeepL's translation is correct by default
+   - Only intervene if you are 100% certain of an error
+   - When in doubt, keep DeepL's translation unchanged
 
-   If **any** of a, b or c is uncertain, leave DeepL’s translation unchanged.
+2. ALLOWED CHANGES ONLY when ALL of these conditions are met:
+   a) CONTEXTUAL ADVANTAGE: You have specific information that DeepL cannot see:
+      - Character names from the show/movie that have established translations
+      - Technical terms with show-specific meanings (e.g., "bending" in Avatar)
+      - Proper nouns that are consistently translated in the show
+      - Cultural references that require show-specific knowledge
+   
+   b) CLEAR ERROR: The DeepL translation is factually wrong, not just stylistically different
+   
+   c) HIGH CERTAINTY: You are completely confident based on the provided context
+   
+   d) MEANING IMPACT: The error significantly changes the intended meaning
 
-3. WHAT NOT TO CHANGE:
-   – Alternate but accurate word choices  
-   – Minor shifts in sentence order or phrasing  
-   – Formal vs. informal tone variations that don’t alter meaning  
-   – Valid idiom translations or established set phrases  
-   – Formatting or layout differences that preserve meaning
+3. NEVER CHANGE for:
+   - Stylistic preferences
+   - Alternative but correct word choices
+   - Formal vs informal tone differences
+   - Minor phrasing variations
+   - Valid idiom translations
+   - Any uncertainty about the correct translation
 
-4. PRESUMPTION OF CORRECTNESS:
-   – Treat DeepL’s version as correct by default.  
-   – The burden of proof is on you to demonstrate a change is necessary.
+4. CONTEXT EVALUATION:
+   - Only use context if it provides definitive information about proper nouns, character names, or show-specific terminology
+   - Ignore context that doesn't provide clear factual corrections
+   - If context is ambiguous or could be interpreted multiple ways, keep DeepL's translation
 
-5. IF IN DOUBT:
-   – Keep the DeepL translation unchanged, without exception.
+5. CONFIDENCE THRESHOLD:
+   - You must be 99%+ confident that the change is necessary
+   - If you have any doubt, preserve DeepL's translation
+   - Remember: DeepL is trained on massive amounts of professional content
 
-Rule of thumb: Intervene in no more than about 5% of cases; let DeepL’s high-quality output stand whenever possible.```
+EXPECTED BEHAVIOR:
+- Modify DeepL translations in less than 0.5% of cases
+- Most of your work should be choosing between different service translations when DeepL is not available
+- When DeepL is available, it should almost always be the final choice
+
+Remember: Your role is to be a very conservative reviewer. DeepL's professional quality should be respected.
 """
+                elif conservativeness == 3:
+                    # Balanced (default)
+                    deepl_guidelines = f"""
+CRITICAL: DeepL Translation Review Guidelines
+
+DeepL is a professional translation service with exceptional accuracy. You should ONLY modify DeepL translations in extremely rare cases where you have definitive contextual information that DeepL could not possibly have access to.
+
+STRICT RULES FOR MODIFYING DEEPL TRANSLATIONS:
+
+1. PRESUMPTION OF CORRECTNESS (99% of cases):
+   - DeepL's translation is correct by default
+   - Only intervene if you are 100% certain of an error
+   - When in doubt, keep DeepL's translation unchanged
+
+2. ALLOWED CHANGES ONLY when ALL of these conditions are met:
+   a) CONTEXTUAL ADVANTAGE: You have specific information that DeepL cannot see:
+      - Character names from the show/movie that have established translations
+      - Technical terms with show-specific meanings (e.g., "bending" in Avatar)
+      - Proper nouns that are consistently translated in the show
+      - Cultural references that require show-specific knowledge
+   
+   b) CLEAR ERROR: The DeepL translation is factually wrong, not just stylistically different
+   
+   c) HIGH CERTAINTY: You are completely confident based on the provided context
+   
+   d) MEANING IMPACT: The error significantly changes the intended meaning
+
+3. NEVER CHANGE for:
+   - Stylistic preferences
+   - Alternative but correct word choices
+   - Formal vs informal tone differences
+   - Minor phrasing variations
+   - Valid idiom translations
+   - Any uncertainty about the correct translation
+
+4. CONTEXT EVALUATION:
+   - Only use context if it provides definitive information about proper nouns, character names, or show-specific terminology
+   - Ignore context that doesn't provide clear factual corrections
+   - If context is ambiguous or could be interpreted multiple ways, keep DeepL's translation
+
+5. CONFIDENCE THRESHOLD:
+   - You must be 95%+ confident that the change is necessary
+   - If you have any doubt, preserve DeepL's translation
+   - Remember: DeepL is trained on massive amounts of professional content
+
+EXPECTED BEHAVIOR:
+- Modify DeepL translations in less than 1% of cases
+- Most of your work should be choosing between different service translations when DeepL is not available
+- When DeepL is available, it should almost always be the final choice
+
+Remember: Your role is to be a conservative reviewer, not an aggressive editor. DeepL's professional quality should be respected.
+"""
+                else:
+                    # More aggressive (4-5)
+                    deepl_guidelines = f"""
+DeepL Translation Review Guidelines (CONTEXT-AWARE MODE)
+
+DeepL is a professional translation service with excellent accuracy. You should generally trust DeepL translations, but you may modify them when you have clear contextual information that provides a significant advantage.
+
+RULES FOR MODIFYING DEEPL TRANSLATIONS:
+
+1. PRESUMPTION OF CORRECTNESS (95% of cases):
+   - DeepL's translation is usually correct
+   - Intervene when you have clear contextual advantages
+   - When in doubt, keep DeepL's translation unchanged
+
+2. ALLOWED CHANGES when you have:
+   a) CONTEXTUAL ADVANTAGE: Specific information that DeepL cannot see:
+      - Character names from the show/movie that have established translations
+      - Technical terms with show-specific meanings
+      - Proper nouns that are consistently translated in the show
+      - Cultural references that require show-specific knowledge
+   
+   b) CLEAR IMPROVEMENT: The change makes the translation more accurate or contextually appropriate
+   
+   c) REASONABLE CERTAINTY: You are confident based on the provided context
+
+3. AVOID CHANGES for:
+   - Minor stylistic preferences
+   - Valid alternative translations
+   - When context is ambiguous
+
+4. CONTEXT EVALUATION:
+   - Use context to improve translations when it provides clear advantages
+   - Be careful not to over-interpret ambiguous context
+
+EXPECTED BEHAVIOR:
+- Modify DeepL translations in about 5% of cases when context provides clear advantages
+- Trust DeepL's professional quality while using context when beneficial
+"""
+                
+                prompt += deepl_guidelines
 
             # Add final reminder
             prompt += """
@@ -1003,8 +1128,7 @@ IMPORTANT: Return ONLY your translation of the text between the dotted lines. Do
                 }
             }
             
-            # Add additional Ollama performance options ONLY if they are explicitly set in config
-            # This ensures we don't send any default values that weren't in config.ini
+            # Add additional Ollama options if configured
             options = {}
             for option_name in ["num_gpu", "num_thread", "num_ctx"]:
                 if self.config.has_option("ollama", option_name):

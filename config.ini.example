@@ -10,7 +10,8 @@ use_mymemory = true
 host = 127.0.0.1
 port = 5089
 temperature = 0.2
-debug_mode = false # Set to true for verbose logging, including full LLM prompts
+# Set to true for verbose logging, including full LLM prompts
+debug_mode = false
 
 [whisper]
 # Configuration for faster-whisper transcription server
@@ -22,6 +23,12 @@ server_url = http://10.0.0.1:10300
 # Services will be tried in this order
 service_priority = deepl,google,libretranslate,mymemory
 
+# Translation conservativeness level (1-5)
+# 1 = Most conservative (only change DeepL when 100% certain of contextual advantage)
+# 3 = Balanced (default - only change when clear contextual advantage exists)
+# 5 = Most aggressive (willing to make more changes based on context)
+translation_conservativeness = 3
+
 # Retry settings for translation services
 max_retries = 3
 base_delay = 2
@@ -31,7 +38,8 @@ file_enabled = true
 log_file = translator.log
 max_size_mb = 5
 backup_count = 2
-log_live_status = false # Set to true to enable detailed logging of live status responses
+# Set to true to enable detailed logging of live status responses
+log_live_status = false
 
 [ollama]
 enabled = true

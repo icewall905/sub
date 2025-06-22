@@ -2,6 +2,7 @@ Flask>=2.0.0
 Werkzeug>=2.0.0
 requests>=2.25.0
 srt>=3.5.0
+pysrt>=1.1.0
 ffmpeg-python>=0.2.0
 
 # Wyoming protocol client dependency
