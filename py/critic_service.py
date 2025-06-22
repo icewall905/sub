@@ -176,8 +176,23 @@ class CriticService:
         source_lang_name = self._get_language_name(source_lang)
         target_lang_name = self._get_language_name(target_lang)
         
-        # Build the system message
-        system_message = f"""You are a translation critic and improver. Your task is to review translations from {source_lang_name} to {target_lang_name} and provide detailed feedback."""
+        # Get conservativeness level from config
+        conservativeness = self.config.getint("translation", "translation_conservativeness", fallback=3)
+        
+        # Build the system message with conservativeness guidelines
+        system_message = f"""You are a translation critic and improver. Your task is to review translations from {source_lang_name} to {target_lang_name} and provide detailed feedback.
+
+CONSERVATIVENESS LEVEL: {conservativeness}/5
+- Level 1-2: VERY CONSERVATIVE - Only suggest changes for clear errors, preserve DeepL translations
+- Level 3: BALANCED - Suggest improvements when beneficial
+- Level 4-5: MORE AGGRESSIVE - Suggest stylistic improvements
+
+CRITICAL GUIDELINES:
+1. DeepL translations should be preserved in 99% of cases (treat as gold standard)
+2. Only suggest changes when you have definitive contextual information that provides clear advantage
+3. Be extremely conservative - when in doubt, keep the original translation
+4. Focus on factual errors, not stylistic preferences
+5. Consider the conservativeness level when deciding whether to suggest changes"""
         
         # Build the user message
         user_message = f"""Review this translation:
@@ -189,13 +204,18 @@ Attempted translation ({target_lang_name}): {translated_text}
 Your task:
 1. Rate the translation quality on a scale of 1-10
 2. Identify any errors or issues in the translation
-3. MOST IMPORTANTLY: Provide a corrected/improved version of the translation (ONLY ONE DEFINITIVE REVISED VERSION)
+3. MOST IMPORTANTLY: Only provide a revised translation if there is a CLEAR and DEFINITIVE improvement based on contextual knowledge
+
+CONSERVATIVENESS RULES:
+- If conservativeness is 1-2: Only suggest changes for factual errors, not stylistic preferences
+- If conservativeness is 3: Suggest improvements when clearly beneficial
+- If conservativeness is 4-5: Suggest stylistic improvements
 
 Return your response in this JSON format:
 {{
   "score": <number between 1 and 10>,
   "feedback": "<your critique with specific improvement suggestions>",
-  "revised_translation": "<your corrected version of the translation>"
+  "revised_translation": "<your corrected version ONLY if there is a clear improvement, otherwise null>"
 }}
 
 Only return the JSON object, no other text."""
@@ -267,6 +287,13 @@ Only return the JSON object, no other text."""
                         if 'feedback' not in evaluation:
                             evaluation['feedback'] = "No feedback provided by the evaluation model"
                         
+                        # Handle revised_translation - convert null/empty to None
+                        if 'revised_translation' in evaluation:
+                            revised = evaluation['revised_translation']
+                            if revised is None or revised == "null" or revised == "" or revised.strip() == "":
+                                evaluation['revised_translation'] = None
+                                self.logger.debug("Critic returned null/empty revised_translation - no changes needed")
+                        
                         self.logger.info(f"Translation evaluation result: Score {evaluation['score']:.2f}")
                         self.logger.debug(f"Evaluation feedback: {evaluation['feedback']}")
                         
@@ -314,8 +341,23 @@ Only return the JSON object, no other text."""
         source_lang_name = self._get_language_name(source_lang)
         target_lang_name = self._get_language_name(target_lang)
         
+        # Get conservativeness level from config
+        conservativeness = self.config.getint("translation", "translation_conservativeness", fallback=3)
+        
         # Build the prompt for the LLM
         prompt = f"""You are a translation critic and improver. Review this translation from {source_lang} to {target_lang}.
+
+CONSERVATIVENESS LEVEL: {conservativeness}/5
+- Level 1-2: VERY CONSERVATIVE - Only suggest changes for clear errors, preserve DeepL translations
+- Level 3: BALANCED - Suggest improvements when beneficial
+- Level 4-5: MORE AGGRESSIVE - Suggest stylistic improvements
+
+CRITICAL GUIDELINES:
+1. DeepL translations should be preserved in 99% of cases (treat as gold standard)
+2. Only suggest changes when you have definitive contextual information that provides clear advantage
+3. Be extremely conservative - when in doubt, keep the original translation
+4. Focus on factual errors, not stylistic preferences
+5. Consider the conservativeness level when deciding whether to suggest changes
 
 Original text ({source_lang}): {source_text}
 
@@ -324,13 +366,18 @@ Attempted translation ({target_lang}): {translated_text}
 Your task:
 1. Rate the translation quality on a scale of 1-10
 2. Identify any errors or issues in the translation
-3. MOST IMPORTANTLY: Provide a corrected/improved version of the translation (ONLY ONE DEFINITIVE REVISED VERSION)
+3. MOST IMPORTANTLY: Only provide a revised translation if there is a CLEAR and DEFINITIVE improvement based on contextual knowledge
+
+CONSERVATIVENESS RULES:
+- If conservativeness is 1-2: Only suggest changes for factual errors, not stylistic preferences
+- If conservativeness is 3: Suggest improvements when clearly beneficial
+- If conservativeness is 4-5: Suggest stylistic improvements
 
 Return your response in this JSON format:
 {{
   "score": <number between 1 and 10>,
   "feedback": "<your critique with specific improvement suggestions>",
-  "revised_translation": "<your corrected version of the translation>"
+  "revised_translation": "<your corrected version ONLY if there is a clear improvement, otherwise null>"
 }}
 
 Only return the JSON object, no other text.
@@ -428,6 +475,13 @@ Only return the JSON object, no other text.
                         
                     if 'feedback' not in evaluation:
                         evaluation['feedback'] = "No feedback provided by the evaluation model"
+                        
+                    # Handle revised_translation - convert null/empty to None
+                    if 'revised_translation' in evaluation:
+                        revised = evaluation['revised_translation']
+                        if revised is None or revised == "null" or revised == "" or revised.strip() == "":
+                            evaluation['revised_translation'] = None
+                            self.logger.debug("Critic returned null/empty revised_translation - no changes needed")
                     
                     self.logger.info(f"Translation evaluation result: Score {evaluation['score']:.2f}")
                     self.logger.debug(f"Evaluation feedback: {evaluation['feedback']}")

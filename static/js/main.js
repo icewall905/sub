@@ -780,9 +780,17 @@ function populateAndShowHistoryModal() {
             if (item.standard_critic) {
                 htmlContent += '<strong>Critic Review:</strong>';
                 htmlContent += '<ul>';
-                htmlContent += `<li><em>Feedback:</em> <pre>${escapeHtml(item.standard_critic.feedback)}</pre></li>`; // Ensured template literal is correct
+                
+                // Format the feedback text with proper line breaks
+                const feedbackText = item.standard_critic.feedback || 'No feedback provided.';
+                const formattedFeedback = feedbackText
+                    .replace(/\n\n/g, '</p><p>')  // Double line breaks become paragraph breaks
+                    .replace(/\n/g, '<br>');     // Single line breaks become <br> tags
+                
+                htmlContent += `<li><em>Feedback:</em> <div class="critic-feedback"><p>${formattedFeedback}</p></div></li>`;
+                
                 if (item.standard_critic.made_change) {
-                    htmlContent += `<li><em>Revised Text:</em> <pre>${escapeHtml(item.standard_critic.revised_text)}</pre></li>`; // Ensured template literal is correct
+                    htmlContent += `<li><em>Revised Text:</em> <pre>${escapeHtml(item.standard_critic.revised_text)}</pre></li>`;
                     htmlContent += '<li><em>Critic Made Change:</em> Yes</li>';
                 } else {
                     htmlContent += '<li><em>Critic Made Change:</em> No</li>';
@@ -951,9 +959,17 @@ function updateLiveStatusDisplay() {
                     
                     // Critic feedback if available
                     if (data.critic_action && data.critic_action.feedback) {
-                        actionInfo = `<div class="critic-feedback"><em>${data.critic_action.feedback}</em></div>`; // Ensured template literal is correct
+                        const feedbackText = data.critic_action.feedback;
+                        const formattedFeedback = feedbackText
+                            .replace(/\n\n/g, '</p><p>')  // Double line breaks become paragraph breaks
+                            .replace(/\n/g, '<br>');     // Single line breaks become <br> tags
+                        actionInfo = `<div class="critic-feedback"><p>${formattedFeedback}</p></div>`;
                     } else if (data.current && data.current.critic_action && data.current.critic_action.feedback) {
-                        actionInfo = `<div class="critic-feedback"><em>${data.current.critic_action.feedback}</em></div>`; // Ensured template literal is correct
+                        const feedbackText = data.current.critic_action.feedback;
+                        const formattedFeedback = feedbackText
+                            .replace(/\n\n/g, '</p><p>')  // Double line breaks become paragraph breaks
+                            .replace(/\n/g, '<br>');     // Single line breaks become <br> tags
+                        actionInfo = `<div class="critic-feedback"><p>${formattedFeedback}</p></div>`;
                     }
                     
                     statusHTML += `<p><strong>Critic:</strong> ${critic} ${criticChanged ? '<span class="improved">(Improved)</span>' : ''}${timingInfo}</p>`; // Ensured template literal is correct

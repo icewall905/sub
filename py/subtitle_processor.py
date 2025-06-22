@@ -891,6 +891,20 @@ class SubtitleProcessor:
                 
                 if current_result and agent_critic_enabled and critic_service:
                     self.logger.info("Applying critic to translation")
+                    
+                    # Get conservativeness level for logging
+                    conservativeness = 3  # Default fallback
+                    if hasattr(self, 'config') and self.config:
+                        conservativeness = self.config.getint("translation", "translation_conservativeness", fallback=3)
+                    conservativeness_labels = {
+                        1: "Very Conservative",
+                        2: "Conservative", 
+                        3: "Balanced",
+                        4: "Context-Aware",
+                        5: "Aggressive"
+                    }
+                    self.logger.info(f"Critic conservativeness level: {conservativeness} ({conservativeness_labels.get(conservativeness, 'Unknown')})")
+                    
                     critic_eval_result = critic_service.evaluate_translation(
                         original_text, current_result, source_lang, target_lang
                     )
@@ -901,10 +915,14 @@ class SubtitleProcessor:
                         if 'revised_translation' in critic_eval_result and critic_eval_result['revised_translation'] is not None:
                              critic_revised_text_for_display = critic_eval_result['revised_translation']
                              critic_made_change_for_display = critic_revised_text_for_display != current_result
-                             self.logger.info(f"Critic suggested revision: {critic_revised_text_for_display}")
+                             if critic_made_change_for_display:
+                                 self.logger.info(f"Critic suggested revision: {critic_revised_text_for_display}")
+                             else:
+                                 self.logger.info("Critic provided same translation (no change needed)")
                         else:
                              # Corrected logger call with proper string formatting for score
                              self.logger.info(f"Critic evaluation: Score {critic_eval_result.get('score', 'N/A')}, Feedback: {critic_feedback_for_display}")
+                             self.logger.info("Critic determined no revision needed (conservative approach)")
                              critic_revised_text_for_display = None 
                              critic_made_change_for_display = False
                     else:
