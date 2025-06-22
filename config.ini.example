@@ -1,15 +1,16 @@
 [general]
-source_language = english
-target_language = danish
-context_size_before = 10
-context_size_after = 10
+source_language = en
+target_language = da
+context_size_before = 15
+context_size_after = 15
 use_deepl = false
 use_google = true
 use_libretranslate = true
 use_mymemory = true
 host = 127.0.0.1
 port = 5089
-temperature = 0.2
+# Increase temperature for more creative thinking
+temperature = 0.7
 # Set to true for verbose logging, including full LLM prompts
 debug_mode = false
 
@@ -45,13 +46,42 @@ log_live_status = false
 enabled = true
 server_url = http://localhost:11434
 endpoint = /api/generate
-model = gemma3:27b-it-qat
+# Use quantized model for better GPU utilization
+model = gemma3:12b-instruct-q4_K_M
+# Alternative high-performance models:
+#model = gemma3:12b-instruct-q4_0
+#model = gemma3:12b-instruct-q5_K_M
+#model = gemma3:12b-instruct-q8_0
+
 # Performance settings for Ollama
-#num_gpu = 1      # Number of GPUs to use (increase for multi-GPU systems)
-#num_thread = 4   # Number of threads to use for computation
-num_ctx = 2048    # Context window size (token limit for input+output)
-#use_mmap = true  # Memory-map the model (usually improves performance)
-#use_mlock = true # Lock the model in RAM (prevents swapping to disk)
+num_gpu = 1
+num_ctx = 4096
+num_thread = 16
+use_mmap = true
+use_mlock = true
+
+# Ollama-specific performance optimizations
+gpu_layers = 35
+rope_freq_base = 10000
+rope_freq_scale = 0.5
+repeat_penalty = 1.1
+top_k = 40
+top_p = 0.9
+
+# Advanced thinking parameters
+temperature = 0.7
+repeat_penalty = 1.2
+top_k = 50
+top_p = 0.85
+tfs_z = 0.95
+typical_p = 0.9
+mirostat = 2
+mirostat_tau = 5.0
+mirostat_eta = 0.1
+
+# Batch processing settings for better GPU utilization
+batch_size = 5
+max_concurrent_batches = 3
 
 [lmstudio]
 enabled = false

@@ -827,6 +827,17 @@ IMPORTANT INSTRUCTIONS:
   2. Only modify DeepL translations when you have definitive contextual information that DeepL could not access
   3. Be extremely conservative - when in doubt, keep the professional translation
   4. Your role is to be a careful reviewer, not an aggressive editor
+
+THINKING PROCESS:
+Before providing your final translation, carefully consider:
+1. What is the literal meaning of each word and phrase?
+2. What is the intended meaning in this specific context?
+3. Are there any cultural nuances or idioms that need special attention?
+4. Does the context provide information that might affect the translation?
+5. Are there any character names, proper nouns, or show-specific terms?
+6. Which translation service provides the most accurate result for this specific case?
+
+Take your time to think through each aspect before deciding on the final translation.
 """
 
             # Add media info from TMDB if available
@@ -1101,6 +1112,14 @@ EXPECTED BEHAVIOR:
 
             # Add final reminder
             prompt += """
+ANALYSIS STEPS:
+1. First, analyze the source text for any ambiguous terms or cultural references
+2. Check if the context provides additional information that affects meaning
+3. Compare the available translations for accuracy and nuance
+4. Consider the target language's grammar and natural expression patterns
+5. Evaluate whether any show-specific terminology needs special handling
+6. Make your final decision based on the most contextually appropriate translation
+
 IMPORTANT: Return ONLY your translation of the text between the dotted lines. Do not include explanations, notes, or the original text.
 """
 
