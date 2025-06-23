@@ -174,29 +174,30 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('live-status-display').innerHTML = '<p>Initializing bulk translation...</p>';
         }
         
-        // Send bulk translation request
-        const formData = new FormData();
-        formData.append('directory_path', dirPath);
-        formData.append('source_language', sourceLanguage);
-        formData.append('target_language', targetLanguage);
-        formData.append('special_meanings', JSON.stringify(specialMeanings));
-        
-        // Generate a unique job ID
-        const jobId = Date.now().toString(36) + Math.random().toString(36).substr(2);
-        formData.append('job_id', jobId);
-        
-        fetch('/api/bulk_translate', {
+        // Send bulk translation request (backend route: /api/start-scan)
+        const payload = {
+            path: dirPath,
+            source_language: sourceLanguage,
+            target_language: targetLanguage,
+            special_meanings: specialMeanings
+        };
+
+        fetch('/api/start-scan', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         })
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                // Start polling for progress
-                pollBulkTranslationProgress(jobId);
+            if (data.ok !== false && !data.error) {
+                // Backend always uses a global progress dict, so we just poll /api/progress
+                pollBulkTranslationProgress();
             } else {
-                document.getElementById('status-message').textContent = 'Error: ' + data.message;
-                document.getElementById('live-status-display').innerHTML = '<p class="error">Bulk translation failed: ' + data.message + '</p>';
+                const msg = data.message || data.error || 'Unknown error';
+                document.getElementById('status-message').textContent = 'Error: ' + msg;
+                document.getElementById('live-status-display').innerHTML = '<p class="error">Bulk translation failed: ' + msg + '</p>';
             }
         })
         .catch(error => {
@@ -207,9 +208,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Function to poll for bulk translation progress
-    function pollBulkTranslationProgress(jobId) {
+    function pollBulkTranslationProgress() {
         const progressInterval = setInterval(function() {
-            fetch(`/api/bulk_translation_progress/${jobId}`)
+            fetch('/api/progress')
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'error') {
@@ -219,16 +220,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                const progress = data.progress;
+                // Compute progress: prefer explicit percent if provided, else derive from files count
+                let progress = data.percent;
+                if (typeof progress !== 'number') {
+                    if (data.total_files > 0) {
+                        progress = (data.done_files / data.total_files) * 100;
+                    } else {
+                        progress = 0;
+                    }
+                }
                 document.getElementById('progress-bar').style.width = progress + '%';
                 document.getElementById('progress-text').textContent = progress + '%';
                 document.getElementById('status-message').textContent = data.message;
                 
                 if (data.live_status) {
                     document.getElementById('live-status-display').innerHTML = data.live_status;
+                } else if (data.current_file) {
+                    document.getElementById('live-status-display').innerHTML = `<p>Processing: ${data.current_file}</p>`;
                 }
                 
-                if (data.complete) {
+                if (data.status === 'done' || data.status === 'completed' || data.status === 'idle') {
                     clearInterval(progressInterval);
                     document.getElementById('status-message').textContent = 'Bulk translation complete!';
                     
@@ -238,10 +249,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         resultContainer.style.display = 'block';
                         resultContainer.innerHTML = `
                             <div class="download-links">
-                                <a href="/download-zip/${jobId}" class="btn btn-success">
+                                <a href="/download-zip" class="btn btn-success">
                                     <i class="fas fa-download"></i> Download All Files (ZIP)
                                 </a>
-                                <button class="btn btn-info view-report-btn" data-report="${jobId}">
+                                <button class="btn btn-info view-report-btn" data-report="${data.job_id}">
                                     <i class="fas fa-file-alt"></i> View Translation Report
                                 </button>
                             </div>
