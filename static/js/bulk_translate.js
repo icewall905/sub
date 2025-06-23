@@ -54,11 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    if (selectDirBtn) {
-        selectDirBtn.addEventListener('click', function() {
-            selectDirectory(currentPath);
-        });
-    }
+    // The main action button (Translate This Directory) is handled later.
+    // We'll select the currentPath (or already selected directory) inside that handler.
     
     // Function to load directory content
     function loadDirectoryContent(path) {
@@ -135,10 +132,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Start bulk translation
     document.getElementById('inline-select-dir-btn').addEventListener('click', function() {
-        // Disallow root selection (must pick an actual directory)
-        if ((!selectedDirectory && !currentPath) || (!selectedDirectory && !currentPath)) {
-            alert('Please select a directory first.');
-            return;
+        // If the user hasn't explicitly selected via another click, treat the current navigation path as the chosen directory.
+        if (!selectedDirectory) {
+            selectDirectory(currentPath);
         }
         
         const dirPath = selectedDirectory || currentPath;
@@ -174,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('live-status-display').innerHTML = '<p>Initializing bulk translation...</p>';
         }
         
+        console.log('Launching bulk translation for', dirPath);
         // Send bulk translation request (backend route: /api/start-scan)
         const payload = {
             path: dirPath,
