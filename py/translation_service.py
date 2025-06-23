@@ -66,6 +66,15 @@ class TranslationService:
         self.tmdb_api_key = config.get("tmdb", "api_key", fallback=None)
         self.use_tmdb = config.getboolean("tmdb", "enabled", fallback=False)
         self.tmdb_language = config.get("tmdb", "language", fallback="en-US")
+        
+        # Pre/Post-processing feature flags
+        self.freeze_speaker_labels = config.getboolean('preprocessing', 'freeze_speaker_labels', fallback=False)
+        self.enforce_special_tokens = config.getboolean('translation', 'enforce_special_tokens', fallback=False)
+        self.glossary_post_replace = config.getboolean('translation', 'glossary_post_replace', fallback=False)
+        
+        self.logger.info(f"Feature flags – freeze_speaker_labels: {self.freeze_speaker_labels}, "
+                         f"enforce_special_tokens: {self.enforce_special_tokens}, "
+                         f"glossary_post_replace: {self.glossary_post_replace}")
     
     def get_iso_code(self, language_name: str) -> str:
         """Convert a language name to its ISO code."""
@@ -93,6 +102,18 @@ class TranslationService:
         """
         if not text.strip():
             return {"final_text": text, "collected_translations": {}, "first_pass_text": None}
+        
+        # ----------------------------------------------------
+        # Pre-processing (speaker label freeze, store original)
+        # ----------------------------------------------------
+        original_text = text  # keep full original for validation later
+        prefix = ""
+        if self.freeze_speaker_labels:
+            prefix_match = re.match(r"^([A-Za-z0-9_,'\- ]+:\s*)(.*)$", text)
+            if prefix_match:
+                prefix = prefix_match.group(1)
+                text = prefix_match.group(2)  # only translate payload
+        # ----------------------------------------------------
         
         # Default return structure
         result_details = {
@@ -197,8 +218,10 @@ class TranslationService:
                                 diff = list(difflib.ndiff(deepl_translation, ollama_final_result))
                                 self.logger.debug(f"  Diff: {''.join(diff)}")
                             
+                    # Build result_details and apply post-processing before returning
                     result_details["final_text"] = ollama_final_result
-                    result_details["first_pass_text"] = ollama_final_result # In this flow, Ollama's result is the first pass
+                    result_details["first_pass_text"] = ollama_final_result
+                    result_details = self._apply_postprocessing(original_text, prefix, result_details)
                     return result_details
                 else:
                      self.logger.warning("Ollama final translation failed. Falling back to priority list.")
@@ -212,7 +235,7 @@ class TranslationService:
         for service in service_priority:
             if ((service == "deepl" and self.config.getboolean("general", "use_deepl", fallback=False)) or
                 (service == "openai" and self.config.getboolean("openai", "enabled", fallback=False)) or
-                (service == "ollama" and self.config.getboolean("ollama", "enabled", fallback=True)) or
+                (service == "ollama" and ollama_enabled) or
                 (service == "google" and self.config.getboolean("general", "use_google", fallback=True)) or
                 (service == "libretranslate" and self.config.getboolean("general", "use_libretranslate", fallback=False)) or
                 (service == "mymemory" and self.config.getboolean("general", "use_mymemory", fallback=False))):
@@ -242,6 +265,7 @@ class TranslationService:
                     # Add this successful translation to collected_translations if not already there
                     if service.capitalize() not in result_details["collected_translations"]:
                          result_details["collected_translations"][service.capitalize()] = translation
+                    result_details = self._apply_postprocessing(original_text, prefix, result_details)
                     return result_details # Return on first success
 
             except Exception as e:
@@ -249,6 +273,7 @@ class TranslationService:
 
         # If all services fail
         self.logger.warning("All translation services failed, returning original text")
+        result_details = self._apply_postprocessing(original_text, prefix, result_details)
         return result_details # Return default structure with original text
 
     def _translate_with_deepl(self, text: str, source_lang: str, target_lang: str) -> str:
@@ -708,10 +733,11 @@ class TranslationService:
                     prefixes_to_remove = [
                         "Translation:", 
                         "Translated text:", 
-                        "Here's the translation:"
+                        "Here's the translation:",
+                        "Final translation:"
                     ]
                     for prefix in prefixes_to_remove:
-                        if translated_text.startswith(prefix):
+                        if translated_text.lower().startswith(prefix.lower()):
                             translated_text = translated_text[len(prefix):].strip()
                     
                     self.logger.debug(f"Ollama translation successful: {translated_text[:50]}...")
@@ -1479,3 +1505,62 @@ IMPORTANT: Return ONLY your translation of the text between the dotted lines. Do
             self.logger.debug(f"Removed thinking content from response (original length: {len(text)}, new length: {len(cleaned_text)})")
             
         return cleaned_text.strip()
+
+    def _extract_special_tokens(self, text: str):
+        """Return a list of special punctuation / tag tokens to preserve."""
+        if not text:
+            return []
+        # Match HTML tags, bracketed cues, ellipsis, musical notes, etc.
+        pattern = r"(<[^>]+>|\.{3}|…|♪|\[|\]|\(|\)|--|—|–)"
+        return re.findall(pattern, text)
+
+    def _validate_tokens(self, source_text: str, target_text: str) -> bool:
+        """Ensure every special token from source exists in target."""
+        source_tokens = self._extract_special_tokens(source_text)
+        for tok in source_tokens:
+            if tok and tok not in target_text:
+                return False
+        return True
+
+    def _apply_glossary_post_replace(self, translated_text: str) -> str:
+        """Deterministically replace glossary terms inside translated text."""
+        if not translated_text or not self.special_meanings:
+            return translated_text
+        new_text = translated_text
+        for entry in self.special_meanings:
+            # Expect format {"word": "airbender", "meaning": "luftbøjer"}
+            src = entry.get('word')
+            tgt = entry.get('meaning')
+            if src and tgt and src.lower() in new_text.lower():
+                pattern = re.compile(rf"\b{re.escape(src)}\b", flags=re.IGNORECASE)
+
+                def _case_preserve(match):
+                    word = match.group(0)
+                    if word.isupper():
+                        return tgt.upper()
+                    if word[0].isupper():
+                        return tgt.capitalize()
+                    return tgt
+
+                new_text = pattern.sub(_case_preserve, new_text)
+        return new_text
+
+    def _apply_postprocessing(self, original_text: str, prefix: str, result_details: dict) -> dict:
+        """Apply glossary replacement, token validation and prefix re-attachment."""
+        # Glossary deterministic replacement
+        if self.glossary_post_replace:
+            result_details["final_text"] = self._apply_glossary_post_replace(result_details["final_text"])
+        # Reattach speaker prefix
+        if self.freeze_speaker_labels and prefix:
+            result_details["final_text"] = prefix + result_details["final_text"]
+            if result_details.get("first_pass_text"):
+                result_details["first_pass_text"] = prefix + result_details["first_pass_text"]
+            for key in list(result_details["collected_translations"].keys()):
+                result_details["collected_translations"][key] = prefix + result_details["collected_translations"][key]
+        # Validate tokens and optionally fall back to DeepL
+        if self.enforce_special_tokens and not self._validate_tokens(original_text, result_details["final_text"]):
+            self.logger.warning("Special token validation failed; attempting DeepL fallback")
+            deepl_txt = result_details["collected_translations"].get("Deepl")
+            if deepl_txt and self._validate_tokens(original_text, deepl_txt):
+                result_details["final_text"] = deepl_txt
+        return result_details

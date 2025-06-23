@@ -771,16 +771,52 @@ class SubtitleProcessor:
             if progress_dict is not None:
                 progress_dict["line_history"] = []
 
-            # Process each subtitle line
-            for i, sub in enumerate(subs):
-                line_number = i + 1
-                line_start_time = time.time()  # Track per-line timing
-                
-                # Skip empty lines
-                if not sub.text.strip() or sub.text.strip() == '&nbsp;':
+            # --- Smart sentence merge pass ------------------------------------
+            def _strip_html(txt: str) -> str:
+                return re.sub(r"<[^>]+>", "", txt)
+
+            def _first_visible_char(txt: str) -> str:
+                char_set = " \t\r\n\f\v\u200b\u00a0'\"(<[{…»‘"  # leading punctuation and quotes
+                txt_clean = _strip_html(txt).lstrip(char_set)
+                return txt_clean[:1] if txt_clean else ""
+
+            merge_punct = {',', ';', '—', '–', '…'}
+            merged_entries = []  # list of dicts {indices:[...], text:str, delim:str}
+            skip_next = False
+            for idx in range(total_lines):
+                if skip_next:
+                    skip_next = False
                     continue
-                
-                original_text = self.preprocess_subtitle(sub.text)
+
+                current_raw = subs[idx].text.strip()
+                current_clean = _strip_html(current_raw).rstrip()
+
+                # Look ahead one line
+                if idx + 1 < total_lines:
+                    next_raw = subs[idx + 1].text.strip()
+                    first_char = _first_visible_char(next_raw)
+
+                    if current_clean and current_clean[-1] in merge_punct and first_char and first_char.islower():
+                        # Merge
+                        delimiter = current_clean[-1]
+                        merged_entries.append({
+                            "indices": [idx, idx + 1],
+                            "text": f"{current_raw} {next_raw}",
+                            "delim": delimiter
+                        })
+                        skip_next = True
+                        continue
+
+                # No merge – keep as-is
+                merged_entries.append({"indices": [idx], "text": current_raw})
+            # ------------------------------------------------------------------
+
+            # Replace original loop to iterate over merged_entries
+            for merged_idx, entry in enumerate(merged_entries):
+                indices = entry["indices"]
+                first_idx = indices[0]
+                line_number = first_idx + 1
+                original_text = self.preprocess_subtitle(entry["text"])
                 
                 # Initialize data for this line
                 translations = {}
@@ -818,11 +854,11 @@ class SubtitleProcessor:
 
                 # Build context from surrounding subtitles
                 context_before = []
-                for j in range(max(0, i - context_size_before), i):
+                for j in range(max(0, first_idx - context_size_before), first_idx):
                     context_before.append(f"Line {j+1}: {subs[j].text}")
                 
                 context_after = []
-                for j in range(i + 1, min(len(subs), i + 1 + context_size_after)):
+                for j in range(first_idx + 1, min(len(subs), first_idx + 1 + context_size_after)):
                     context_after.append(f"Line {j+1}: {subs[j].text}")
                 
                 context_text = ""
@@ -848,7 +884,7 @@ class SubtitleProcessor:
                     target_lang,
                     context=context_text,
                     media_info=media_info,
-                    special_meanings=special_meanings  # Pass special meanings to translation service
+                    special_meanings=special_meanings
                 )
                 
                 # Calculate first pass timing
@@ -965,7 +1001,7 @@ class SubtitleProcessor:
                 final_result = current_result
                 
                 # Calculate total time for this line
-                timing["total"] = time.time() - line_start_time
+                timing["total"] = time.time() - timing["start"]
                 
                 # Update progress dict with final result and timing
                 if progress_dict is not None:
@@ -999,11 +1035,36 @@ class SubtitleProcessor:
                 
                 # Update subtitle text
                 if final_result:
-                    sub.text = self.postprocess_translation(final_result)
+                    # --- Split merged translation back if needed ---
+                    if len(indices) == 2:
+                        # Use the delimiter captured during merge (defaults to comma)
+                        delimiter = entry.get("delim", ",") if isinstance(entry, dict) else ","
+                        if delimiter in final_result:
+                            part1, part2 = final_result.split(delimiter, 1)
+                        else:
+                            # Fallback to comma if translator replaced delimiter
+                            part1, part2 = final_result.split(',', 1) if ',' in final_result else (final_result, '')
+                        part1_clean = part1.strip() + delimiter
+                        part2_clean = part2.strip()
+                        # Apply Danish verb–subject inversion if enabled
+                        apply_inv = True
+                        if self.config is not None:
+                            apply_inv = self.config.getboolean('translation', 'apply_danish_inversion', fallback=True)
+                        if apply_inv:
+                            part2_clean = self._apply_danish_inversion(part2_clean)
+
+                        subs[indices[0]].text = part1_clean
+                        subs[indices[1]].text = part2_clean
+                    else:
+                        # Single line or unable to split, assign to first index
+                        subs[indices[0]].text = final_result
+                    # If merged entry had two indices and we only edited first, ensure second kept (in case split failed)
+                    if len(indices) == 2 and ',' not in final_result:
+                        subs[indices[1]].text = final_result
                 else:
                     # If translation failed completely, keep original but log warning
                     self.logger.warning(f"Translation failed for line {line_number}, keeping original text: {original_text}")
-                    sub.text = original_text # Keep original if final_result is None or empty
+                    subs[indices[0]].text = original_text # Keep original if final_result is None or empty
 
                 # Accumulate history for the current line
                 if progress_dict is not None:
@@ -1242,3 +1303,45 @@ class SubtitleProcessor:
         except Exception as e:
             self.logger.error(f"Error writing subtitle file: {str(e)}")
             raise
+
+    def _apply_danish_inversion(self, text: str) -> str:
+        """Ensure Danish verb–subject inversion inside a main clause following a comma.
+
+        If the clause starts with a personal pronoun (Han, hun, vi …) followed by a verb
+        that should lead, we swap the first two tokens so the verb comes first.
+        Example: "Han forsvandt." → "Forsvandt han."  The rest of the clause is left intact.
+        The algorithm is intentionally lightweight – it only fires when it is very
+        likely to be correct and otherwise leaves the text untouched.
+        """
+        clause = text.strip()
+        if not clause:
+            return text
+
+        # Preserve trailing punctuation (period, ellipsis, question-mark)
+        trailing = ''
+        if clause[-1] in '.?!…':
+            trailing = clause[-1]
+            clause = clause[:-1].rstrip()
+
+        tokens = clause.split()
+        if len(tokens) < 2:
+            return text  # Too short to invert
+
+        pronouns = {
+            'jeg', 'du', 'han', 'hun', 'vi', 'i', 'de', 'det', 'den',
+        }
+
+        first_token_lower = tokens[0].lower()
+        if first_token_lower in pronouns and len(tokens) >= 2:
+            # Swap first (pronoun) with second (verb)
+            tokens[0], tokens[1] = tokens[1], tokens[0].lower()
+
+            # Capitalise new first token if original started with a capital letter
+            if text[0].isupper():
+                tokens[0] = tokens[0].capitalize()
+
+            inverted = ' '.join(tokens)
+            return f"{inverted}{trailing}"
+
+        # Otherwise leave untouched
+        return text

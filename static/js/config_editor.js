@@ -77,23 +77,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Special case for boolean values
         if (typeof value === 'boolean' || value === 'true' || value === 'false') {
-            input = document.createElement('select');
-            const trueOption = document.createElement('option');
-            trueOption.value = 'true';
-            trueOption.textContent = 'Yes';
-            if (value === true || value === 'true') {
-                trueOption.selected = true;
-            }
-            
-            const falseOption = document.createElement('option');
-            falseOption.value = 'false';
-            falseOption.textContent = 'No';
-            if (value === false || value === 'false') {
-                falseOption.selected = true;
-            }
-            
-            input.appendChild(trueOption);
-            input.appendChild(falseOption);
+            input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = (value === true || value === 'true');
         } 
         // Special case for certain known dropdowns
         else if (isSelectOption(section, option)) {
@@ -270,11 +256,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const optionName = group.dataset.option;
                 const input = group.querySelector('input, select');
                 
-                let value = input.value;
-                
-                // Convert string boolean values to actual booleans
-                if (value === 'true' || value === 'false') {
-                    value = value === 'true';
+                let value;
+                if (input.type === 'checkbox') {
+                    value = input.checked;
+                } else {
+                    value = input.value;
+                    if (value === 'true' || value === 'false') {
+                        value = value === 'true';
+                    }
                 }
                 
                 formData[sectionName][optionName] = value;

@@ -19,20 +19,29 @@ debug_mode = false
 use_remote_whisper = false
 server_url = http://10.0.0.1:10300
 
+[preprocessing]
+# Freeze speaker labels (e.g., "KATARA:") so the translator only sees the payload
+freeze_speaker_labels = false
+
 [translation]
 # Configure the service priority (comma-separated list)
 # Services will be tried in this order
 service_priority = deepl,google,libretranslate,mymemory
-
 # Translation conservativeness level (1-5)
 # 1 = Most conservative (only change DeepL when 100% certain of contextual advantage)
 # 3 = Balanced (default - only change when clear contextual advantage exists)
 # 5 = Most aggressive (willing to make more changes based on context)
 translation_conservativeness = 3
-
 # Retry settings for translation services
 max_retries = 3
 base_delay = 2
+# Enforce that special tokens (HTML tags, ellipsis, brackets) present in the source must appear in the translation
+enforce_special_tokens = true
+# After translation, apply deterministic glossary replacement based on files/meaning.json
+# Set to false to rely on LLM only
+glossary_post_replace = true
+# Reorder subject and verb in Danish clauses when appropriate (e.g., "forsvandt han")
+apply_danish_inversion = true
 
 [logging]
 file_enabled = true
@@ -52,22 +61,18 @@ model = gemma3:12b-instruct-q4_K_M
 #model = gemma3:12b-instruct-q4_0
 #model = gemma3:12b-instruct-q5_K_M
 #model = gemma3:12b-instruct-q8_0
-
 # Performance settings for Ollama
 num_gpu = 1
 num_ctx = 4096
 num_thread = 16
 use_mmap = true
 use_mlock = true
-
 # Ollama-specific performance optimizations
 gpu_layers = 35
 rope_freq_base = 10000
 rope_freq_scale = 0.5
-repeat_penalty = 1.1
 top_k = 40
 top_p = 0.9
-
 # Advanced thinking parameters
 temperature = 0.7
 repeat_penalty = 1.2
@@ -78,7 +83,6 @@ typical_p = 0.9
 mirostat = 2
 mirostat_tau = 5.0
 mirostat_eta = 0.1
-
 # Batch processing settings for better GPU utilization
 batch_size = 5
 max_concurrent_batches = 3
@@ -121,11 +125,16 @@ max_terms = 10
 
 [critic]
 enabled = true
-service = ollama      # Currently only 'ollama' and 'lmstudio' is supported
-model = gemma3:12b    # Uses the ollama model if not specified
-temperature = 0.1     # Lower temperature for more consistent evaluations
-min_score = 6.0       # Minimum acceptable score (0-10) for translations
-generate_report = true  # Generate a report of translation quality
+# Currently only 'ollama' and 'lmstudio' is supported
+service = ollama
+# Uses the ollama model if not specified
+model = gemma3:12b
+# Lower temperature for more consistent evaluations
+temperature = 0.1
+# Minimum acceptable score (0-10) for translations
+min_score = 6.0
+# Generate a report of translation quality
+generate_report = true
 
 [agent_critic]
 enabled = false
@@ -139,18 +148,21 @@ num_passes = 2
 enabled = false
 type = grammar
 temperature = 0.2
+# Grammar Critic - focuses on improving grammar and syntax
 description = Grammar Critic - focuses on improving grammar and syntax
 
 [critic_pass_2]
 enabled = false
 type = cultural
 temperature = 0.2
+# Cultural Critic - focuses on improving idioms and cultural references
 description = Cultural Critic - focuses on improving idioms and cultural references
 
 [critic_pass_3]
 enabled = false
 type = consistency
 temperature = 0.2
+# Consistency Critic - focuses on terminology consistency across subtitle lines
 description = Consistency Critic - focuses on terminology consistency across subtitle lines
 
 [file_browser]
@@ -160,17 +172,19 @@ description = Consistency Critic - focuses on terminology consistency across sub
 # Example for macOS: allowed_paths = /Users/user/Movies,/Volumes/media
 allowed_paths = /srv/subtitle_translator_files
 # Default to a restrictive path or leave empty to disable if not set
-
 # Optional: Comma-separated list of paths or patterns explicitly denied 
 # even if they're within an allowed path (e.g., system directories)
 # Example: denied_patterns = /etc,/var,/boot,/root,/home/*/.*,*password*,*config*
 denied_patterns = 
-
 # Security settings
-enable_parent_navigation = true  # Set to false to disable "up one level" navigation
-max_depth = 10                   # Maximum directory depth to prevent deep traversal
-hide_dot_files = true            # Hide files and directories that start with a dot
-restrict_to_media_dirs = false   # Only show directories likely to contain media
+# Set to false to disable "up one level" navigation
+enable_parent_navigation = true
+# Maximum directory depth to prevent deep traversal
+max_depth = 10
+# Hide files and directories that start with a dot
+hide_dot_files = true
+# Only show directories likely to contain media
+restrict_to_media_dirs = false
 
 [extraction]
 # Set to true to extract all subtitle streams from video files regardless of language
