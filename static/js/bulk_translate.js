@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentPathDisplay = document.getElementById('current-inline-path');
     const selectDirBtn = document.getElementById('inline-select-dir-btn');
     
-    let currentPath = '/';
+    let currentPath = '';
     let selectedDirectory = null;
     
     // Initialize special meanings functionality
@@ -62,37 +62,51 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to load directory content
     function loadDirectoryContent(path) {
-        currentPathDisplay.textContent = path;
+        // Update globals
         currentPath = path;
+
+        // Show path (fallback to / for root)
+        currentPathDisplay.textContent = path || '/';
+
+        // Clear existing list
         directoryList.innerHTML = '';
-        
-        // Add parent directory option if not at root
-        if (path !== '/') {
-            const parentDir = path.split('/').slice(0, -2).join('/') + '/';
-            const parentItem = document.createElement('li');
-            parentItem.classList.add('directory-item');
-            parentItem.innerHTML = '<i class="fas fa-level-up-alt"></i> Parent Directory';
-            parentItem.addEventListener('click', function() {
-                loadDirectoryContent(parentDir);
-            });
-            directoryList.appendChild(parentItem);
+
+        // Build API URL – omit the query param when at virtual root
+        let apiUrl = '/api/browse_dirs';
+        if (path) {
+            apiUrl += `?path=${encodeURIComponent(path)}`;
         }
-        
-        // Fetch directories
-        fetch(`/api/browse_dirs?path=${encodeURIComponent(path)}`)
+
+        // Fetch directories from backend
+        fetch(apiUrl)
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                data.directories.forEach(dir => {
-                    const dirItem = document.createElement('li');
-                    dirItem.classList.add('directory-item');
-                    dirItem.innerHTML = `<i class="fas fa-folder"></i> ${dir.name}`;
-                    dirItem.addEventListener('click', function() {
-                        loadDirectoryContent(dir.path);
-                    });
-                    directoryList.appendChild(dirItem);
-                });
+            if (data.error) {
+                alert(`Error: ${data.error}`);
+                return;
             }
+
+            // Add parent navigation if server says it's allowed
+            if (data.parent_path) {
+                const parentItem = document.createElement('li');
+                parentItem.classList.add('directory-item');
+                parentItem.innerHTML = '<i class="fas fa-level-up-alt"></i> Parent Directory';
+                parentItem.addEventListener('click', function() {
+                    loadDirectoryContent(data.parent_path);
+                });
+                directoryList.appendChild(parentItem);
+            }
+
+            // Render directories
+            (data.directories || []).forEach(dir => {
+                const dirItem = document.createElement('li');
+                dirItem.classList.add('directory-item');
+                dirItem.innerHTML = `<i class="fas fa-folder"></i> ${dir.name}`;
+                dirItem.addEventListener('click', function() {
+                    loadDirectoryContent(dir.path);
+                });
+                directoryList.appendChild(dirItem);
+            });
         });
     }
     
@@ -106,25 +120,33 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`/api/browse_files?path=${encodeURIComponent(path)}&filter=subtitle`)
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                if (data.files.length === 0) {
-                    alert('Warning: No subtitle files found in this directory.');
-                } else {
-                    // You could show a preview of subtitle files here
-                    console.log(`Found ${data.files.length} subtitle files.`);
-                }
+            if (data.error) {
+                alert(`Error: ${data.error}`);
+                return;
+            }
+
+            if ((data.files || []).length === 0) {
+                alert('Warning: No subtitle files found in this directory.');
+            } else {
+                console.log(`Found ${data.files.length} subtitle files.`);
             }
         });
     }
     
     // Start bulk translation
     document.getElementById('inline-select-dir-btn').addEventListener('click', function() {
-        if (!selectedDirectory && !currentPath) {
+        // Disallow root selection (must pick an actual directory)
+        if ((!selectedDirectory && !currentPath) || (!selectedDirectory && !currentPath)) {
             alert('Please select a directory first.');
             return;
         }
         
         const dirPath = selectedDirectory || currentPath;
+        if (!dirPath) {
+            alert('Please navigate into a directory first.');
+            return;
+        }
+        
         const sourceLanguage = document.getElementById('source-language').value;
         const targetLanguage = document.getElementById('target-language').value;
         
