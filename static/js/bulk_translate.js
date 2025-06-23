@@ -132,16 +132,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Start bulk translation
     document.getElementById('inline-select-dir-btn').addEventListener('click', function() {
-        // If the user hasn't explicitly selected via another click, treat the current navigation path as the chosen directory.
-        if (!selectedDirectory) {
-            selectDirectory(currentPath);
-        }
+        console.log("Translate button clicked."); // For debugging
         
         const dirPath = selectedDirectory || currentPath;
+        
         if (!dirPath) {
             alert('Please navigate into a directory first.');
             return;
         }
+
+        // Update the main display and hide the browser before starting the job.
+        directoryDisplay.value = dirPath;
+        inlineFileBrowser.style.display = 'none';
+
+        console.log('Launching bulk translation for', dirPath);
         
         const sourceLanguage = document.getElementById('source-language').value;
         const targetLanguage = document.getElementById('target-language').value;
@@ -170,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('live-status-display').innerHTML = '<p>Initializing bulk translation...</p>';
         }
         
-        console.log('Launching bulk translation for', dirPath);
         // Send bulk translation request (backend route: /api/start-scan)
         const payload = {
             path: dirPath,
