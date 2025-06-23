@@ -82,7 +82,4 @@
 {% block scripts %}
     <script src="{{ url_for('static', filename='js/transcribe.js') }}"></script>
     <script src="{{ url_for('static', filename='js/browser-fix.js') }}"></script>
-    {% if debug %}
-    <script src="{{ url_for('static', filename='js/browser-debug.js') }}"></script>
-    {% endif %}
 {% endblock %}

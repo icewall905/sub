@@ -1516,3 +1516,15 @@ small {
 .history-list .critic-feedback p:last-child {
     margin-bottom: 0;
 }
+
+/* Collapsible details expand icon */
+.expand-icon {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    color: #4CAF50; /* accent green for visibility */
+    font-size: 1rem;
+}
+
+details[open] > summary .expand-icon {
+    transform: rotate(90deg);
+}
