@@ -1593,10 +1593,12 @@ function startBulkTranslation(directory) {
     bulkStatusMessage.textContent = 'Starting bulk translation scan...';
     bulkDownloadLink.style.display = 'none';
 
+    const forceTranslate = document.getElementById('force-translate-btn')?.classList.contains('active') || false;
+
     fetch('/api/start-scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: directory })
+        body: JSON.stringify({ path: directory, force: forceTranslate })
     })
     .then(response => response.json())
     .then(data => {
@@ -2236,4 +2238,25 @@ function browseInlineDirectory(path) {
             console.error('Error browsing directories:', error);
             dirList.innerHTML = `<li class="error-message">${error.message}</li>`;
         });
+}
+
+// --- Translate Directory Button ---
+const translateHostDirBtn = document.getElementById('translate-host-dir-btn');
+if (translateHostDirBtn) {
+    translateHostDirBtn.addEventListener('click', function() {
+        const hostPathDisplay = document.getElementById('host-current-path');
+        if (!hostPathDisplay) {
+            alert('Directory browser not initialized yet.');
+            return;
+        }
+
+        const dirPath = hostPathDisplay.textContent.trim();
+        if (!dirPath || dirPath.toLowerCase() === 'root') {
+            alert('Please browse to a directory first.');
+            return;
+        }
+
+        // Start the bulk translation for the chosen directory
+        startBulkTranslation(dirPath);
+    });
 }

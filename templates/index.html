@@ -29,7 +29,9 @@
                     <div class="upload-options">
                         <input type="text" id="host-file-path" name="host_file_path" class="form-control" placeholder="Click browse to select a host file..." readonly>
                         <button type="button" id="browse-host-file-btn" class="btn btn-secondary btn-sm">Browse</button>
+                        <button type="button" id="translate-host-dir-btn" class="btn btn-primary btn-sm">Translate Directory</button>
                     </div>
+                    <button type="button" id="force-translate-btn" class="btn btn-outline-warning btn-sm ms-2" data-bs-toggle="button" aria-pressed="false" autocomplete="off" title="Generate a secondary subtitle even if one already exists">Generate Alt</button>
                     <div id="host-file-browser" style="display:none;">
                         <div class="browser-header">
                             <span>Host File Browser</span>
@@ -102,6 +104,19 @@
         </div>
     </div>
 
+    <!-- Bulk Translation Status (Directory) -->
+    <div id="bulk-translation-status" class="card progress-feedback" style="display:none;">
+        <h3><span class="icon"><i class="fas fa-tasks"></i></span>Bulk Translation Progress</h3>
+        <div id="bulk-status-message" class="status-text">Initializing...</div>
+        <div class="progress-container">
+            <div id="bulk-progress-bar" class="progress-bar-fill"></div>
+            <div id="bulk-progress-text" class="progress-bar-text">0%</div>
+        </div>
+        <div id="bulk-download-link" style="display:none; margin-top: 1rem;">
+            <a id="download-zip-link" href="#" class="btn btn-primary">Download ZIP</a>
+        </div>
+    </div>
+
     <!-- Modal for Viewing Subtitles/Reports -->
     <div id="modal" class="modal" style="display:none;">
         <div class="modal-content card">
@@ -168,7 +183,6 @@
             }
         });
     </script>
-    <script src="{{ url_for('static', filename='js/browser-fix.js') }}"></script>
     {% if debug %}
     <script src="{{ url_for('static', filename='js/browser-debug.js') }}"></script>
     {% endif %}

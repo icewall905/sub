@@ -62,7 +62,7 @@ if debug_mode:
 translation_jobs: Dict[str, Dict[str, Any]] = {}
 
 # Locks for thread-safe access to shared resources
-progress_lock = threading.Lock()
+progress_lock = threading.RLock()
 jobs_lock = threading.Lock()
 
 # Progress status file path
@@ -834,6 +834,9 @@ def api_start_scan() -> ResponseReturnValue:
         logger.error(f"Invalid or missing folder path: {root}")
         return jsonify({"ok": False, "error": "Folder not found or path is invalid"}), 400
 
+    logger.info(f"[api_start_scan] Received start-scan request for: {root} (force={data.get('force', False)})")
+
+    force = bool(data.get("force", False))
     config = config_manager.get_config()
 
     # Optional: Whitelist check
@@ -867,9 +870,11 @@ def api_start_scan() -> ResponseReturnValue:
     # Start bulk translation in background thread
     threading.Thread(
         target=scan_and_translate_directory,
-        args=(root, config, bulk_translation_progress, logger),
+        args=(root, config, bulk_translation_progress, logger, force),
         daemon=True
     ).start()
+
+    logger.info("[api_start_scan] Background scan thread started")
 
     return jsonify({"ok": True})
 
@@ -1292,7 +1297,8 @@ def clear_global_progress(progress_dict):
         })
     logger.info("Global progress dictionary reset to idle.")
 
-def scan_and_translate_directory(root_dir, config, progress, logger):
+def scan_and_translate_directory(root_dir, config, progress, logger, force=False):
+    logger.info(f"[scan_and_translate_directory] Thread started for root: {root_dir}")
     """Scan a directory for subtitle files and translate them in bulk."""
     try:
         with progress_lock:
@@ -1326,7 +1332,7 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
         for root, _, files in os.walk(root_dir):
             for file in files:
                 file_path = os.path.join(root, file)
-                if file.lower().endswith(('.srt', '.ass')):
+                if file.lower().endswith(('.srt', '.ass', '.vtt')):
                     all_subtitle_files.append(file_path)
                 elif subtitle_processor.is_video_file(file_path):
                     all_video_files.append(file_path)
@@ -1496,7 +1502,7 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             
             # Critical fix: Special case for target language files with complex patterns
             # This explicitly checks for target language files first and marks them for skipping
-            if f".{tgt_lang_code}." in file_name.lower():
+            if not force and f".{tgt_lang_code}." in file_name.lower():
                 logger.debug(f"Skipping file with target language code in filename: {file_name}")
                 skip_these_files.append(file_path)
                 continue
@@ -1505,15 +1511,37 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
             detected_lang = None
             matching_pattern = None
             
+            allowed_lang_codes = {src_lang_code, tgt_lang_code, 'en', 'eng', 'da', 'dan', 'es', 'spa', 'de', 'deu', 'ger', 'fr', 'fre', 'hi'}
+            
             for pattern in lang_patterns:
                 match = re.search(pattern, file_name.lower())
                 if match:
-                    detected_lang = match.group(1)
+                    candidate = match.group(1)
+                    if candidate not in allowed_lang_codes:
+                        # Ignore spurious 3-letter words like "the", "jet", etc.
+                        logger.debug(f"Ignoring false language candidate '{candidate}' in {file_name}")
+                        continue
+                    detected_lang = candidate
                     matching_pattern = pattern
                     logger.debug(f"Detected language '{detected_lang}' in file: {file_name} using pattern {pattern}")
                     break
             
             # If we couldn't detect a language, track it but continue to next file
+            if not detected_lang:
+                # ---------------- Fallback token scan ----------------
+                tokens = file_name.lower().split('.')
+                if len(tokens) > 1:
+                    # Drop extension (srt/ass)
+                    tokens = tokens[:-1]
+                    for tok in reversed(tokens):  # check nearest to extension first
+                        if tok in allowed_lang_codes:
+                            detected_lang = tok
+                            logger.debug(
+                                f"[fallback] Detected language '{detected_lang}' in file: {file_name} using token scan"
+                            )
+                            break
+
+            # If still nothing, record unmatched and move on
             if not detected_lang:
                 unmatched_files.append(file_path)
                 logger.debug(f"No language detected in file: {file_name}")
@@ -1537,7 +1565,7 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                 continue
                 
             # If it's a target language file, skip it immediately - we don't want to translate these
-            if detected_lang == tgt_lang_code:
+            if not force and detected_lang == tgt_lang_code:
                 logger.debug(f"Skipping file with target language code: {file_name}")
                 skip_these_files.append(file_path)
                 continue
@@ -1603,8 +1631,12 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                     logger.info(f"Skipping {os.path.basename(lang_files[src_lang_code])} - flagged as target language file")
                     skipped_files.append(lang_files[src_lang_code])
             elif src_lang_code in lang_files and tgt_lang_code in lang_files:
-                logger.info(f"Skipping {os.path.basename(lang_files[src_lang_code])} - target version already exists: {os.path.basename(lang_files[tgt_lang_code])}")
-                skipped_files.append(lang_files[src_lang_code])
+                if force:
+                    logger.info(f"Adding {os.path.basename(lang_files[src_lang_code])} to translation queue despite existing target (force)")
+                    srt_files.append(lang_files[src_lang_code])
+                else:
+                    logger.info(f"Skipping {os.path.basename(lang_files[src_lang_code])} - target version already exists: {os.path.basename(lang_files[tgt_lang_code])}")
+                    skipped_files.append(lang_files[src_lang_code])
             elif src_lang_code not in lang_files and tgt_lang_code in lang_files:
                 logger.debug(f"Skipping {os.path.basename(lang_files[tgt_lang_code])} - target only, no source")
                 # Not counted as skipped since we don't have a source file
@@ -1690,11 +1722,27 @@ def scan_and_translate_directory(root_dir, config, progress, logger):
                         out_base = f"{base}.{tgt_lang}"
                 
                 translated_filename = secure_filename(f"{out_base}{ext}")
+
+                # If force is enabled and the target file already exists, generate a unique alternative name
+                if force:
+                    alt_base, alt_ext = os.path.splitext(translated_filename)
+                    counter = 1
+                    alt_filename = translated_filename
+                    alt_archive_path = os.path.join(app.config['UPLOAD_FOLDER'], alt_filename)
+                    while os.path.exists(alt_archive_path):
+                        alt_filename = f"{alt_base}_alt{counter}{alt_ext}"
+                        alt_archive_path = os.path.join(app.config['UPLOAD_FOLDER'], alt_filename)
+                        counter += 1
+
+                    if alt_filename != translated_filename:
+                        logger.info(f"[force] Existing target file detected – saving as alternate '{alt_filename}' instead of overwriting")
+                        translated_filename = alt_filename
+
                 output_path = os.path.join(temp_dir, translated_filename)
                 archive_path = os.path.join(app.config['UPLOAD_FOLDER'], translated_filename)
                 
                 # Check if the output file already exists in the archive
-                if (os.path.exists(archive_path)):
+                if (not force) and os.path.exists(archive_path):
                     logger.info(f"Output file {translated_filename} already exists in archive, skipping translation")
                     # Copy the existing file to the temp directory for inclusion in the zip
                     import shutil
@@ -2130,7 +2178,7 @@ bulk_translation_progress = {}
 translation_jobs = {}
 
 # Locks for thread safety
-progress_lock = threading.Lock()
+progress_lock = threading.RLock()
 jobs_lock = threading.Lock()
 
 # Create secure file browser instance

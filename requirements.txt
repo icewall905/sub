@@ -11,3 +11,4 @@ wyoming>=0.4.0
 # Additional dependencies
 python-dotenv>=0.19.0
 typing-extensions>=4.0.0
+beautifulsoup4>=4.12.0
