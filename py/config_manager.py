@@ -16,7 +16,8 @@ class ConfigManager:
             config_path (str): Path to the configuration file
         """
         self.config_path = config_path
-        self.config = configparser.ConfigParser()
+        # Allow duplicate options in config files (last occurrence wins)
+        self.config = configparser.ConfigParser(strict=False)
         
         # Read the config if it exists
         if os.path.exists(config_path):
