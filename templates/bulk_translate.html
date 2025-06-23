@@ -8,22 +8,21 @@
         <h2><span class="icon"><i class="fas fa-folder-open"></i></span>Bulk Translate Directory</h2>
         <p class="description">Select a directory on the host system to find and translate all subtitle files within it.</p>
         <div class="form-group">
-            <label for="selected-directory-display">Selected Directory for Bulk Translation</label>
+            <label for="host-file-path">Select Directory from Host</label>
             <div class="upload-options">
-                <input type="text" id="selected-directory-display" class="form-control" placeholder="Click browse to select a directory..." readonly>
-                <button type="button" id="browse-btn" class="btn btn-secondary btn-sm">Browse Directory</button>
-                <button type="button" id="inline-select-dir-btn" class="btn btn-primary btn-sm">Start Bulk Translation</button>
+                <input type="text" id="host-file-path" class="form-control" placeholder="Click browse to select a directory..." readonly>
+                <button type="button" id="browse-host-file-btn" class="btn btn-secondary btn-sm">Browse</button>
+                <button type="button" id="translate-host-dir-btn" class="btn btn-primary btn-sm">Translate Directory</button>
+                <button type="button" id="force-translate-btn" class="btn btn-outline-warning btn-sm ms-2" data-bs-toggle="button" aria-pressed="false" autocomplete="off" title="Generate a secondary subtitle even if one already exists">Generate Alt</button>
             </div>
-            <button type="button" id="toggle-browser-btn" class="btn btn-secondary btn-sm" style="margin-top:5px;">Toggle Browser</button>
-        </div>
-
-        <div id="inline-file-browser" class="inline-file-browser">
-            <div class="browser-header">
-                <span>Directory Browser</span>
-                <span id="current-inline-path" class="current-path-display"></span>
-            </div>
-            <div class="browser-body">
-                <ul id="inline-directory-list" class="directory-list"></ul>
+            <div id="host-file-browser" style="display:none; margin-top:5px;">
+                <div class="browser-header">
+                    <span>Host Directory Browser</span>
+                    <span id="host-current-path" class="current-path-display"></span>
+                </div>
+                <div class="browser-body">
+                    <ul id="host-file-list" class="browser-list"></ul>
+                </div>
             </div>
         </div>
         
@@ -104,8 +103,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='js/bulk_translate.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/browser-fix.js') }}"></script>
+    {# Legacy JS removed; main.js handles directory translation UI #}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const addMeaningBtn = document.getElementById('add-special-meaning-btn');

@@ -75,11 +75,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const inputId = `${section}-${option}`;
         let input;
         
-        // Special case for boolean values
-        if (typeof value === 'boolean' || value === 'true' || value === 'false') {
+        // Special case for boolean values (accept True/False strings, any case)
+        if (typeof value === 'boolean' || (typeof value === 'string' && ['true','false'].includes(value.toLowerCase()))) {
             input = document.createElement('input');
             input.type = 'checkbox';
-            input.checked = (value === true || value === 'true');
+            input.checked = (value === true || (typeof value === 'string' && value.toLowerCase() === 'true'));
         } 
         // Special case for certain known dropdowns
         else if (isSelectOption(section, option)) {

@@ -41,17 +41,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                         </div>
                         <div class="file-actions">
-                            <button class="btn btn-sm btn-info view-file-btn" data-file="${file}">
-                                <i class="fas fa-eye"></i>
+                            <button class="btn btn-sm btn-info view-file-btn" data-file="${file}" title="View subtitle">
+                                <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View</span>
                             </button>
-                            <a href="/download_sub/${encodeURIComponent(file)}" class="btn btn-sm btn-success">
-                                <i class="fas fa-download"></i>
+                            <a href="/download_sub/${encodeURIComponent(file)}" class="btn btn-sm btn-success" title="Download subtitle">
+                                <i class="fas fa-download"></i> <span class="d-none d-md-inline">Download</span>
                             </a>
-                            <button class="btn btn-sm btn-danger delete-file-btn" data-file="${file}">
-                                <i class="fas fa-trash"></i>
+                            <button class="btn btn-sm btn-danger delete-file-btn" data-file="${file}" title="Delete subtitle">
+                                <i class="fas fa-trash"></i> <span class="d-none d-md-inline">Delete</span>
                             </button>
-                            <button class="btn btn-sm btn-primary report-btn" data-file="${file}">
-                                <i class="fas fa-chart-bar"></i>
+                            <button class="btn btn-sm btn-primary report-btn" data-file="${file}" title="Show translation report">
+                                <i class="fas fa-chart-bar"></i> <span class="d-none d-md-inline">Report</span>
                             </button>
                         </div>
                     `;
