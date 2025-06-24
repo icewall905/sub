@@ -1766,16 +1766,44 @@ def scan_and_translate_directory(root_dir, config, progress, logger, force=False
                     import shutil
                     shutil.copy2(archive_path, output_path)
                     
-                                       
                     # NEW CODE: Also save alongside the original file
+                    # Get the original source directory (not the temporary working directory)
                     original_dir = os.path.dirname(srt_file)
                     alongside_path = os.path.join(original_dir, translated_filename)
+                    
+                    # Add detailed logging to debug the path construction
+                    logger.info(f"Attempting to save alongside original:")
+                    logger.info(f"  - Original file: {srt_file}")
+                    logger.info(f"  - Original directory: {original_dir}")
+                    logger.info(f"  - Translated filename: {translated_filename}")
+                    logger.info(f"  - Alongside path: {alongside_path}")
+                    
                     try:
+                        # Check if the target directory exists and is writable
+                        if not os.path.exists(original_dir):
+                            logger.error(f"Original directory does not exist: {original_dir}")
+                            raise Exception(f"Directory does not exist: {original_dir}")
+                        
+                        if not os.access(original_dir, os.W_OK):
+                            logger.error(f"No write permission to directory: {original_dir}")
+                            raise Exception(f"No write permission to directory: {original_dir}")
+                        
                         # Copy the translated file to the original directory
                         shutil.copy2(archive_path, alongside_path)
-                        logger.info(f"Also saved translation alongside original: {alongside_path}")
+                        logger.info(f"Successfully saved translation alongside original: {alongside_path}")
+                        
+                        # Verify the file was actually created
+                        if os.path.exists(alongside_path):
+                            file_size = os.path.getsize(alongside_path)
+                            logger.info(f"Verified file creation: {alongside_path} ({file_size} bytes)")
+                        else:
+                            logger.error(f"File was not created despite no exception: {alongside_path}")
+                            
                     except Exception as e:
                         logger.error(f"Failed to save alongside original: {e}")
+                        logger.error(f"Exception type: {type(e).__name__}")
+                        import traceback
+                        logger.error(f"Traceback: {traceback.format_exc()}")
                     
                     translated_files.append(output_path)
                     with progress_lock:
